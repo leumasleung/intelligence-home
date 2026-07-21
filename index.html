@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <title>LILYGO T5 4.7" (960x540) E-Paper Preview</title>
+    <style>
+        /* 模擬黑白電子墨水屏質感 */
+        body {
+            background-color: #d8d8d8;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* 嚴格限制為 LILYGO T5 4.7 吋 960x540 解析度 (Landscape) */
+        .epaper-screen {
+            width: 960px;
+            height: 540px;
+            background-color: #ffffff;
+            border: 6px solid #000000;
+            box-sizing: border-box;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            color: #000000;
+        }
+
+        /* 頂部 Status Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #000000;
+            padding-bottom: 8px;
+        }
+        .top-bar .title {
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+        .top-bar .update-time {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* 主體三欄/兩欄 Layout */
+        .main-container {
+            display: flex;
+            flex: 1;
+            gap: 16px;
+        }
+
+        /* 左邊區域：Section 1 (巴士) + Section 2 (天氣) */
+        .left-col {
+            flex: 1.15;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* 右邊區域：Section 3 (食品過期) */
+        .right-col {
+            flex: 0.85;
+            border-left: 3px solid #000000;
+            padding-left: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 通用 Section 標題 */
+        .section-header {
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #000000;
+            color: #ffffff;
+            padding: 4px 8px;
+            display: inline-block;
+            margin-bottom: 8px;
+            border-radius: 2px;
+        }
+
+        /* ---------------- Section 1: 巴士卡片 ---------------- */
+        .bus-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .bus-card {
+            border: 2px solid #000000;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+        .bus-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4px;
+        }
+        .bus-route {
+            font-size: 26px;
+            font-weight: 900;
+        }
+        .bus-stop {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333333;
+        }
+        .bus-dest {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+        .bus-eta-row {
+            display: flex;
+            justify-content: flex-start;
+            gap: 12px;
+            align-items: baseline;
+            background-color: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .eta-main {
+            font-size: 32px;
+            font-weight: 900;
+        }
+        .eta-sub {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* ---------------- Section 2: 天氣 ---------------- */
+        .weather-container {
+            border: 2px solid #000000;
+            padding: 8px 12px;
+            border-radius: 4px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .weather-grid {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .weather-item {
+            text-align: center;
+            flex: 1;
+            border-right: 1px dashed #000000;
+            padding-right: 4px;
+        }
+        .weather-item:last-child {
+            border-right: none;
+            padding-right: 0;
+        }
+        .district-name {
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .weather-icon {
+            font-size: 28px;
+            margin: 2px 0;
+        }
+        .temp-text {
+            font-size: 16px;
+            font-weight: 900;
+        }
+        .rh-text {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* ---------------- Section 3: 食物清單 ---------------- */
+        .food-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 4px;
+            flex: 1;
+            overflow: hidden;
+        }
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #000000;
+            padding: 6px 0;
+            font-size: 16px;
+        }
+        .food-name {
+            font-weight: bold;
+            max-width: 170px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .badge {
+            font-size: 13px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #000000;
+        }
+        .badge-danger {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .badge-warning {
+            background-color: #e0e0e0;
+            color: #000000;
+        }
+        .badge-normal {
+            background-color: #ffffff;
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="epaper-screen">
+    <!-- Status Bar -->
+    <div class="top-bar">
+        <div class="title">HOME DASHBOARD</div>
+        <div class="update-time">最後更新: 08:15</div>
+    </div>
+
+    <div class="main-container">
+        <!-- 左欄：Section 1 & Section 2 -->
+        <div class="left-col">
+            
+            <!-- SECTION 1: 巴士到站時間 -->
+            <div>
+                <span class="section-header">🚌 巴士實時到站 (ETA)</span>
+                <div class="bus-container">
+                    
+                    <!-- 680 車站卡片 -->
+                    <div class="bus-card">
+                        <div class="bus-header">
+                            <span class="bus-route">680</span>
+                            <span class="bus-stop">小瀝源草地滾球場</span>
+                        </div>
+                        <div class="bus-dest">往 金鐘站(東)</div>
+                        <div class="bus-eta-row">
+                            <span class="eta-main">3 分鐘</span>
+                            <span class="eta-sub">| 11 分</span>
+                            <span class="eta-sub">| 22 分</span>
+                        </div>
+                    </div>
+
+                    <!-- 682B 車站卡片 -->
+                    <div class="bus-card">
+                        <div class="bus-header">
+                            <span class="bus-route">682B</span>
+                            <span class="bus-stop">第一城站</span>
+                        </div>
+                        <div class="bus-dest">往 柴灣(東)</div>
+                        <div class="bus-eta-row">
+                            <span class="eta-main">8 分鐘</span>
+                            <span class="eta-sub">| 20 分</span>
+                            <span class="eta-sub">| 35 分</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION 2: 地區天氣簡報 -->
+            <div style="flex: 1; display:flex; flex-direction:column;">
+                <span class="section-header">🌤️ 地區天氣簡報</span>
+                <div class="weather-container">
+                    <div class="weather-grid">
+                        
+                        <!-- 沙田 -->
+                        <div class="weather-item">
+                            <div class="district-name">沙田</div>
+                            <div class="weather-icon">☀️</div>
+                            <div class="temp-text">24 - 31°C</div>
+                            <div class="rh-text">相對濕度 75%</div>
+                        </div>
+
+                        <!-- 鰂魚涌 -->
+                        <div class="weather-item">
+                            <div class="district-name">鰂魚涌</div>
+                            <div class="weather-icon">⛅</div>
+                            <div class="temp-text">25 - 30°C</div>
+                            <div class="rh-text">相對濕度 80%</div>
+                        </div>
+
+                        <!-- 天后 -->
+                        <div class="weather-item">
+                            <div class="district-name">天后</div>
+                            <div class="weather-icon">🌧️</div>
+                            <div class="temp-text">25 - 29°C</div>
+                            <div class="rh-text">相對濕度 85%</div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 右欄：Section 3 食品過期清單 -->
+        <div class="right-col">
+            <span class="section-header">🥑 食品過期清單</span>
+            <div class="food-list">
+                
+                <div class="food-item">
+                    <span class="food-name">明治鲜牛奶 (1L)</span>
+                    <span class="badge badge-danger">今天過期</span>
+                </div>
+
+                <div class="food-item">
+                    <span class="food-name">嘉頓切皮方包</span>
+                    <span class="badge badge-warning">剩 1 天</span>
+                </div>
+
+                <div class="food-item">
+                    <span class="food-name">日本新紀元雞蛋</span>
+                    <span class="badge badge-warning">剩 3 天</span>
+                </div>
+
+                <div class="food-item">
+                    <span class="food-name">希臘式優格</span>
+                    <span class="badge badge-normal">剩 5 天</span>
+                </div>
+
+                <div class="food-item">
+                    <span class="food-name">車厘子 (盒裝)</span>
+                    <span class="badge badge-normal">剩 6 天</span>
+                </div>
+
+                <div class="food-item">
+                    <span class="food-name">手工火腿片</span>
+                    <span class="badge badge-normal">剩 8 天</span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
