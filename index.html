@@ -342,7 +342,7 @@
 
 <script>
     // ⚠️ 請記得替換為你實際部署的 Google Apps Script 網頁應用程式 URL
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/YOUR_EXEC_URL_HERE/exec";
 
     async function fetchDashboardData() {
         try {
@@ -370,12 +370,13 @@
         }
     }
 
-    // 渲染巴士 ETA 格式化函式 (標示中文公司名)
+    // 渲染巴士 ETA 格式化函式
     function renderBusEta(elementId, etaArray) {
         const container = document.getElementById(elementId);
 
+        // 若無資料，直接顯示「非服務時間」
         if (!etaArray || etaArray.length === 0) {
-            container.innerHTML = `<span class="eta-sub" style="color: #666;">暫無班次資料</span>`;
+            container.innerHTML = `<span class="eta-sub" style="color: #666;">非服務時間</span>`;
             return;
         }
 
@@ -405,7 +406,7 @@
         });
 
         if (html === "") {
-            html = `<span class="eta-sub" style="color: #666;">暫無班次資料</span>`;
+            html = `<span class="eta-sub" style="color: #666;">非服務時間</span>`;
         }
 
         container.innerHTML = html;
