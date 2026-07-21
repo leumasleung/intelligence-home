@@ -1,243 +1,53 @@
-<!DOCTYPE html>
-<html lang="zh-HK">
-<head>
-    <meta charset="UTF-8">
-    <!-- 自動每 60 秒刷新一次網頁 (雙重保障) -->
-    <meta http-equiv="refresh" content="60">
-    <title>LILYGO T5 4.7" E-Paper Dashboard</title>
-    <style>
-        body {
-            background-color: #d8d8d8;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+// 補助函式：香港天文台天氣 (修正匹配邏輯)
+function getHKOWeather() {
+  var weatherResult = {
+    "shatin": { "temp": "--", "rh": "--", "icon": "☀️" },
+    "quarry_bay": { "temp": "--", "rh": "--", "icon": "☀️" },
+    "tin_hau": { "temp": "--", "rh": "--", "icon": "☀️" }
+  };
+
+  try {
+    var url = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc";
+    var response = UrlFetchApp.fetch(url, {muteHttpExceptions: true});
+    var json = JSON.parse(response.getContentText());
+
+    if (json.temperature && json.temperature.data) {
+      json.temperature.data.forEach(function(item) {
+        // 1. 沙田：直接抓「沙田」
+        if (item.place === "沙田") {
+          weatherResult.shatin.temp = item.value;
         }
-        .epaper-screen {
-            width: 960px;
-            height: 540px;
-            background-color: #ffffff;
-            border: 6px solid #000000;
-            box-sizing: border-box;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            color: #000000;
+        
+        // 2. 鰂魚涌 (東區)：天文台東區站點包含「北角」、「筲箕灣」或「太古城」
+        if (item.place === "北角" || item.place === "筲箕灣" || item.place === "東區") {
+          weatherResult.quarry_bay.temp = item.value;
         }
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 3px solid #000000;
-            padding-bottom: 4px;
+        
+        // 3. 天后 (中西區/灣仔)：天文台近天后站點包含「跑馬地」、「灣仔」、「香港公園」或「中西區」
+        if (item.place === "跑馬地" || item.place === "香港公園" || item.place === "中西區" || item.place === "灣仔") {
+          weatherResult.tin_hau.temp = item.value;
         }
-        .top-bar .title { font-size: 20px; font-weight: 900; letter-spacing: 1px; }
-        .top-bar .update-time { font-size: 15px; font-weight: bold; }
-
-        .main-container { display: flex; flex: 1; gap: 16px; overflow: hidden; }
-        .left-col { flex: 1.15; display: flex; flex-direction: column; gap: 8px; }
-        .right-col { flex: 0.85; border-left: 3px solid #000000; padding-left: 16px; display: flex; flex-direction: column; }
-
-        .section-header {
-            font-size: 16px; font-weight: bold; background-color: #000000;
-            color: #ffffff; padding: 3px 8px; display: inline-block;
-            margin-bottom: 6px; border-radius: 2px;
-        }
-
-        .bus-container { display: flex; flex-direction: column; gap: 6px; }
-        .bus-card { border: 2px solid #000000; padding: 6px 10px; border-radius: 4px; }
-        .bus-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
-        .bus-route { font-size: 24px; font-weight: 900; }
-        .bus-stop { font-size: 13px; font-weight: 600; color: #333333; }
-        .bus-dest { font-size: 13px; font-weight: bold; margin-bottom: 4px; }
-        .bus-eta-row {
-            display: flex; justify-content: flex-start; gap: 10px; align-items: baseline;
-            background-color: #f0f0f0; padding: 2px 8px; border-radius: 4px;
-        }
-        .eta-main { font-size: 28px; font-weight: 900; }
-        .eta-sub { font-size: 16px; font-weight: bold; }
-
-        .weather-container {
-            border: 2px solid #000000; padding: 6px 8px; border-radius: 4px;
-            flex: 1; display: flex; flex-direction: column; justify-content: center;
-        }
-        .weather-grid { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
-        .weather-item { text-align: center; flex: 1; border-right: 1px dashed #000000; padding-right: 2px; }
-        .weather-item:last-child { border-right: none; padding-right: 0; }
-        .district-name { font-size: 12px; font-weight: bold; }
-        .weather-icon { font-size: 22px; margin: 2px 0; }
-        .temp-text { font-size: 15px; font-weight: 900; }
-        .rh-text { font-size: 12px; font-weight: 600; }
-
-        .food-list { display: flex; flex-direction: column; gap: 4px; margin-top: 2px; flex: 1; }
-        .food-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #000000; padding: 5px 0; font-size: 15px; }
-        .food-name { font-weight: bold; max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .badge { font-size: 12px; font-weight: bold; padding: 2px 6px; border-radius: 3px; border: 1px solid #000000; }
-        .badge-danger { background-color: #000000; color: #ffffff; }
-        .badge-warning { background-color: #e0e0e0; color: #000000; }
-        .badge-normal { background-color: #ffffff; color: #000000; }
-    </style>
-</head>
-<body>
-
-<div class="epaper-screen">
-    <div class="top-bar">
-        <div class="title">HOME DASHBOARD</div>
-        <div class="update-time" id="update-time">最後更新: --:--</div>
-    </div>
-
-    <div class="main-container">
-        <div class="left-col">
-            <!-- SECTION 1: 巴士 ETA -->
-            <div>
-                <span class="section-header">🚌 巴士實時到站 (ETA)</span>
-                <div class="bus-container">
-                    <!-- 680 -->
-                    <div class="bus-card">
-                        <div class="bus-header">
-                            <span class="bus-route">680</span>
-                            <span class="bus-stop">小瀝源草地滾球場</span>
-                        </div>
-                        <div class="bus-dest">往 金鐘站(東)</div>
-                        <div class="bus-eta-row" id="eta-680">載入中...</div>
-                    </div>
-                    <!-- 682B -->
-                    <div class="bus-card">
-                        <div class="bus-header">
-                            <span class="bus-route">682B</span>
-                            <span class="bus-stop">第一城站，插桅杆街</span>
-                        </div>
-                        <div class="bus-dest">往 柴灣(東)</div>
-                        <div class="bus-eta-row" id="eta-682B">載入中...</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECTION 2: 天氣 -->
-            <div style="flex: 1; display:flex; flex-direction:column;">
-                <span class="section-header">🌤️ 地區天氣簡報</span>
-                <div class="weather-container">
-                    <div class="weather-grid">
-                        <div class="weather-item">
-                            <div class="district-name">沙田</div>
-                            <div class="weather-icon" id="shatin-icon">☀️</div>
-                            <div class="temp-text" id="shatin-temp">--°C</div>
-                            <div class="rh-text" id="shatin-rh">相對濕度 --%</div>
-                        </div>
-                        <div class="weather-item">
-                            <div class="district-name">鰂魚涌 (東區)</div>
-                            <div class="weather-icon" id="qb-icon">☀️</div>
-                            <div class="temp-text" id="qb-temp">--°C</div>
-                            <div class="rh-text" id="qb-rh">相對濕度 --%</div>
-                        </div>
-                        <div class="weather-item">
-                            <div class="district-name">天后 (中西區)</div>
-                            <div class="weather-icon" id="th-icon">☀️</div>
-                            <div class="temp-text" id="th-temp">--°C</div>
-                            <div class="rh-text" id="th-rh">相對濕度 --%</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 3: 食物清單 -->
-        <div class="right-col">
-            <span class="section-header">🥑 食品過期清單</span>
-            <div class="food-list" id="food-list">載入中...</div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // 請確認下方填入的是你正確的 GAS Web App URL
-    const API_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
-
-    function fetchDashboardData() {
-        fetch(API_URL)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    // 1. 更新頂部時間
-                    document.getElementById("update-time").innerText = "最後更新: " + data.updated_at;
-
-                    // 2. 更新 680 ETA
-                    renderBusEta("eta-680", data.bus.bus_680);
-
-                    // 3. 更新 682B ETA
-                    renderBusEta("eta-682B", data.bus.bus_682B);
-
-                    // 4. 更新天氣
-                    document.getElementById("shatin-temp").innerText = data.weather.shatin.temp + "°C";
-                    document.getElementById("shatin-rh").innerText = "相對濕度 " + data.weather.shatin.rh + "%";
-                    document.getElementById("shatin-icon").innerText = data.weather.shatin.icon;
-
-                    document.getElementById("qb-temp").innerText = data.weather.quarry_bay.temp + "°C";
-                    document.getElementById("qb-rh").innerText = "相對濕度 " + data.weather.quarry_bay.rh + "%";
-                    document.getElementById("qb-icon").innerText = data.weather.quarry_bay.icon;
-
-                    document.getElementById("th-temp").innerText = data.weather.tin_hau.temp + "°C";
-                    document.getElementById("th-rh").innerText = "相對濕度 " + data.weather.tin_hau.rh + "%";
-                    document.getElementById("th-icon").innerText = data.weather.tin_hau.icon;
-
-                    // 5. 更新食物清單
-                    renderFoodList(data.food);
-                }
-            })
-            .catch(err => console.error("Fetch Error:", err));
+      });
     }
 
-    function renderBusEta(elementId, etaArray) {
-        const container = document.getElementById(elementId);
-        const validEtas = etaArray.filter(min => min >= 0);
-
-        if (validEtas.length === 0) {
-            container.innerHTML = `<span class="eta-sub" style="color: #666;">暫無班次資料</span>`;
-        } else {
-            let html = `<span class="eta-main">${validEtas[0]} 分鐘</span>`;
-            if (validEtas[1] !== undefined) html += `<span class="eta-sub">| ${validEtas[1]} 分</span>`;
-            if (validEtas[2] !== undefined) html += `<span class="eta-sub">| ${validEtas[2]} 分</span>`;
-            container.innerHTML = html;
-        }
+    // 濕度取全港平均
+    if (json.humidity && json.humidity.data && json.humidity.data.length > 0) {
+      var mainRh = json.humidity.data[0].value;
+      weatherResult.shatin.rh = mainRh;
+      weatherResult.quarry_bay.rh = mainRh;
+      weatherResult.tin_hau.rh = mainRh;
     }
 
-    function renderFoodList(foods) {
-        const container = document.getElementById("food-list");
-        if (!foods || foods.length === 0) {
-            container.innerHTML = `<div class="food-item"><span>無即將過期食品</span></div>`;
-            return;
-        }
+    // 天氣圖示
+    var iconCode = (json.icon && json.icon.length > 0) ? json.icon[0] : 50;
+    var simpleIcon = mapHKOIcon(iconCode);
+    weatherResult.shatin.icon = simpleIcon;
+    weatherResult.quarry_bay.icon = simpleIcon;
+    weatherResult.tin_hau.icon = simpleIcon;
 
-        let html = "";
-        foods.forEach(item => {
-            let badgeClass = "badge-normal";
-            let badgeText = `剩 ${item.days_left} 天`;
+  } catch (e) {
+    console.log("Weather API Error: " + e);
+  }
 
-            if (item.days_left <= 0) {
-                badgeClass = "badge-danger";
-                badgeText = item.days_left === 0 ? "今天過期" : `已過期 ${Math.abs(item.days_left)} 天`;
-            } else if (item.days_left <= 2) {
-                badgeClass = "badge-warning";
-            }
-
-            html += `
-                <div class="food-item">
-                    <span class="food-name">${item.name}</span>
-                    <span class="badge ${badgeClass}">${badgeText}</span>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    }
-
-    // 首次載入時抓取數據
-    fetchDashboardData();
-
-    // 每 60 秒自動抓取更新一次
-    setInterval(fetchDashboardData, 60000);
-</script>
-</body>
-</html>
+  return weatherResult;
+}
