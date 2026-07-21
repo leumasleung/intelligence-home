@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>食品管理系統</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #f4f4f4;
+            padding: 12px;
+            color: #000;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 4px solid #000;
+            background-color: #fff;
+            padding: 16px;
+            box-shadow: 6px 6px 0px #000;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 900;
+            border-bottom: 4px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+        }
+
+        /* 表單區域 */
+        .form-box {
+            border: 2px solid #000;
+            padding: 12px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+
+        .form-box h2 {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #000;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: 2px solid #000;
+            background-color: #000;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #888;
+            border-radius: 4px;
+        }
+
+        button:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px #888;
+        }
+
+        button.cancel-btn {
+            background-color: #fff;
+            color: #000;
+        }
+
+        /* 列表區域 */
+        .list-box {
+            border: 2px solid #000;
+        }
+
+        .list-header {
+            background-color: #000;
+            color: #fff;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #000;
+        }
+
+        .food-item:last-child {
+            border-bottom: none;
+        }
+
+        .food-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .food-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .food-date {
+            font-size: 12px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .food-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            box-shadow: none;
+        }
+
+        .edit-btn {
+            background-color: #fff;
+            color: #000;
+        }
+
+        .delete-btn {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .loading-overlay {
+            text-align: center;
+            padding: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🥑 食品庫存管理</h1>
+
+    <!-- 新增 / 編輯表單 -->
+    <div class="form-box">
+        <h2 id="form-title">新增食品</h2>
+        <input type="hidden" id="edit-row-index" value="">
+        
+        <div class="input-group">
+            <label for="food-name">食品名稱</label>
+            <input type="text" id="food-name" placeholder="例如：牛奶、吐司">
+        </div>
+
+        <div class="input-group">
+            <label for="food-expiry">到期日</label>
+            <input type="date" id="food-expiry">
+        </div>
+
+        <div class="btn-group">
+            <button id="save-btn" onclick="saveFood()">新增紀錄</button>
+            <button id="cancel-btn" class="cancel-btn" onclick="resetForm()" style="display:none;">取消編輯</button>
+        </div>
+    </div>
+
+    <!-- 食品列表 -->
+    <div class="list-box">
+        <div class="list-header">現有食品清單</div>
+        <div id="food-list" class="loading-overlay">載入中...</div>
+    </div>
+</div>
+
+<script>
+    // ⚠️ 請替換為你部署的 Google Apps Script 網頁應用程式 URL
+    const GAS_API_URL = "https://script.google.com/macros/s/YOUR_EXEC_URL_HERE/exec";
+
+    let allFoodData = [];
+
+    // 初始化頁面
+    async function loadFoodData() {
+        const listContainer = document.getElementById("food-list");
+        listContainer.innerHTML = '<div class="loading-overlay">載入數據中...</div>';
+
+        try {
+            const response = await fetch(GAS_API_URL);
+            const data = await response.json();
+
+            if (data.status === "success") {
+                allFoodData = data.all_food || [];
+                renderList();
+            }
+        } catch (error) {
+            alert("載入失敗，請檢查網絡或 API 網址");
+            console.error(error);
+        }
+    }
+
+    // 渲染列表
+    function renderList() {
+        const listContainer = document.getElementById("food-list");
+
+        if (allFoodData.length === 0) {
+            listContainer.innerHTML = '<div class="loading-overlay">目前沒有任何食物紀錄</div>';
+            return;
+        }
+
+        let html = "";
+        allFoodData.forEach(item => {
+            let daysText = item.days_left < 0 ? `已過期 ${Math.abs(item.days_left)} 天` : (item.days_left === 0 ? "今日到期" : `剩 ${item.days_left} 天`);
+            
+            html += `
+                <div class="food-item">
+                    <div class="food-info">
+                        <span class="food-name">${escapeHtml(item.name)}</span>
+                        <span class="food-date">到期日: ${item.expiry} (${daysText})</span>
+                    </div>
+                    <div class="food-actions">
+                        <button class="action-btn edit-btn" onclick="startEdit(${item.rowIndex})">編輯</button>
+                        <button class="action-btn delete-btn" onclick="deleteFood(${item.rowIndex})">刪除</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        listContainer.innerHTML = html;
+    }
+
+    // 新增或修改
+    async function saveFood() {
+        const name = document.getElementById("food-name").value.trim();
+        const expiry = document.getElementById("food-expiry").value;
+        const rowIndex = document.getElementById("edit-row-index").value;
+
+        if (!name || !expiry) {
+            alert("請填寫食品名稱與到期日！");
+            return;
+        }
+
+        const action = rowIndex ? "edit" : "add";
+        const payload = {
+            action: action,
+            name: name,
+            expiry: expiry,
+            rowIndex: parseInt(rowIndex)
+        };
+
+        setLoading(true);
+
+        try {
+            await fetch(GAS_API_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+
+            resetForm();
+            await loadFoodData();
+        } catch (error) {
+            alert("操作失敗！");
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // 開始編輯模式
+    function startEdit(rowIndex) {
+        const item = allFoodData.find(f => f.rowIndex === rowIndex);
+        if (!item) return;
+
+        document.getElementById("form-title").textContent = "編輯食品";
+        document.getElementById("food-name").value = item.name;
+        document.getElementById("food-expiry").value = item.expiry;
+        document.getElementById("edit-row-index").value = item.rowIndex;
+
+        document.getElementById("save-btn").textContent = "更新紀錄";
+        document.getElementById("cancel-btn").style.display = "inline-block";
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 刪除紀錄
+    async function deleteFood(rowIndex) {
+        if (!confirm("確定要刪除這筆食品紀錄嗎？")) return;
+
+        setLoading(true);
+
+        try {
+            await fetch(GAS_API_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "delete",
+                    rowIndex: rowIndex
+                })
+            });
+
+            await loadFoodData();
+        } catch (error) {
+            alert("刪除失敗！");
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // 重設表單
+    function resetForm() {
+        document.getElementById("form-title").textContent = "新增食品";
+        document.getElementById("food-name").value = "";
+        document.getElementById("food-expiry").value = "";
+        document.getElementById("edit-row-index").value = "";
+
+        document.getElementById("save-btn").textContent = "新增紀錄";
+        document.getElementById("cancel-btn").style.display = "none";
+    }
+
+    function setLoading(isLoading) {
+        const btn = document.getElementById("save-btn");
+        btn.disabled = isLoading;
+        btn.textContent = isLoading ? "處理中..." : (document.getElementById("edit-row-index").value ? "更新紀錄" : "新增紀錄");
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+        });
+    }
+
+    loadFoodData();
+</script>
+
+</body>
+</html>
