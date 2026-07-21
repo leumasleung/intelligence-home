@@ -18,7 +18,6 @@
             color: #000;
         }
 
-        /* 儀表板主容器 (黑白粗邊框風格) */
         .dashboard {
             max-width: 1000px;
             margin: 0 auto;
@@ -28,7 +27,6 @@
             box-shadow: 6px 6px 0px #000;
         }
 
-        /* 頂部標題列 */
         .header {
             display: flex;
             justify-content: space-between;
@@ -50,7 +48,6 @@
             font-weight: bold;
         }
 
-        /* 主網格佈局 (左欄: 巴士+天氣, 右欄: 食物清單) */
         .main-grid {
             display: grid;
             grid-template-columns: 1.4fr 1fr;
@@ -63,7 +60,6 @@
             }
         }
 
-        /* 區塊容器 */
         .section-box {
             border: 2px solid #000;
             margin-bottom: 16px;
@@ -88,7 +84,6 @@
             padding: 12px;
         }
 
-        /* 巴士卡片 */
         .bus-card {
             border: 2px solid #000;
             border-radius: 6px;
@@ -157,7 +152,6 @@
             margin-right: 4px;
         }
 
-        /* 天氣網格 */
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -201,7 +195,6 @@
             margin-top: 4px;
         }
 
-        /* 食物過期清單 */
         .food-item {
             display: flex;
             justify-content: space-between;
@@ -237,26 +230,18 @@
 <body>
 
 <div class="dashboard">
-    <!-- 頁眉 -->
     <div class="header">
         <h1>Home Dashboard</h1>
         <div class="last-updated">最後更新: <span id="updated-at">--:--</span></div>
     </div>
 
-    <!-- 主內容區塊 -->
     <div class="main-grid">
-        
-        <!-- 左欄：巴士 ETA & 地區天氣 -->
         <div class="left-column">
-            
-            <!-- 巴士過海/即時到站 -->
             <div class="section-box">
                 <div class="section-header">
                     <span>🚌 巴士實時到站 (ETA)</span>
                 </div>
                 <div class="section-body">
-                    
-                    <!-- 680 巴士 -->
                     <div class="bus-card">
                         <div class="bus-header">
                             <div>
@@ -270,7 +255,6 @@
                         </div>
                     </div>
 
-                    <!-- 682B 巴士 -->
                     <div class="bus-card">
                         <div class="bus-header">
                             <div>
@@ -283,19 +267,15 @@
                             載入中...
                         </div>
                     </div>
-
                 </div>
             </div>
 
-            <!-- 地區天氣簡報 -->
             <div class="section-box">
                 <div class="section-header">
                     <span>⛅ 地區天氣簡報</span>
                 </div>
                 <div class="section-body">
                     <div class="weather-grid">
-                        
-                        <!-- 沙田 -->
                         <div class="weather-col">
                             <div class="weather-location">沙田</div>
                             <div class="weather-icon" id="shatin-icon">☀️</div>
@@ -303,7 +283,6 @@
                             <div class="weather-rh">相對濕度 <span id="shatin-rh">--</span>%</div>
                         </div>
 
-                        <!-- 鰂魚涌 (東區) -->
                         <div class="weather-col">
                             <div class="weather-location">鰂魚涌 (東區)</div>
                             <div class="weather-icon" id="quarry-icon">☀️</div>
@@ -311,21 +290,17 @@
                             <div class="weather-rh">相對濕度 <span id="quarry-rh">--</span>%</div>
                         </div>
 
-                        <!-- 天后 (中西區) -->
                         <div class="weather-col">
                             <div class="weather-location">天后 (中西區)</div>
                             <div class="weather-icon" id="tinhau-icon">☀️</div>
                             <div class="weather-temp"><span id="tinhau-temp">--</span>°C</div>
                             <div class="weather-rh">相對濕度 <span id="tinhau-rh">--</span>%</div>
                         </div>
-
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- 右欄：食品過期清單 -->
         <div class="right-column">
             <div class="section-box">
                 <div class="section-header">
@@ -336,13 +311,11 @@
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
 <script>
-    // ⚠️ 請記得替換為你實際部署的 Google Apps Script 網頁應用程式 URL
-    const GAS_API_URL = "https://script.google.com/macros/s/YOUR_EXEC_URL_HERE/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
 
     async function fetchDashboardData() {
         try {
@@ -350,19 +323,15 @@
             const data = await response.json();
 
             if (data.status === "success") {
-                // 1. 更新最後更新時間
                 document.getElementById("updated-at").textContent = data.updated_at || "--:--";
 
-                // 2. 渲染巴士 ETA
                 renderBusEta("eta-680", data.bus.bus_680);
                 renderBusEta("eta-682B", data.bus.bus_682B);
 
-                // 3. 渲染地區天氣
                 renderWeather("shatin", data.weather.shatin);
                 renderWeather("quarry", data.weather.quarry_bay);
                 renderWeather("tinhau", data.weather.tin_hau);
 
-                // 4. 渲染食物清單
                 renderFoodList(data.food);
             }
         } catch (error) {
@@ -370,11 +339,9 @@
         }
     }
 
-    // 渲染巴士 ETA 格式化函式
     function renderBusEta(elementId, etaArray) {
         const container = document.getElementById(elementId);
 
-        // 若無資料，直接顯示「非服務時間」
         if (!etaArray || etaArray.length === 0) {
             container.innerHTML = `<span class="eta-sub" style="color: #666;">非服務時間</span>`;
             return;
@@ -391,7 +358,6 @@
                     let coName = item.co;
                     if (coName === "CTB") coName = "城巴";
                     if (coName === "KMB") coName = "九巴";
-
                     coBadge = `<span class="co-badge">${coName}</span>`;
                 }
             }
@@ -412,16 +378,13 @@
         container.innerHTML = html;
     }
 
-    // 渲染天氣資訊
     function renderWeather(prefix, weatherObj) {
         if (!weatherObj) return;
-        
         document.getElementById(`${prefix}-temp`).textContent = weatherObj.temp || "--";
         document.getElementById(`${prefix}-rh`).textContent = weatherObj.rh || "--";
         document.getElementById(`${prefix}-icon`).textContent = weatherObj.icon || "☀️";
     }
 
-    // 渲染食品清單
     function renderFoodList(foodArray) {
         const container = document.getElementById("food-list-container");
 
@@ -455,7 +418,6 @@
         container.innerHTML = html;
     }
 
-    // 初始化載入數據，並設定每 60 秒自動刷新一次
     fetchDashboardData();
     setInterval(fetchDashboardData, 60000);
 </script>
