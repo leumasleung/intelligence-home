@@ -519,7 +519,7 @@
         container.innerHTML = html;
     }
 
-    // 渲染提醒事項 (改為 X 天後到期)
+    // 渲染提醒事項 (改為 X 天後跟進)
     function renderRemind(remindData) {
         const container = document.getElementById("remind-list-container");
 
@@ -560,8 +560,8 @@
             } else if (daysLeft === 0) {
                 statusBadge = "今日到期";
             } else {
-                // ✅ 改為「X 天後到期」
-                statusBadge = `${daysLeft} 天後到期`;
+                // ✅ 改為「X 天後跟進」
+                statusBadge = `${daysLeft} 天後跟進`;
             }
 
             const titleText = item.title || item.name || "未命名事項";
