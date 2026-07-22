@@ -17,6 +17,7 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       background: #ffffff;
       overflow: hidden;
+      min-height: 280px;
     }
     .bus-chip {
       background-color: #f8f9fa;
@@ -33,13 +34,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
     }
     .photo-container img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: opacity 0.5s ease-in-out;
     }
     .photo-badge {
       position: absolute;
@@ -59,9 +58,47 @@
   <div class="container-fluid">
     <div class="row g-3">
       
-      <!-- 右下 Module 4: 動態切換 (06:00-10:00 巴士 / 其他時間 相片) -->
+      <!-- Module 1: 當日天氣與警報 -->
       <div class="col-12 col-md-6">
-        <div class="card card-module h-100" style="min-height: 280px;">
+        <div class="card card-module p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold fs-6">🌤️ 即時天氣 (香港天文台)</span>
+            <span class="badge bg-secondary" id="weather-update">更新中...</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-around my-auto">
+            <div class="display-4 fw-bold" id="weather-temp">--°C</div>
+            <div id="weather-icon" style="font-size: 3rem;">☀️</div>
+          </div>
+          <div class="mt-2 text-muted small" id="weather-warning">警告訊號：無</div>
+        </div>
+      </div>
+
+      <!-- Module 2: 食物清單 / 備忘 -->
+      <div class="col-12 col-md-6">
+        <div class="card card-module p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold fs-6">🍱 食物清單 & 庫存</span>
+            <span class="badge bg-success">即時同步</span>
+          </div>
+          <div id="food-list-container" class="mt-2">
+            <ul class="list-group list-group-flush" id="food-list">
+              <li class="list-group-item px-0 text-muted">載入清單中...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module 3: 備用 / 個人自訂區 -->
+      <div class="col-12 col-md-6">
+        <div class="card card-module p-3 d-flex flex-column justify-content-center align-items-center text-center">
+          <h5 class="fw-bold text-secondary">📌 個人提醒事項</h5>
+          <p class="text-muted small">保持規律生活，記得多飲水！</p>
+        </div>
+      </div>
+
+      <!-- Module 4: 動態時段切換 (06:00-10:00 巴士 / 其他時間 相片) -->
+      <div class="col-12 col-md-6">
+        <div class="card card-module">
           
           <!-- A. 巴士 UI (06:00 - 10:00) -->
           <div id="bus-module-ui" style="display: none;" class="p-3 flex-column h-100 justify-content-between">
@@ -72,7 +109,6 @@
               </div>
 
               <div id="bus-data-container">
-                <!-- 680 路線 -->
                 <div class="bus-chip">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="fw-bold text-danger">680 <small class="text-muted fw-normal">(小瀝源草地滾球場)</small></span>
@@ -81,7 +117,6 @@
                   <div class="fs-5 fw-bold text-dark" id="eta-680-min">載入中...</div>
                 </div>
 
-                <!-- 682B 路線 -->
                 <div class="bus-chip">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="fw-bold text-primary">682B <small class="text-muted fw-normal">(城巴)</small></span>
@@ -108,20 +143,63 @@
   </div>
 
   <script>
-    // 🔗 請確認這是你最新發佈的 GAS Web App URL
+    // 🔗 請替換為你發布的 GAS Web App 部署網址
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
 
     // --------------------------------------------------
-    // 1. 時間判斷與模組切換邏輯 (嚴格控制 display 樣式)
+    // 1. 初始化與全域數據獲取
+    // --------------------------------------------------
+    document.addEventListener("DOMContentLoaded", function() {
+      fetchWeatherData();
+      fetchFoodData();
+      checkAndToggleModule();
+
+      setInterval(checkAndToggleModule, 60 * 1000);
+      setInterval(function() {
+        var hour = new Date().getHours();
+        if (hour >= 6 && hour < 10) fetchBusData();
+      }, 30 * 1000);
+
+      setInterval(function() {
+        var hour = new Date().getHours();
+        if (hour < 6 || hour >= 10) fetchRandomPhoto();
+      }, 10 * 60 * 1000);
+    });
+
+    // --------------------------------------------------
+    // 2. 天氣 & 食物 API 呼叫 (Module 1 & 2)
+    // --------------------------------------------------
+    function fetchWeatherData() {
+      fetch(GAS_WEB_APP_URL + "?action=getWeather")
+        .then(res => res.json())
+        .then(data => {
+          if(data && data.temp) {
+            document.getElementById("weather-temp").innerText = data.temp + "°C";
+            document.getElementById("weather-warning").innerText = "警告： " + (data.warning || "無");
+            document.getElementById("weather-update").innerText = "已更新";
+          }
+        }).catch(err => console.log("Weather err:", err));
+    }
+
+    function fetchFoodData() {
+      fetch(GAS_WEB_APP_URL + "?action=getFood")
+        .then(res => res.json())
+        .then(data => {
+          if(Array.isArray(data)) {
+            var html = data.map(item => `<li class="list-group-item px-0 d-flex justify-content-between align-items-center"><span>${item.name}</span><span class="badge bg-light text-dark">${item.qty || ''}</span></li>`).join('');
+            document.getElementById("food-list").innerHTML = html || '<li class="list-group-item px-0 text-muted">無項目</li>';
+          }
+        }).catch(err => console.log("Food err:", err));
+    }
+
+    // --------------------------------------------------
+    // 3. Module 4: 巴士 / 相片動態切換
     // --------------------------------------------------
     function checkAndToggleModule() {
-      var now = new Date();
-      var currentHour = now.getHours(); // 0 至 23
-
+      var currentHour = new Date().getHours();
       var busUI = document.getElementById("bus-module-ui");
       var photoUI = document.getElementById("photo-module-ui");
 
-      // 判定 06:00 至 09:59 顯示巴士，其他時間顯示相片
       if (currentHour >= 6 && currentHour < 10) {
         busUI.style.setProperty("display", "flex", "important");
         photoUI.style.setProperty("display", "none", "important");
@@ -137,93 +215,49 @@
       }
     }
 
-    // --------------------------------------------------
-    // 2. Fetch 巴士數據
-    // --------------------------------------------------
     function fetchBusData() {
       fetch(GAS_WEB_APP_URL + "?action=getBus")
-        .then(response => response.json())
-        .then(data => renderBusData(data))
-        .catch(err => console.error("Bus Fetch Fail:", err));
-    }
+        .then(res => res.json())
+        .then(data => {
+          if (!data) return;
+          var nowStr = new Date().toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
+          document.getElementById("bus-update-time").innerText = nowStr + " 更新";
 
-    function renderBusData(data) {
-      if (!data) return;
-
-      var nowStr = new Date().toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById("bus-update-time").innerText = nowStr + " 更新";
-
-      // 680
-      if (data["680"] && data["680"].length > 0) {
-        var eta680Text = data["680"].map(item => item.min + " 分鐘 (" + item.co + ")").join(" / ");
-        document.getElementById("eta-680-min").innerText = eta680Text;
-      } else {
-        document.getElementById("eta-680-min").innerText = "暫無班次";
-      }
-
-      // 682B
-      if (data["682B"] && data["682B"].length > 0) {
-        var eta682bText = data["682B"].map(item => item.min + " 分鐘").join(" / ");
-        document.getElementById("eta-682b-min").innerText = eta682bText;
-      } else {
-        document.getElementById("eta-682b-min").innerText = "暫無班次";
-      }
-    }
-
-    // --------------------------------------------------
-    // 3. Fetch 隨機相片
-    // --------------------------------------------------
-    function fetchRandomPhoto() {
-      var loadingText = document.getElementById("photo-loading-text");
-      if (loadingText) loadingText.innerText = "相片載入中...";
-
-      fetch(GAS_WEB_APP_URL + "?action=getPhoto")
-        .then(response => response.json())
-        .then(res => {
-          if (res && res.success && res.imageUrl) {
-            var img = document.getElementById("dashboard-photo");
-            
-            // 預載圖片成功後才顯示，避免破圖
-            var tempImg = new Image();
-            tempImg.src = res.imageUrl;
-            tempImg.onload = function() {
-              img.src = res.imageUrl;
-              img.style.display = "block";
-              if (loadingText) loadingText.style.display = "none";
-            };
-            tempImg.onerror = function() {
-              if (loadingText) loadingText.innerText = "相片載入失敗，等待下次刷新";
-            };
+          if (data["680"] && data["680"].length > 0) {
+            document.getElementById("eta-680-min").innerText = data["680"].map(i => i.min + " 分鐘 (" + i.co + ")").join(" / ");
+          } else {
+            document.getElementById("eta-680-min").innerText = "暫無班次";
           }
-        })
-        .catch(err => {
-          console.error("Photo Fetch Fail:", err);
-          var loadingText = document.getElementById("photo-loading-text");
-          if (loadingText) loadingText.innerText = "無法連接相片服務";
+
+          if (data["682B"] && data["682B"].length > 0) {
+            document.getElementById("eta-682b-min").innerText = data["682B"].map(i => i.min + " 分鐘").join(" / ");
+          } else {
+            document.getElementById("eta-682b-min").innerText = "暫無班次";
+          }
         });
     }
 
-    // --------------------------------------------------
-    // 4. 定時器與初始化
-    // --------------------------------------------------
-    document.addEventListener("DOMContentLoaded", function() {
-      checkAndToggleModule();
+    function fetchRandomPhoto() {
+      var loadingText = document.getElementById("photo-loading-text");
+      var img = document.getElementById("dashboard-photo");
 
-      // 每 1 分鐘檢查一次時段切換
-      setInterval(checkAndToggleModule, 60 * 1000);
-
-      // 06:00-10:00 期間每 30 秒更新巴士
-      setInterval(function() {
-        var hour = new Date().getHours();
-        if (hour >= 6 && hour < 10) fetchBusData();
-      }, 30 * 1000);
-
-      // 其他時間每 10 分鐘刷新相片
-      setInterval(function() {
-        var hour = new Date().getHours();
-        if (hour < 6 || hour >= 10) fetchRandomPhoto();
-      }, 10 * 60 * 1000);
-    });
+      fetch(GAS_WEB_APP_URL + "?action=getPhoto")
+        .then(res => res.json())
+        .then(res => {
+          if (res && res.success && res.imageUrl) {
+            img.onload = function() {
+              img.style.display = "block";
+              if (loadingText) loadingText.style.display = "none";
+            };
+            img.src = res.imageUrl;
+          } else {
+            if (loadingText) loadingText.innerText = "相片目錄為空";
+          }
+        })
+        .catch(err => {
+          if (loadingText) loadingText.innerText = "連線失敗，請檢查權限";
+        });
+    }
   </script>
 </body>
 </html>
