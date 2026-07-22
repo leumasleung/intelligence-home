@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard 後台管理系統</title>
 
+    <!-- App Icon & PWA 設定 -->
     <link rel="icon" type="image/png" href="food-manage.png">
     <link rel="apple-touch-icon" href="food-manage.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -31,14 +32,20 @@
             font-weight: bold; border-radius: 4px; outline: none; background-color: #fff;
             -webkit-appearance: none; appearance: none;
         }
+        
+        /* 解決 iOS/Android 日期選擇器突出框溢出問題 */
         input[type="date"] { position: relative; min-height: 40px; }
-        input[type="date"]::-webkit-calendar-picker-indicator { background: transparent; bottom: 0; color: transparent; cursor: pointer; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; }
+        input[type="date"]::-webkit-calendar-picker-indicator { 
+            background: transparent; bottom: 0; color: transparent; cursor: pointer; 
+            height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; 
+        }
 
         .btn-group { display: flex; gap: 8px; }
         button { padding: 10px 16px; border: 2px solid #000; background-color: #000; color: #fff; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 2px 2px 0px #888; border-radius: 4px; }
         button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px #888; }
         button.cancel-btn { background-color: #fff; color: #000; }
 
+        /* 列表區域 */
         .list-box { border: 2px solid #000; }
         .list-header { background-color: #000; color: #fff; padding: 8px 12px; font-weight: bold; font-size: 15px; }
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #000; }
@@ -131,7 +138,7 @@
 
     async function loadAllData() {
         try {
-            const res = await fetch(GAS_API_URL);
+            const res = await fetch(GAS_API_URL, { redirect: "follow" });
             const data = await res.json();
             if (data.status === "success") {
                 globalData.food = data.all_food || [];
@@ -140,19 +147,20 @@
                 renderRemindList();
             }
         } catch (e) {
-            alert("資料載入失敗！");
+            alert("資料載入失敗，請檢查網絡設定！");
+            console.error(e);
         }
     }
 
     /* --- 食品 Logic --- */
     function renderFoodList() {
         const box = document.getElementById("food-list");
-        if (!globalData.food.length) { box.innerHTML = '<div class="loading-overlay">無食品資料</div>'; return; }
+        if (!globalData.food.length) { box.innerHTML = '<div class="loading-overlay">目前沒有食品資料</div>'; return; }
         box.innerHTML = globalData.food.map(item => `
             <div class="item-row">
                 <div class="item-info">
                     <span class="item-title">${escapeHtml(item.name)}</span>
-                    <span class="item-sub">到期日: ${item.expiry} (剩 ${item.days_left} 天)</span>
+                    <span class="item-sub">到期日: ${item.expiry} (${item.days_left < 0 ? '已過期 ' + Math.abs(item.days_left) + ' 天' : '剩 ' + item.days_left + ' 天'})</span>
                 </div>
                 <div style="display:flex; gap:6px;">
                     <button class="action-btn edit-btn" onclick="editFood(${item.rowIndex})">編輯</button>
@@ -166,9 +174,9 @@
         const name = document.getElementById("food-name").value.trim();
         const expiry = document.getElementById("food-expiry").value;
         const row = document.getElementById("food-edit-row").value;
-        if (!name || !expiry) return alert("請填寫食品與到期日");
+        if (!name || !expiry) return alert("請填寫食品名稱與到期日！");
 
-        await sendApi({ type: "food", action: row ? "edit" : "add", name, expiry, rowIndex: parseInt(row) });
+        await sendApi({ type: "food", action: row ? "edit" : "add", name: name, expiry: expiry, rowIndex: parseInt(row) });
         resetFoodForm();
         loadAllData();
     }
@@ -182,6 +190,7 @@
         document.getElementById("food-form-title").textContent = "編輯食品";
         document.getElementById("food-save-btn").textContent = "更新紀錄";
         document.getElementById("food-cancel-btn").style.display = "inline-block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function resetFoodForm() {
@@ -196,7 +205,7 @@
     /* --- 提醒事項 Logic --- */
     function renderRemindList() {
         const box = document.getElementById("remind-list");
-        if (!globalData.remind.length) { box.innerHTML = '<div class="loading-overlay">無提醒事項</div>'; return; }
+        if (!globalData.remind.length) { box.innerHTML = '<div class="loading-overlay">目前沒有提醒事項</div>'; return; }
         box.innerHTML = globalData.remind.map(item => `
             <div class="item-row">
                 <div class="item-info">
@@ -216,9 +225,9 @@
         const due = document.getElementById("remind-due").value;
         const follow = document.getElementById("remind-follow").value;
         const row = document.getElementById("remind-edit-row").value;
-        if (!title || !due || !follow) return alert("請填寫所有欄位！");
+        if (!title || !due || !follow) return alert("請完整填寫事項名稱、到期日與開始跟進日！");
 
-        await sendApi({ type: "remind", action: row ? "edit" : "add", title, due_date: due, follow_date: follow, rowIndex: parseInt(row) });
+        await sendApi({ type: "remind", action: row ? "edit" : "add", title: title, due_date: due, follow_date: follow, rowIndex: parseInt(row) });
         resetRemindForm();
         loadAllData();
     }
@@ -233,6 +242,7 @@
         document.getElementById("remind-form-title").textContent = "編輯提醒";
         document.getElementById("remind-save-btn").textContent = "更新提醒";
         document.getElementById("remind-cancel-btn").style.display = "inline-block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function resetRemindForm() {
@@ -248,19 +258,25 @@
     /* --- 通用刪除與 API 傳送 --- */
     async function deleteItem(type, row) {
         if (!confirm("確定要刪除這筆紀錄嗎？")) return;
-        await sendApi({ type, action: "delete", rowIndex: row });
+        await sendApi({ type: type, action: "delete", rowIndex: row });
         loadAllData();
     }
 
     async function sendApi(payload) {
         try {
-            await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) });
+            await fetch(GAS_API_URL, { 
+                method: "POST", 
+                body: JSON.stringify(payload) 
+            });
         } catch (e) {
-            alert("操作失敗！");
+            alert("操作失敗，請檢查網絡連線！");
+            console.error(e);
         }
     }
 
-    function escapeHtml(str) { return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m])); }
+    function escapeHtml(str) { 
+        return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m])); 
+    }
 
     loadAllData();
 </script>
