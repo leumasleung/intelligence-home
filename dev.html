@@ -146,6 +146,7 @@
     }
 
     // 渲染提醒事項 (支援 all_remind 前端日期計算)
+    // 渲染提醒事項 (完美解析 due_date / due / days_left)
     function renderRemind(remindData) {
         const container = document.getElementById("remind-list-container");
 
@@ -163,16 +164,23 @@
 
         let html = "";
         remindData.forEach(item => {
-            // 計算 days_left（若後端沒傳，前端現場計算）
             let daysLeft = item.days_left;
-            const dueDateStr = item.due_date || item.due;
             
-            if (daysLeft === undefined && dueDateStr) {
-                const dueDate = new Date(dueDateStr);
-                dueDate.setHours(0, 0, 0, 0);
-                if (!isNaN(dueDate.getTime())) {
-                    const diffTime = dueDate - today;
-                    daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            // 抓取到期日欄位 (支援 due_date, due, rawDueDate)
+            const dueDateRaw = item.due_date || item.due || item.rawDueDate;
+
+            // 如果後端沒算 days_left，由前端現場算
+            if (daysLeft === undefined || daysLeft === null || isNaN(daysLeft)) {
+                if (dueDateRaw) {
+                    // 處理 ISO 字串或 yyyy-MM-dd
+                    let cleanStr = String(dueDateRaw).split("T")[0]; 
+                    const dueDate = new Date(cleanStr.replace(/-/g, "/")); // Safari 相容性格式
+                    
+                    if (!isNaN(dueDate.getTime())) {
+                        dueDate.setHours(0, 0, 0, 0);
+                        const diffTime = dueDate - today;
+                        daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    }
                 }
             }
 
@@ -180,14 +188,14 @@
             let isUrgent = daysLeft <= 3;
             let badgeClass = isUrgent ? "remind-badge urgent" : "remind-badge";
 
-            if (daysLeft < 0) {
+            if (daysLeft === undefined || daysLeft === null || isNaN(daysLeft)) {
+                statusBadge = dueDateRaw || "待處理";
+            } else if (daysLeft < 0) {
                 statusBadge = `逾期 ${Math.abs(daysLeft)} 天`;
             } else if (daysLeft === 0) {
                 statusBadge = "今日到期";
-            } else if (daysLeft !== undefined) {
-                statusBadge = `剩 ${daysLeft} 天`;
             } else {
-                statusBadge = dueDateStr || "待處理";
+                statusBadge = `剩 ${daysLeft} 天`;
             }
 
             const titleText = item.title || item.name || "未命名事項";
