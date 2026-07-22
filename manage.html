@@ -161,7 +161,7 @@
             <div class="item-row">
                 <div class="item-info">
                     <span class="item-title">${escapeHtml(item.name)}</span>
-                    <span class="item-sub">到期日: ${item.expiry} (${item.days_left < 0 ? '已過期 ' + Math.abs(item.days_left) + ' 天' : '剩 ' + item.days_left + ' 天'})</span>
+                    <span class="item-sub">到期日: ${cleanDateStr(item.expiry)} (${item.days_left < 0 ? '已過期 ' + Math.abs(item.days_left) + ' 天' : '剩 ' + item.days_left + ' 天'})</span>
                 </div>
                 <div style="display:flex; gap:6px;">
                     <button class="action-btn edit-btn" onclick="editFood(${item.rowIndex})">編輯</button>
@@ -188,7 +188,7 @@
 
         if (success) {
             resetFoodForm();
-            setTimeout(loadAllData, 500); // 延遲 500ms 確保試算表寫入完畢
+            setTimeout(loadAllData, 500);
         }
     }
 
@@ -196,7 +196,7 @@
         const item = globalData.food.find(f => f.rowIndex === row);
         if (!item) return;
         document.getElementById("food-name").value = item.name;
-        document.getElementById("food-expiry").value = item.expiry;
+        document.getElementById("food-expiry").value = cleanDateStr(item.expiry);
         document.getElementById("food-edit-row").value = item.rowIndex;
         document.getElementById("food-form-title").textContent = "編輯食品";
         document.getElementById("food-save-btn").textContent = "更新紀錄";
@@ -216,12 +216,15 @@
     /* --- 提醒事項 Logic --- */
     function renderRemindList() {
         const box = document.getElementById("remind-list");
-        if (!globalData.remind.length) { box.innerHTML = '<div class="loading-overlay">目前沒有提醒事項</div>'; return; }
+        if (!globalData.remind || !globalData.remind.length) { 
+            box.innerHTML = '<div class="loading-overlay">目前沒有提醒事項</div>'; 
+            return; 
+        }
         box.innerHTML = globalData.remind.map(item => `
             <div class="item-row">
                 <div class="item-info">
                     <span class="item-title">📌 ${escapeHtml(item.title)}</span>
-                    <span class="item-sub">到期: ${item.due_date} | 跟進: ${item.follow_date}</span>
+                    <span class="item-sub">到期: ${cleanDateStr(item.due_date)} | 跟進: ${cleanDateStr(item.follow_date)}</span>
                 </div>
                 <div style="display:flex; gap:6px;">
                     <button class="action-btn edit-btn" onclick="editRemind(${item.rowIndex})">編輯</button>
@@ -249,7 +252,7 @@
 
         if (success) {
             resetRemindForm();
-            setTimeout(loadAllData, 500); // 延遲 500ms 確保試算表寫入完畢
+            setTimeout(loadAllData, 500);
         }
     }
 
@@ -257,8 +260,8 @@
         const item = globalData.remind.find(r => r.rowIndex === row);
         if (!item) return;
         document.getElementById("remind-title").value = item.title;
-        document.getElementById("remind-due").value = item.due_date;
-        document.getElementById("remind-follow").value = item.follow_date;
+        document.getElementById("remind-due").value = cleanDateStr(item.due_date);
+        document.getElementById("remind-follow").value = cleanDateStr(item.follow_date);
         document.getElementById("remind-edit-row").value = item.rowIndex;
         document.getElementById("remind-form-title").textContent = "編輯提醒";
         document.getElementById("remind-save-btn").textContent = "更新提醒";
@@ -274,6 +277,21 @@
         document.getElementById("remind-form-title").textContent = "新增提醒事項";
         document.getElementById("remind-save-btn").textContent = "新增提醒";
         document.getElementById("remind-cancel-btn").style.display = "none";
+    }
+
+    /* 輔助函式：確保長字串日期強制清理並格式化為 YYYY-MM-DD */
+    function cleanDateStr(str) {
+        if (!str) return "";
+        // 如果已經是 yyyy-MM-dd 格式
+        if (typeof str === 'string' && str.length === 10 && str.includes("-")) return str;
+        
+        const d = new Date(str);
+        if (isNaN(d.getTime())) return str;
+        
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     /* --- 通用刪除與 API 傳送 --- */
