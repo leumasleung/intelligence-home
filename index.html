@@ -21,7 +21,7 @@
     .bus-chip {
       background-color: #f8f9fa;
       border-radius: 8px;
-      padding: 8px 12px;
+      padding: 12px;
       margin-bottom: 8px;
     }
     .photo-container {
@@ -33,6 +33,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
     .photo-container img {
       width: 100%;
@@ -63,28 +64,30 @@
         <div class="card card-module h-100" style="min-height: 280px;">
           
           <!-- A. 巴士 UI (06:00 - 10:00) -->
-          <div id="bus-module-ui" style="display: none;" class="p-3 d-flex flex-column h-100">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <span class="fw-bold text-dark fs-6">🚌 通勤巴士到站時間</span>
-              <span class="badge bg-primary-subtle text-primary" id="bus-update-time">更新中...</span>
-            </div>
-
-            <div id="bus-data-container" class="flex-grow-1">
-              <!-- 680 路線 -->
-              <div class="bus-chip">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="fw-bold text-danger">680 <small class="text-muted fw-normal">(小瀝源草地滾球場)</small></span>
-                  <span class="badge bg-secondary" id="eta-680-co">過海線</span>
-                </div>
-                <div class="fs-5 fw-bold text-dark" id="eta-680-min">載入中...</div>
+          <div id="bus-module-ui" style="display: none;" class="p-3 flex-column h-100 justify-content-between">
+            <div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-bold text-dark fs-6">🚌 通勤巴士到站時間</span>
+                <span class="badge bg-primary-subtle text-primary" id="bus-update-time">更新中...</span>
               </div>
 
-              <!-- 682B 路線 -->
-              <div class="bus-chip">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="fw-bold text-primary">682B <small class="text-muted fw-normal">(城巴)</small></span>
+              <div id="bus-data-container">
+                <!-- 680 路線 -->
+                <div class="bus-chip">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold text-danger">680 <small class="text-muted fw-normal">(小瀝源草地滾球場)</small></span>
+                    <span class="badge bg-secondary">過海線</span>
+                  </div>
+                  <div class="fs-5 fw-bold text-dark" id="eta-680-min">載入中...</div>
                 </div>
-                <div class="fs-5 fw-bold text-dark" id="eta-682b-min">載入中...</div>
+
+                <!-- 682B 路線 -->
+                <div class="bus-chip">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold text-primary">682B <small class="text-muted fw-normal">(城巴)</small></span>
+                  </div>
+                  <div class="fs-5 fw-bold text-dark" id="eta-682b-min">載入中...</div>
+                </div>
               </div>
             </div>
           </div>
@@ -92,7 +95,8 @@
           <!-- B. 相片 UI (其他時間) -->
           <div id="photo-module-ui" style="display: none;" class="h-100">
             <div class="photo-container">
-              <img id="dashboard-photo" src="" alt="Dashboard Photo" />
+              <img id="dashboard-photo" src="" alt="" style="display:none;" />
+              <div id="photo-loading-text" class="text-white-50 small">相片載入中...</div>
               <div class="photo-badge">📸 隨機相片 · 10 min 刷新</div>
             </div>
           </div>
@@ -104,11 +108,11 @@
   </div>
 
   <script>
-    // 🔗 貼上你的 GAS Web App URL
+    // 🔗 請確認這是你最新發佈的 GAS Web App URL
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
 
     // --------------------------------------------------
-    // 1. 時間判斷與模組切換邏輯
+    // 1. 時間判斷與模組切換邏輯 (嚴格控制 display 樣式)
     // --------------------------------------------------
     function checkAndToggleModule() {
       var now = new Date();
@@ -117,16 +121,17 @@
       var busUI = document.getElementById("bus-module-ui");
       var photoUI = document.getElementById("photo-module-ui");
 
+      // 判定 06:00 至 09:59 顯示巴士，其他時間顯示相片
       if (currentHour >= 6 && currentHour < 10) {
-        busUI.style.display = "flex";
-        photoUI.style.display = "none";
+        busUI.style.setProperty("display", "flex", "important");
+        photoUI.style.setProperty("display", "none", "important");
         fetchBusData();
       } else {
-        busUI.style.display = "none";
-        photoUI.style.display = "block";
+        busUI.style.setProperty("display", "none", "important");
+        photoUI.style.setProperty("display", "block", "important");
         
         var photoImg = document.getElementById("dashboard-photo");
-        if (!photoImg.src || photoImg.src.includes("#") || photoImg.src === window.location.href) {
+        if (!photoImg.src || photoImg.src === "" || photoImg.src === window.location.href) {
           fetchRandomPhoto();
         }
       }
@@ -169,19 +174,33 @@
     // 3. Fetch 隨機相片
     // --------------------------------------------------
     function fetchRandomPhoto() {
+      var loadingText = document.getElementById("photo-loading-text");
+      if (loadingText) loadingText.innerText = "相片載入中...";
+
       fetch(GAS_WEB_APP_URL + "?action=getPhoto")
         .then(response => response.json())
         .then(res => {
-          if (res && res.success) {
+          if (res && res.success && res.imageUrl) {
             var img = document.getElementById("dashboard-photo");
-            img.style.opacity = "0.3";
-            setTimeout(function() {
+            
+            // 預載圖片成功後才顯示，避免破圖
+            var tempImg = new Image();
+            tempImg.src = res.imageUrl;
+            tempImg.onload = function() {
               img.src = res.imageUrl;
-              img.style.opacity = "1";
-            }, 300);
+              img.style.display = "block";
+              if (loadingText) loadingText.style.display = "none";
+            };
+            tempImg.onerror = function() {
+              if (loadingText) loadingText.innerText = "相片載入失敗，等待下次刷新";
+            };
           }
         })
-        .catch(err => console.error("Photo Fetch Fail:", err));
+        .catch(err => {
+          console.error("Photo Fetch Fail:", err);
+          var loadingText = document.getElementById("photo-loading-text");
+          if (loadingText) loadingText.innerText = "無法連接相片服務";
+        });
     }
 
     // --------------------------------------------------
@@ -190,16 +209,16 @@
     document.addEventListener("DOMContentLoaded", function() {
       checkAndToggleModule();
 
-      // 每 1 分鐘檢查時段
+      // 每 1 分鐘檢查一次時段切換
       setInterval(checkAndToggleModule, 60 * 1000);
 
-      // 06:00-10:00 每 30 秒更新巴士
+      // 06:00-10:00 期間每 30 秒更新巴士
       setInterval(function() {
         var hour = new Date().getHours();
         if (hour >= 6 && hour < 10) fetchBusData();
       }, 30 * 1000);
 
-      // 其他時間每 10 分鐘換相片
+      // 其他時間每 10 分鐘刷新相片
       setInterval(function() {
         var hour = new Date().getHours();
         if (hour < 6 || hour >= 10) fetchRandomPhoto();
