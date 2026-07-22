@@ -236,7 +236,7 @@
 <body>
 
 <div class="dashboard">
-    <!-- 頁眉：左側改為顯示年月日與星期 -->
+    <!-- 頁眉：左側顯示年月日與星期 -->
     <div class="header">
         <h1 id="current-date">----年--月--日 (星期-)</h1>
         <div class="last-updated">最後更新: <span id="updated-at">--:--</span></div>
@@ -340,10 +340,10 @@
 </div>
 
 <script>
-    // ⚠️ 請記得替換為你實際部署的 Google Apps Script 網頁應用程式 URL
+    // Google Apps Script Web App URL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
 
-    // 更新日期顯示 (格式：2026年7月21日 (星期二))
+    // 更新日期顯示 (格式：2026年7月22日 (星期三))
     function updateHeaderDate() {
         const now = new Date();
         const year = now.getFullYear();
@@ -358,7 +358,6 @@
 
     async function fetchDashboardData() {
         try {
-            // 刷新時順便更新日期
             updateHeaderDate();
 
             const response = await fetch(GAS_API_URL);
@@ -369,16 +368,22 @@
                 document.getElementById("updated-at").textContent = data.updated_at || "--:--";
 
                 // 2. 渲染巴士 ETA
-                renderBusEta("eta-680", data.bus.bus_680);
-                renderBusEta("eta-682B", data.bus.bus_682B);
+                if (data.bus) {
+                    renderBusEta("eta-680", data.bus.bus_680 || data.bus["680"]);
+                    renderBusEta("eta-682B", data.bus.bus_682B || data.bus["682B"]);
+                }
 
                 // 3. 渲染地區天氣
-                renderWeather("shatin", data.weather.shatin);
-                renderWeather("quarry", data.weather.quarry_bay);
-                renderWeather("tinhau", data.weather.tin_hau);
+                if (data.weather) {
+                    renderWeather("shatin", data.weather.shatin);
+                    renderWeather("quarry", data.weather.quarry_bay);
+                    renderWeather("tinhau", data.weather.tin_hau);
+                }
 
                 // 4. 渲染食物清單
-                renderFoodList(data.food);
+                if (data.food) {
+                    renderFoodList(data.food);
+                }
             }
         } catch (error) {
             console.error("Fetch Data Error:", error);
@@ -395,30 +400,34 @@
         }
 
         let html = "";
-        etaArray.forEach((item, index) => {
+        let validItemCount = 0;
+
+        etaArray.forEach((item) => {
             let coBadge = "";
             let minutes = item;
 
+            // 支援物件格式: { min: 5, co: "KMB" } 或 { min: 8, co: "CTB" }
             if (typeof item === 'object' && item !== null) {
                 minutes = item.min;
                 if (item.co) {
                     let coName = item.co;
-                    if (coName === "CTB") coName = "城巴";
-                    if (coName === "KMB") coName = "九巴";
+                    if (coName === "CTB" || coName === "城巴") coName = "城巴";
+                    if (coName === "KMB" || coName === "九巴") coName = "九巴";
                     coBadge = `<span class="co-badge">${coName}</span>`;
                 }
             }
 
-            if (minutes < 0) return;
+            if (minutes < 0 || minutes === null || minutes === undefined) return;
 
-            if (index === 0) {
+            if (validItemCount === 0) {
                 html += `<span class="eta-main">${coBadge}${minutes} 分鐘</span>`;
             } else {
                 html += `<span class="eta-sub">| ${coBadge}${minutes} 分</span>`;
             }
+            validItemCount++;
         });
 
-        if (html === "") {
+        if (validItemCount === 0) {
             html = `<span class="eta-sub" style="color: #666;">非服務時間</span>`;
         }
 
@@ -470,6 +479,7 @@
     // 初始化頁面
     updateHeaderDate();
     fetchDashboardData();
+    // 每 60 秒更新一次資料
     setInterval(fetchDashboardData, 60000);
 </script>
 
