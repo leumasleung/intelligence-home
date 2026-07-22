@@ -346,7 +346,7 @@
                 </div>
             </div>
 
-            <!-- 下：重要事項提醒 (修正放入右欄) -->
+            <!-- 下：重要事項提醒 -->
             <div class="section-box">
                 <div class="section-header">
                     <span>📌 重要事項提醒</span>
@@ -362,7 +362,8 @@
 </div>
 
 <script>
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
+    // ✅ 已更新為最新發布的 GAS Web App API 網址
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzuU7dE0AE-loLmJLL1dvQAhTvxI4X9jzcqsgsen42evVE-s71qZvAGntU66sUUUBrO/exec";
 
     // 更新日期顯示
     function updateHeaderDate() {
@@ -381,7 +382,9 @@
         try {
             updateHeaderDate();
 
-            const response = await fetch(GAS_API_URL, { redirect: "follow" });
+            // ✅ 加上 ?t= 破除瀏覽器快取
+            const cacheBuster = "?t=" + new Date().getTime();
+            const response = await fetch(GAS_API_URL + cacheBuster, { redirect: "follow" });
             const data = await response.json();
 
             console.log("從 GAS 接收到的完整 JSON 資料:", data);
@@ -411,7 +414,7 @@
                     renderFoodList(data.food);
                 }
 
-                // 5. 渲染重要事項提醒 (修正漏傳問題)
+                // 5. 渲染重要事項提醒
                 renderRemind(data.remind);
             } else {
                 console.warn("GAS 回傳的資料結構不符預期:", data);
@@ -496,7 +499,7 @@
 
             html += `
                 <div class="food-item">
-                    <span class="food-name">${escapeHtml(item.name)}</span>
+                    <span class="food-name">${escapeHtml(item.name || '')}</span>
                     <span class="${badgeClass}">${daysText}</span>
                 </div>
             `;
@@ -534,7 +537,7 @@
 
             html += `
                 <div class="remind-item">
-                    <span class="remind-title">${escapeHtml(item.title)}</span>
+                    <span class="remind-title">${escapeHtml(item.title || '')}</span>
                     <span class="${badgeClass}">${statusBadge}</span>
                 </div>
             `;
@@ -545,7 +548,8 @@
 
     // 防 XSS 轉義函數
     function escapeHtml(str) {
-        return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+        if (!str) return "";
+        return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
     }
 
     // 初始化頁面與定時刷新
