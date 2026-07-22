@@ -42,7 +42,8 @@
 
         .btn-group { display: flex; gap: 8px; }
         button { padding: 10px 16px; border: 2px solid #000; background-color: #000; color: #fff; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 2px 2px 0px #888; border-radius: 4px; }
-        button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px #888; }
+        button:disabled { background-color: #666; cursor: not-allowed; box-shadow: none; }
+        button:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: 1px 1px 0px #888; }
         button.cancel-btn { background-color: #fff; color: #000; }
 
         /* 列表區域 */
@@ -176,9 +177,19 @@
         const row = document.getElementById("food-edit-row").value;
         if (!name || !expiry) return alert("請填寫食品名稱與到期日！");
 
-        await sendApi({ type: "food", action: row ? "edit" : "add", name: name, expiry: expiry, rowIndex: parseInt(row) });
-        resetFoodForm();
-        loadAllData();
+        const btn = document.getElementById("food-save-btn");
+        btn.disabled = true;
+        btn.textContent = "處理中...";
+
+        const success = await sendApi({ type: "food", action: row ? "edit" : "add", name: name, expiry: expiry, rowIndex: parseInt(row) });
+        
+        btn.disabled = false;
+        btn.textContent = row ? "更新紀錄" : "新增紀錄";
+
+        if (success) {
+            resetFoodForm();
+            setTimeout(loadAllData, 500); // 延遲 500ms 確保試算表寫入完畢
+        }
     }
 
     function editFood(row) {
@@ -227,9 +238,19 @@
         const row = document.getElementById("remind-edit-row").value;
         if (!title || !due || !follow) return alert("請完整填寫事項名稱、到期日與開始跟進日！");
 
-        await sendApi({ type: "remind", action: row ? "edit" : "add", title: title, due_date: due, follow_date: follow, rowIndex: parseInt(row) });
-        resetRemindForm();
-        loadAllData();
+        const btn = document.getElementById("remind-save-btn");
+        btn.disabled = true;
+        btn.textContent = "處理中...";
+
+        const success = await sendApi({ type: "remind", action: row ? "edit" : "add", title: title, due_date: due, follow_date: follow, rowIndex: parseInt(row) });
+        
+        btn.disabled = false;
+        btn.textContent = row ? "更新提醒" : "新增提醒";
+
+        if (success) {
+            resetRemindForm();
+            setTimeout(loadAllData, 500); // 延遲 500ms 確保試算表寫入完畢
+        }
     }
 
     function editRemind(row) {
@@ -258,19 +279,23 @@
     /* --- 通用刪除與 API 傳送 --- */
     async function deleteItem(type, row) {
         if (!confirm("確定要刪除這筆紀錄嗎？")) return;
-        await sendApi({ type: type, action: "delete", rowIndex: row });
-        loadAllData();
+        const success = await sendApi({ type: type, action: "delete", rowIndex: row });
+        if (success) {
+            setTimeout(loadAllData, 500);
+        }
     }
 
     async function sendApi(payload) {
         try {
-            await fetch(GAS_API_URL, { 
+            const res = await fetch(GAS_API_URL, { 
                 method: "POST", 
                 body: JSON.stringify(payload) 
             });
+            return true;
         } catch (e) {
             alert("操作失敗，請檢查網絡連線！");
             console.error(e);
+            return false;
         }
     }
 
