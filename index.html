@@ -1,263 +1,135 @@
-<!DOCTYPE html>
-<html lang="zh-HK">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home Dashboard</title>
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #f4f6f9;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-    .card-module {
-      border-radius: 16px;
-      border: none;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      background: #ffffff;
-      overflow: hidden;
-      min-height: 280px;
-    }
-    .bus-chip {
-      background-color: #f8f9fa;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 8px;
-    }
-    .photo-container {
-      width: 100%;
-      height: 100%;
-      min-height: 280px;
-      position: relative;
-      background-color: #1a1a1a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .photo-container img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .photo-badge {
-      position: absolute;
-      bottom: 12px;
-      right: 12px;
-      background: rgba(0, 0, 0, 0.6);
-      color: #ffffff;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      backdrop-filter: blur(4px);
-    }
-  </style>
-</head>
-<body class="p-3 p-md-4">
+/**
+ * 取得巴士到站時間 (主入口函式，一次打包所有路線)
+ */
+function getAllBusData() {
+  return {
+    "680": getJointBus680Eta(),
+    "682B": getCitybusEta682B()
+  };
+}
 
-  <div class="container-fluid">
-    <div class="row g-3">
-      
-      <!-- Module 1: 當日天氣與警報 -->
-      <div class="col-12 col-md-6">
-        <div class="card card-module p-3">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="fw-bold fs-6">🌤️ 即時天氣 (香港天文台)</span>
-            <span class="badge bg-secondary" id="weather-update">更新中...</span>
-          </div>
-          <div class="d-flex align-items-center justify-content-around my-auto">
-            <div class="display-4 fw-bold" id="weather-temp">--°C</div>
-            <div id="weather-icon" style="font-size: 3rem;">☀️</div>
-          </div>
-          <div class="mt-2 text-muted small" id="weather-warning">警告訊號：無</div>
-        </div>
-      </div>
+// ----------------------------------------------------
+// 1. 680 聯營線 (合併 KMB + CTB、自動去重並標註中文公司名)
+// 九巴站牌: A295FD27A4E5A7C5 [小瀝源草地滾球場 (ST530)]
+// 城巴站牌: 003080 [小瀝源草地滾球場, 小瀝源路] (dir: I)
+// ----------------------------------------------------
+function getJointBus680Eta() {
+  var rawEtaItems = [];
+  var now = new Date();
 
-      <!-- Module 2: 食物清單 / 備忘 -->
-      <div class="col-12 col-md-6">
-        <div class="card card-module p-3">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="fw-bold fs-6">🍱 食物清單 & 庫存</span>
-            <span class="badge bg-success">即時同步</span>
-          </div>
-          <div id="food-list-container" class="mt-2">
-            <ul class="list-group list-group-flush" id="food-list">
-              <li class="list-group-item px-0 text-muted">載入清單中...</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- Module 3: 備用 / 個人自訂區 -->
-      <div class="col-12 col-md-6">
-        <div class="card card-module p-3 d-flex flex-column justify-content-center align-items-center text-center">
-          <h5 class="fw-bold text-secondary">📌 個人提醒事項</h5>
-          <p class="text-muted small">保持規律生活，記得多飲水！</p>
-        </div>
-      </div>
-
-      <!-- Module 4: 動態時段切換 (06:00-10:00 巴士 / 其他時間 相片) -->
-      <div class="col-12 col-md-6">
-        <div class="card card-module">
-          
-          <!-- A. 巴士 UI (06:00 - 10:00) -->
-          <div id="bus-module-ui" style="display: none;" class="p-3 flex-column h-100 justify-content-between">
-            <div>
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="fw-bold text-dark fs-6">🚌 通勤巴士到站時間</span>
-                <span class="badge bg-primary-subtle text-primary" id="bus-update-time">更新中...</span>
-              </div>
-
-              <div id="bus-data-container">
-                <div class="bus-chip">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="fw-bold text-danger">680 <small class="text-muted fw-normal">(小瀝源草地滾球場)</small></span>
-                    <span class="badge bg-secondary">過海線</span>
-                  </div>
-                  <div class="fs-5 fw-bold text-dark" id="eta-680-min">載入中...</div>
-                </div>
-
-                <div class="bus-chip">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="fw-bold text-primary">682B <small class="text-muted fw-normal">(城巴)</small></span>
-                  </div>
-                  <div class="fs-5 fw-bold text-dark" id="eta-682b-min">載入中...</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- B. 相片 UI (其他時間) -->
-          <div id="photo-module-ui" style="display: none;" class="h-100">
-            <div class="photo-container">
-              <img id="dashboard-photo" src="" alt="" style="display:none;" />
-              <div id="photo-loading-text" class="text-white-50 small">相片載入中...</div>
-              <div class="photo-badge">📸 隨機相片 · 10 min 刷新</div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <script>
-    // 🔗 請替換為你發布的 GAS Web App 部署網址
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
-
-    // --------------------------------------------------
-    // 1. 初始化與全域數據獲取
-    // --------------------------------------------------
-    document.addEventListener("DOMContentLoaded", function() {
-      fetchWeatherData();
-      fetchFoodData();
-      checkAndToggleModule();
-
-      setInterval(checkAndToggleModule, 60 * 1000);
-      setInterval(function() {
-        var hour = new Date().getHours();
-        if (hour >= 6 && hour < 10) fetchBusData();
-      }, 30 * 1000);
-
-      setInterval(function() {
-        var hour = new Date().getHours();
-        if (hour < 6 || hour >= 10) fetchRandomPhoto();
-      }, 10 * 60 * 1000);
-    });
-
-    // --------------------------------------------------
-    // 2. 天氣 & 食物 API 呼叫 (Module 1 & 2)
-    // --------------------------------------------------
-    function fetchWeatherData() {
-      fetch(GAS_WEB_APP_URL + "?action=getWeather")
-        .then(res => res.json())
-        .then(data => {
-          if(data && data.temp) {
-            document.getElementById("weather-temp").innerText = data.temp + "°C";
-            document.getElementById("weather-warning").innerText = "警告： " + (data.warning || "無");
-            document.getElementById("weather-update").innerText = "已更新";
+  // 1. 抓取 九巴 KMB (使用正確的 16 位元 Hash Stop ID)
+  try {
+    var kmbUrl = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/A295FD27A4E5A7C5";
+    var kmbRes = UrlFetchApp.fetch(kmbUrl, { muteHttpExceptions: true });
+    
+    if (kmbRes.getResponseCode() === 200) {
+      var kmbJson = JSON.parse(kmbRes.getContentText());
+      if (kmbJson.data && Array.isArray(kmbJson.data)) {
+        kmbJson.data.forEach(function(item) {
+          // 只篩選 680 路線且有時間資料的班次
+          if (item.route === "680" && item.eta) {
+            var t = new Date(item.eta);
+            if (t >= now) {
+              rawEtaItems.push({ time: t, co: "九巴" });
+            }
           }
-        }).catch(err => console.log("Weather err:", err));
-    }
-
-    function fetchFoodData() {
-      fetch(GAS_WEB_APP_URL + "?action=getFood")
-        .then(res => res.json())
-        .then(data => {
-          if(Array.isArray(data)) {
-            var html = data.map(item => `<li class="list-group-item px-0 d-flex justify-content-between align-items-center"><span>${item.name}</span><span class="badge bg-light text-dark">${item.qty || ''}</span></li>`).join('');
-            document.getElementById("food-list").innerHTML = html || '<li class="list-group-item px-0 text-muted">無項目</li>';
-          }
-        }).catch(err => console.log("Food err:", err));
-    }
-
-    // --------------------------------------------------
-    // 3. Module 4: 巴士 / 相片動態切換
-    // --------------------------------------------------
-    function checkAndToggleModule() {
-      var currentHour = new Date().getHours();
-      var busUI = document.getElementById("bus-module-ui");
-      var photoUI = document.getElementById("photo-module-ui");
-
-      if (currentHour >= 6 && currentHour < 10) {
-        busUI.style.setProperty("display", "flex", "important");
-        photoUI.style.setProperty("display", "none", "important");
-        fetchBusData();
-      } else {
-        busUI.style.setProperty("display", "none", "important");
-        photoUI.style.setProperty("display", "block", "important");
-        
-        var photoImg = document.getElementById("dashboard-photo");
-        if (!photoImg.src || photoImg.src === "" || photoImg.src === window.location.href) {
-          fetchRandomPhoto();
-        }
+        });
       }
     }
+  } catch (e) {
+    console.log("KMB 680 Error: " + e.toString());
+  }
 
-    function fetchBusData() {
-      fetch(GAS_WEB_APP_URL + "?action=getBus")
-        .then(res => res.json())
-        .then(data => {
-          if (!data) return;
-          var nowStr = new Date().toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
-          document.getElementById("bus-update-time").innerText = nowStr + " 更新";
-
-          if (data["680"] && data["680"].length > 0) {
-            document.getElementById("eta-680-min").innerText = data["680"].map(i => i.min + " 分鐘 (" + i.co + ")").join(" / ");
-          } else {
-            document.getElementById("eta-680-min").innerText = "暫無班次";
-          }
-
-          if (data["682B"] && data["682B"].length > 0) {
-            document.getElementById("eta-682b-min").innerText = data["682B"].map(i => i.min + " 分鐘").join(" / ");
-          } else {
-            document.getElementById("eta-682b-min").innerText = "暫無班次";
+  // 2. 抓取 城巴 CTB (Stop: 003080, Route: 680, Dir: I)
+  try {
+    var ctbUrl = "https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/003080/680";
+    var ctbRes = UrlFetchApp.fetch(ctbUrl, { muteHttpExceptions: true });
+    
+    if (ctbRes.getResponseCode() === 200) {
+      var ctbJson = JSON.parse(ctbRes.getContentText());
+      if (ctbJson.data && Array.isArray(ctbJson.data)) {
+        ctbJson.data.forEach(function(item) {
+          if (item.dir === "I" && item.eta) {
+            var t = new Date(item.eta);
+            if (t >= now) {
+              rawEtaItems.push({ time: t, co: "城巴" });
+            }
           }
         });
+      }
+    }
+  } catch (e) {
+    console.log("CTB 680 Error: " + e.toString());
+  }
+
+  // 3. 依時間先後順序排序 (由近到遠)
+  rawEtaItems.sort(function(a, b) {
+    return a.time - b.time;
+  });
+
+  // 4. 計算剩餘分鐘數 + 【自動去重機制】
+  var etaList = [];
+  var lastAddedTimeMs = null; // 紀錄上一班的時間 (毫秒)
+
+  for (var i = 0; i < rawEtaItems.length; i++) {
+    var item = rawEtaItems[i];
+    var currentTimeMs = item.time.getTime();
+    var diffMin = Math.round((item.time - now) / 60000);
+
+    // 去重邏輯：如果與上一班抵達時間相差小於 60 秒 (60000 ms)，視為同一班車並自動跳過
+    if (lastAddedTimeMs !== null && Math.abs(currentTimeMs - lastAddedTimeMs) < 60000) {
+      continue;
     }
 
-    function fetchRandomPhoto() {
-      var loadingText = document.getElementById("photo-loading-text");
-      var img = document.getElementById("dashboard-photo");
+    if (diffMin >= 0) {
+      etaList.push({
+        "min": diffMin,
+        "co": item.co
+      });
+      lastAddedTimeMs = currentTimeMs; // 更新最後加入班次的時間
+    }
 
-      fetch(GAS_WEB_APP_URL + "?action=getPhoto")
-        .then(res => res.json())
-        .then(res => {
-          if (res && res.success && res.imageUrl) {
-            img.onload = function() {
-              img.style.display = "block";
-              if (loadingText) loadingText.style.display = "none";
-            };
-            img.src = res.imageUrl;
-          } else {
-            if (loadingText) loadingText.innerText = "相片目錄為空";
+    if (etaList.length >= 3) break; // 最多取前 3 班
+  }
+
+  return etaList;
+}
+
+// ----------------------------------------------------
+// 2. 城巴 682B (Stop: 002051, dir: O)
+// ----------------------------------------------------
+function getCitybusEta682B() {
+  var etaList = [];
+  try {
+    var url = "https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/002051/682B";
+    var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    
+    if (response.getResponseCode() === 200) {
+      var json = JSON.parse(response.getContentText());
+      if (json.data && Array.isArray(json.data)) {
+        var now = new Date();
+        json.data.forEach(function(item) {
+          if (item.dir === "O" && item.eta) {
+            var etaTime = new Date(item.eta);
+            var diffMin = Math.round((etaTime - now) / 60000);
+            if (diffMin >= 0) {
+              etaList.push({
+                "min": diffMin,
+                "co": "城巴"
+              });
+            }
           }
-        })
-        .catch(err => {
-          if (loadingText) loadingText.innerText = "連線失敗，請檢查權限";
         });
+      }
     }
-  </script>
-</body>
-</html>
+  } catch (e) {
+    console.log("Citybus 682B Error: " + e.toString());
+  }
+
+  // 按抵達分鐘數排序，並取前 3 班
+  etaList.sort(function(a, b) {
+    return a.min - b.min;
+  });
+  
+  return etaList.slice(0, 3);
+}
