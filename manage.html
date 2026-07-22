@@ -72,14 +72,39 @@
         }
 
         .input-group input {
-            width: 100%;
-            padding: 8px;
-            border: 2px solid #000;
-            font-size: 15px;
-            font-weight: bold;
-            border-radius: 4px;
-            outline: none;
-        }
+    width: 100%;
+    max-width: 100%;       /* 限制最大寬度不超過父容器 */
+    padding: 8px;
+    border: 2px solid #000;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 4px;
+    outline: none;
+    background-color: #fff;
+    -webkit-appearance: none; /* 移除 iOS/Chrome 預設樣式 */
+    appearance: none;
+}
+
+/* 專為 input[type="date"] 修正，解決瀏覽器原生 Picker 突出問題 */
+input[type="date"] {
+    position: relative;
+    min-height: 40px;      /* 確保高度與文字 input 一致 */
+    line-height: normal;
+}
+
+/* 調整 Webkit (Chrome/Safari/iOS) 原生日曆圖示位置與尺寸 */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    background: transparent;
+    bottom: 0;
+    color: transparent;
+    cursor: pointer;
+    height: auto;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: auto;
+}
 
         .btn-group {
             display: flex;
