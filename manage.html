@@ -57,12 +57,13 @@
 <body>
 
 <div class="container">
+    <!-- 切換 Tab -->
     <div class="tab-group">
         <button class="tab-btn active" id="tab-food" onclick="switchTab('food')">🥑 食品管理</button>
         <button class="tab-btn" id="tab-remind" onclick="switchTab('remind')">📌 提醒事項</button>
     </div>
 
-    <!-- 食品管理區塊 -->
+    <!-- 1. 食品管理區塊 -->
     <div id="section-food">
         <div class="form-box">
             <h2 id="food-form-title">新增食品</h2>
@@ -87,7 +88,7 @@
         </div>
     </div>
 
-    <!-- 提醒事項區塊 -->
+    <!-- 2. 提醒事項區塊 -->
     <div id="section-remind" style="display: none;">
         <div class="form-box">
             <h2 id="remind-form-title">新增提醒事項</h2>
@@ -134,9 +135,9 @@
             const res = await fetch(GAS_API_URL, { redirect: "follow" });
             const data = await res.json();
             
-            console.log("從 API 抓到的原始資料:", data);
+            console.log("全量 API 回傳:", data);
 
-            if (data.status === "success") {
+            if (data.status === "success" || data.all_food || data.all_remind) {
                 globalData.food = data.all_food || [];
                 globalData.remind = data.all_remind || [];
                 
@@ -159,7 +160,7 @@
         box.innerHTML = globalData.food.map(item => `
             <div class="item-row">
                 <div class="item-info">
-                    <span class="item-title">${escapeHtml(item.name)}</span>
+                    <span class="item-title">${escapeHtml(item.name || '')}</span>
                     <span class="item-sub">到期日: ${cleanDateStr(item.expiry)}</span>
                 </div>
                 <div style="display:flex; gap:6px;">
@@ -212,25 +213,40 @@
         document.getElementById("food-cancel-btn").style.display = "none";
     }
 
-    /* --- 提醒事項 Logic --- */
+    /* --- 提醒事項 Logic (修復版) --- */
     function renderRemindList() {
         const box = document.getElementById("remind-list");
-        if (!globalData.remind || !globalData.remind.length) { 
+        
+        if (!globalData.remind || !Array.isArray(globalData.remind) || globalData.remind.length === 0) { 
             box.innerHTML = '<div class="loading-overlay">目前沒有提醒事項</div>'; 
             return; 
         }
-        box.innerHTML = globalData.remind.map(item => `
-            <div class="item-row">
-                <div class="item-info">
-                    <span class="item-title">📌 ${escapeHtml(item.title)}</span>
-                    <span class="item-sub">到期: ${cleanDateStr(item.due_date)} | 跟進: ${cleanDateStr(item.follow_date)}</span>
-                </div>
-                <div style="display:flex; gap:6px;">
-                    <button class="action-btn edit-btn" onclick="editRemind(${item.rowIndex})">編輯</button>
-                    <button class="action-btn" onclick="deleteItem('remind', ${item.rowIndex})">刪除</button>
-                </div>
-            </div>
-        `).join("");
+
+        try {
+            let html = globalData.remind.map(item => {
+                const titleText = escapeHtml(item.title || item.name || '未命名事項');
+                const dueText = cleanDateStr(item.due_date || item.due);
+                const followText = cleanDateStr(item.follow_date || item.follow);
+
+                return `
+                    <div class="item-row">
+                        <div class="item-info">
+                            <span class="item-title">📌 ${titleText}</span>
+                            <span class="item-sub">到期: ${dueText} | 跟進: ${followText}</span>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="action-btn edit-btn" onclick="editRemind(${item.rowIndex})">編輯</button>
+                            <button class="action-btn" onclick="deleteItem('remind', ${item.rowIndex})">刪除</button>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            box.innerHTML = html;
+        } catch (err) {
+            console.error("渲染 Remind 清單錯誤:", err);
+            box.innerHTML = `<div class="loading-overlay" style="color:red;">資料渲染錯誤 (${err.message})</div>`;
+        }
     }
 
     async function saveRemind() {
@@ -278,17 +294,20 @@
         document.getElementById("remind-cancel-btn").style.display = "none";
     }
 
-    /* 超強防呆日期轉換，能完美解析 ISO、GMT 長字串等 */
+    /* 安全性 100% 的日期轉譯函數 */
     function cleanDateStr(str) {
-        if (!str) return "";
+        if (!str) return "--";
         let s = String(str).trim();
         
-        // 匹配 YYYY-MM-DD
+        // 已是 YYYY-MM-DD
         if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
         
-        // 移除括號與時區干擾
-        s = s.replace(/\s*\(.*?\)/g, "");
-        
+        // 嘗試截取前 10 個字元 (例如 2026-07-31T00:00:00)
+        if (s.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(s)) {
+            return s.substring(0, 10);
+        }
+
+        s = s.replace(/\s*\(.*?\)/g, ""); // 清除括號
         const d = new Date(s);
         if (isNaN(d.getTime())) return String(str);
         
@@ -321,7 +340,8 @@
     }
 
     function escapeHtml(str) { 
-        return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m])); 
+        if (!str) return "";
+        return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m])); 
     }
 
     loadAllData();
