@@ -4,14 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Dashboard</title>
-    
-    <!-- PWA / iOS Web App 設定 -->
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Dashboard">
-
     <style>
         * {
             box-sizing: border-box;
@@ -57,7 +49,7 @@
             font-weight: bold;
         }
 
-        /* 主網格佈局 (左欄: 巴士+天氣, 右欄: 食物清單+提醒事項) */
+        /* 主網格佈局 (左欄: 巴士+天氣, 右欄: 食物清單) */
         .main-grid {
             display: grid;
             grid-template-columns: 1.4fr 1fr;
@@ -208,8 +200,8 @@
             margin-top: 4px;
         }
 
-        /* 食品過期清單 & 提醒清單項目 */
-        .food-item, .remind-item {
+        /* 食物過期清單 */
+        .food-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -217,26 +209,25 @@
             border-bottom: 1px solid #000;
         }
 
-        .food-item:last-child, .remind-item:last-child {
+        .food-item:last-child {
             border-bottom: none;
         }
 
-        .food-name, .remind-title {
-            font-size: 15px;
+        .food-name {
+            font-size: 16px;
             font-weight: bold;
         }
 
-        .food-badge, .remind-badge {
+        .food-badge {
             border: 1px solid #000;
             padding: 2px 8px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             background-color: #fff;
-            white-space: nowrap;
         }
 
-        .food-badge.urgent, .remind-badge.urgent {
+        .food-badge.urgent {
             background-color: #000;
             color: #fff;
         }
@@ -333,10 +324,8 @@
 
         </div>
 
-        <!-- 右欄：食品過期清單 + 重要事項提醒 -->
+        <!-- 右欄：食品過期清單 -->
         <div class="right-column">
-            
-            <!-- 上：食品過期清單 -->
             <div class="section-box">
                 <div class="section-header">
                     <span>🥑 食品過期清單</span>
@@ -345,23 +334,13 @@
                     載入中...
                 </div>
             </div>
-
-            <!-- 下：重要事項提醒 (修正放入右欄) -->
-            <div class="section-box">
-                <div class="section-header">
-                    <span>📌 重要事項提醒</span>
-                </div>
-                <div class="section-body" id="remind-list-container">
-                    <div style="padding: 12px; text-align: center; font-weight: bold; color: #666;">載入中...</div>
-                </div>
-            </div>
-
         </div>
 
     </div>
 </div>
 
 <script>
+    // 你的 GAS API URL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
 
     // 更新日期顯示
@@ -381,6 +360,7 @@
         try {
             updateHeaderDate();
 
+            // 加上 redirect: "follow" 確保跟隨 GAS 的 302 重定向
             const response = await fetch(GAS_API_URL, { redirect: "follow" });
             const data = await response.json();
 
@@ -390,7 +370,7 @@
                 // 1. 更新最後更新時間
                 document.getElementById("updated-at").textContent = data.updated_at || new Date().toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
 
-                // 2. 渲染巴士 ETA
+                // 2. 渲染巴士 ETA (完美對應 BUS.GS 的 "680" 和 "682B")
                 if (data.bus) {
                     const eta680 = data.bus["680"] || data.bus.bus_680;
                     const eta682B = data.bus["682B"] || data.bus.bus_682B;
@@ -399,7 +379,7 @@
                     renderBusEta("eta-682B", eta682B);
                 }
 
-                // 3. 渲染地區天氣
+                // 3. 渲染地區天氣 (完美對應 WEATHER.GS 的 shatin, quarry_bay, tin_hau)
                 if (data.weather) {
                     renderWeather("shatin", data.weather.shatin);
                     renderWeather("quarry", data.weather.quarry_bay);
@@ -410,9 +390,6 @@
                 if (data.food) {
                     renderFoodList(data.food);
                 }
-
-                // 5. 渲染重要事項提醒 (修正漏傳問題)
-                renderRemind(data.remind);
             } else {
                 console.warn("GAS 回傳的資料結構不符預期:", data);
             }
@@ -439,6 +416,7 @@
             let coBadge = "";
             let minutes = item;
 
+            // 支援物件格式: { min: 5, co: "九巴" }
             if (typeof item === 'object' && item !== null) {
                 minutes = item.min;
                 if (item.co) {
@@ -476,7 +454,7 @@
         const container = document.getElementById("food-list-container");
 
         if (!foodArray || foodArray.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding: 12px 0; font-weight:bold;">🎉 目前沒有即將過期的食物！</div>`;
+            container.innerHTML = `<div style="text-align:center; padding: 20px 0; font-weight:bold;">🎉 目前沒有即將過期的食物！</div>`;
             return;
         }
 
@@ -496,7 +474,7 @@
 
             html += `
                 <div class="food-item">
-                    <span class="food-name">${escapeHtml(item.name)}</span>
+                    <span class="food-name">${item.name}</span>
                     <span class="${badgeClass}">${daysText}</span>
                 </div>
             `;
@@ -505,52 +483,10 @@
         container.innerHTML = html;
     }
 
-    // 渲染提醒事項
-    function renderRemind(remindData) {
-        const container = document.getElementById("remind-list-container");
-
-        if (!remindData || remindData.length === 0) {
-            container.innerHTML = `
-                <div style="padding: 12px 0; text-align: center; color: #555; font-weight: bold; font-size: 13px;">
-                    🎉 暫時沒有需要跟進的事項
-                </div>
-            `;
-            return;
-        }
-
-        let html = "";
-        remindData.forEach(item => {
-            let statusBadge = "";
-            let isUrgent = item.days_left <= 3;
-            let badgeClass = isUrgent ? "remind-badge urgent" : "remind-badge";
-
-            if (item.days_left < 0) {
-                statusBadge = `逾期 ${Math.abs(item.days_left)} 天`;
-            } else if (item.days_left === 0) {
-                statusBadge = "今日到期";
-            } else {
-                statusBadge = `剩 ${item.days_left} 天`;
-            }
-
-            html += `
-                <div class="remind-item">
-                    <span class="remind-title">${escapeHtml(item.title)}</span>
-                    <span class="${badgeClass}">${statusBadge}</span>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-    }
-
-    // 防 XSS 轉義函數
-    function escapeHtml(str) {
-        return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
-    }
-
-    // 初始化頁面與定時刷新
+    // 初始化頁面
     updateHeaderDate();
     fetchDashboardData();
+    // 每 60 秒更新一次資料
     setInterval(fetchDashboardData, 60000);
 </script>
 
