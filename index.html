@@ -236,7 +236,7 @@
 <body>
 
 <div class="dashboard">
-    <!-- 頁眉：左側顯示年月日與星期 -->
+    <!-- 頁眉：日期顯示 -->
     <div class="header">
         <h1 id="current-date">----年--月--日 (星期-)</h1>
         <div class="last-updated">最後更新: <span id="updated-at">--:--</span></div>
@@ -248,7 +248,7 @@
         <!-- 左欄：巴士 ETA & 地區天氣 -->
         <div class="left-column">
             
-            <!-- 巴士過海/即時到站 -->
+            <!-- 巴士實時到站 -->
             <div class="section-box">
                 <div class="section-header">
                     <span>🚌 巴士實時到站 (ETA)</span>
@@ -340,10 +340,10 @@
 </div>
 
 <script>
-    // Google Apps Script Web App URL
+    // 你的 GAS API URL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
 
-    // 更新日期顯示 (格式：2026年7月22日 (星期三))
+    // 更新日期顯示
     function updateHeaderDate() {
         const now = new Date();
         const year = now.getFullYear();
@@ -360,20 +360,26 @@
         try {
             updateHeaderDate();
 
-            const response = await fetch(GAS_API_URL);
+            // 加上 redirect: "follow" 確保跟隨 GAS 的 302 重定向
+            const response = await fetch(GAS_API_URL, { redirect: "follow" });
             const data = await response.json();
 
-            if (data.status === "success") {
-                // 1. 更新最後更新時間
-                document.getElementById("updated-at").textContent = data.updated_at || "--:--";
+            console.log("從 GAS 接收到的完整 JSON 資料:", data);
 
-                // 2. 渲染巴士 ETA
+            if (data.status === "success" || data.bus || data.weather) {
+                // 1. 更新最後更新時間
+                document.getElementById("updated-at").textContent = data.updated_at || new Date().toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
+
+                // 2. 渲染巴士 ETA (完美對應 BUS.GS 的 "680" 和 "682B")
                 if (data.bus) {
-                    renderBusEta("eta-680", data.bus.bus_680 || data.bus["680"]);
-                    renderBusEta("eta-682B", data.bus.bus_682B || data.bus["682B"]);
+                    const eta680 = data.bus["680"] || data.bus.bus_680;
+                    const eta682B = data.bus["682B"] || data.bus.bus_682B;
+                    
+                    renderBusEta("eta-680", eta680);
+                    renderBusEta("eta-682B", eta682B);
                 }
 
-                // 3. 渲染地區天氣
+                // 3. 渲染地區天氣 (完美對應 WEATHER.GS 的 shatin, quarry_bay, tin_hau)
                 if (data.weather) {
                     renderWeather("shatin", data.weather.shatin);
                     renderWeather("quarry", data.weather.quarry_bay);
@@ -384,9 +390,13 @@
                 if (data.food) {
                     renderFoodList(data.food);
                 }
+            } else {
+                console.warn("GAS 回傳的資料結構不符預期:", data);
             }
         } catch (error) {
-            console.error("Fetch Data Error:", error);
+            console.error("抓取 Dashboard 資料失敗:", error);
+            document.getElementById("eta-680").innerHTML = `<span style="color:red; font-size:12px;">載入失敗 (請檢查網絡)</span>`;
+            document.getElementById("eta-682B").innerHTML = `<span style="color:red; font-size:12px;">載入失敗 (請檢查網絡)</span>`;
         }
     }
 
@@ -394,8 +404,8 @@
     function renderBusEta(elementId, etaArray) {
         const container = document.getElementById(elementId);
 
-        if (!etaArray || etaArray.length === 0) {
-            container.innerHTML = `<span class="eta-sub" style="color: #666;">非服務時間</span>`;
+        if (!etaArray || !Array.isArray(etaArray) || etaArray.length === 0) {
+            container.innerHTML = `<span class="eta-sub" style="color: #666;">非服務時間 / 暫無班次</span>`;
             return;
         }
 
@@ -406,14 +416,11 @@
             let coBadge = "";
             let minutes = item;
 
-            // 支援物件格式: { min: 5, co: "KMB" } 或 { min: 8, co: "CTB" }
+            // 支援物件格式: { min: 5, co: "九巴" }
             if (typeof item === 'object' && item !== null) {
                 minutes = item.min;
                 if (item.co) {
-                    let coName = item.co;
-                    if (coName === "CTB" || coName === "城巴") coName = "城巴";
-                    if (coName === "KMB" || coName === "九巴") coName = "九巴";
-                    coBadge = `<span class="co-badge">${coName}</span>`;
+                    coBadge = `<span class="co-badge">${item.co}</span>`;
                 }
             }
 
@@ -428,7 +435,7 @@
         });
 
         if (validItemCount === 0) {
-            html = `<span class="eta-sub" style="color: #666;">非服務時間</span>`;
+            html = `<span class="eta-sub" style="color: #666;">非服務時間 / 暫無班次</span>`;
         }
 
         container.innerHTML = html;
