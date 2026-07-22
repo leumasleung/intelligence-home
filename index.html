@@ -1,477 +1,210 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Dashboard</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
-        body {
-            background-color: #f4f4f4;
-            padding: 10px;
-            color: #000;
-        }
-
-        /* 儀表板主容器 (黑白粗邊框風格) */
-        .dashboard {
-            max-width: 1000px;
-            margin: 0 auto;
-            border: 4px solid #000;
-            background-color: #fff;
-            padding: 16px;
-            box-shadow: 6px 6px 0px #000;
-        }
-
-        /* 頂部標題列 */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 4px solid #000;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
-        }
-
-        .header h1 {
-            font-size: 22px;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-        }
-
-        .header .last-updated {
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        /* 主網格佈局 (左欄: 巴士+天氣, 右欄: 食物清單) */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1.4fr 1fr;
-            gap: 16px;
-        }
-
-        @media (max-width: 768px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* 區塊容器 */
-        .section-box {
-            border: 2px solid #000;
-            margin-bottom: 16px;
-        }
-
-        .section-box:last-child {
-            margin-bottom: 0;
-        }
-
-        .section-header {
-            background-color: #000;
-            color: #fff;
-            padding: 6px 12px;
-            font-size: 16px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .section-body {
-            padding: 12px;
-        }
-
-        /* 巴士卡片 */
-        .bus-card {
-            border: 2px solid #000;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 12px;
-            background-color: #fff;
-        }
-
-        .bus-card:last-child {
-            margin-bottom: 0;
-        }
-
-        .bus-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 8px;
-        }
-
-        .bus-number {
-            font-size: 28px;
-            font-weight: 900;
-        }
-
-        .bus-dest {
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .bus-stop {
-            font-size: 12px;
-            color: #333;
-            text-align: right;
-            font-weight: bold;
-        }
-
-        .eta-container {
-            background-color: #eeeeee;
-            border-radius: 4px;
-            padding: 10px;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .eta-main {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .eta-sub {
-            font-size: 15px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .co-badge {
-            font-size: 11px;
-            font-weight: 800;
-            border: 1px solid #000;
-            padding: 1px 4px;
-            border-radius: 3px;
-            background-color: #fff;
-            margin-right: 4px;
-        }
-
-        /* 天氣網格 */
-        .weather-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            text-align: center;
-            padding: 8px 0;
-        }
-
-        .weather-col {
-            border-right: 1px dashed #000;
-            padding: 0 4px;
-        }
-
-        .weather-col:last-child {
-            border-right: none;
-        }
-
-        .weather-location {
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 6px;
-            min-height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .weather-icon {
-            font-size: 26px;
-            margin: 4px 0;
-        }
-
-        .weather-temp {
-            font-size: 20px;
-            font-weight: 900;
-        }
-
-        .weather-rh {
-            font-size: 12px;
-            color: #333;
-            margin-top: 4px;
-        }
-
-        /* 食物過期清單 */
-        .food-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #000;
-        }
-
-        .food-item:last-child {
-            border-bottom: none;
-        }
-
-        .food-name {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .food-badge {
-            border: 1px solid #000;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: bold;
-            background-color: #fff;
-        }
-
-        .food-badge.urgent {
-            background-color: #000;
-            color: #fff;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Dashboard</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f6f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .card-module {
+      border-radius: 16px;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      background: #ffffff;
+      overflow: hidden;
+    }
+    .bus-chip {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+    }
+    .photo-container {
+      width: 100%;
+      height: 100%;
+      min-height: 280px;
+      position: relative;
+      background-color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .photo-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.5s ease-in-out;
+    }
+    .photo-badge {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      backdrop-filter: blur(4px);
+    }
+  </style>
 </head>
-<body>
+<body class="p-3 p-md-4">
 
-<div class="dashboard">
-    <!-- 頁眉：左側改為顯示年月日與星期 -->
-    <div class="header">
-        <h1 id="current-date">----年--月--日 (星期-)</h1>
-        <div class="last-updated">最後更新: <span id="updated-at">--:--</span></div>
-    </div>
-
-    <!-- 主內容區塊 -->
-    <div class="main-grid">
-        
-        <!-- 左欄：巴士 ETA & 地區天氣 -->
-        <div class="left-column">
-            
-            <!-- 巴士過海/即時到站 -->
-            <div class="section-box">
-                <div class="section-header">
-                    <span>🚌 巴士實時到站 (ETA)</span>
-                </div>
-                <div class="section-body">
-                    
-                    <!-- 680 巴士 -->
-                    <div class="bus-card">
-                        <div class="bus-header">
-                            <div>
-                                <span class="bus-number">680</span>
-                                <div class="bus-dest">往 金鐘站(東)</div>
-                            </div>
-                            <div class="bus-stop">小瀝源路草地滾球場</div>
-                        </div>
-                        <div class="eta-container" id="eta-680">
-                            載入中...
-                        </div>
-                    </div>
-
-                    <!-- 682B 巴士 -->
-                    <div class="bus-card">
-                        <div class="bus-header">
-                            <div>
-                                <span class="bus-number">682B</span>
-                                <div class="bus-dest">往 柴灣(東)</div>
-                            </div>
-                            <div class="bus-stop">第一城站，插桅杆街</div>
-                        </div>
-                        <div class="eta-container" id="eta-682B">
-                            載入中...
-                        </div>
-                    </div>
-
-                </div>
+  <div class="container-fluid">
+    <div class="row g-3">
+      
+      <!-- 右下 Module 4: 動態切換 (06:00-10:00 巴士 / 其他時間 相片) -->
+      <div class="col-12 col-md-6">
+        <div class="card card-module h-100" style="min-height: 280px;">
+          
+          <!-- A. 巴士 UI (06:00 - 10:00) -->
+          <div id="bus-module-ui" style="display: none;" class="p-3 d-flex flex-column h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="fw-bold text-dark fs-6">🚌 通勤巴士到站時間</span>
+              <span class="badge bg-primary-subtle text-primary" id="bus-update-time">更新中...</span>
             </div>
 
-            <!-- 地區天氣簡報 -->
-            <div class="section-box">
-                <div class="section-header">
-                    <span>⛅ 地區天氣簡報</span>
+            <div id="bus-data-container" class="flex-grow-1">
+              <!-- 680 路線 -->
+              <div class="bus-chip">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="fw-bold text-danger">680 <small class="text-muted fw-normal">(小瀝源草地滾球場)</small></span>
+                  <span class="badge bg-secondary" id="eta-680-co">過海線</span>
                 </div>
-                <div class="section-body">
-                    <div class="weather-grid">
-                        
-                        <!-- 沙田 -->
-                        <div class="weather-col">
-                            <div class="weather-location">沙田</div>
-                            <div class="weather-icon" id="shatin-icon">☀️</div>
-                            <div class="weather-temp"><span id="shatin-temp">--</span>°C</div>
-                            <div class="weather-rh">相對濕度 <span id="shatin-rh">--</span>%</div>
-                        </div>
+                <div class="fs-5 fw-bold text-dark" id="eta-680-min">載入中...</div>
+              </div>
 
-                        <!-- 鰂魚涌 -->
-                        <div class="weather-col">
-                            <div class="weather-location">鰂魚涌</div>
-                            <div class="weather-icon" id="quarry-icon">☀️</div>
-                            <div class="weather-temp"><span id="quarry-temp">--</span>°C</div>
-                            <div class="weather-rh">相對濕度 <span id="quarry-rh">--</span>%</div>
-                        </div>
-
-                        <!-- 天后 -->
-                        <div class="weather-col">
-                            <div class="weather-location">天后</div>
-                            <div class="weather-icon" id="tinhau-icon">☀️</div>
-                            <div class="weather-temp"><span id="tinhau-temp">--</span>°C</div>
-                            <div class="weather-rh">相對濕度 <span id="tinhau-rh">--</span>%</div>
-                        </div>
-
-                    </div>
+              <!-- 682B 路線 -->
+              <div class="bus-chip">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="fw-bold text-primary">682B <small class="text-muted fw-normal">(城巴)</small></span>
                 </div>
+                <div class="fs-5 fw-bold text-dark" id="eta-682b-min">載入中...</div>
+              </div>
             </div>
+          </div>
+
+          <!-- B. 相片 UI (其他時間) -->
+          <div id="photo-module-ui" style="display: none;" class="h-100">
+            <div class="photo-container">
+              <img id="dashboard-photo" src="" alt="Dashboard Photo" />
+              <div class="photo-badge">📸 隨機相片 · 10 min 刷新</div>
+            </div>
+          </div>
 
         </div>
-
-        <!-- 右欄：食品過期清單 -->
-        <div class="right-column">
-            <div class="section-box">
-                <div class="section-header">
-                    <span>🥑 食品過期清單</span>
-                </div>
-                <div class="section-body" id="food-list-container">
-                    載入中...
-                </div>
-            </div>
-        </div>
+      </div>
 
     </div>
-</div>
+  </div>
 
-<script>
-    // ⚠️ 請記得替換為你實際部署的 Google Apps Script 網頁應用程式 URL
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
+  <script>
+    // 🔗 貼上你的 GAS Web App URL
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyRO1kNDXdMc2uEmgf7kEFspuDrAGbkBRi-4Nvpq_ckp2RsEMweWRHiLzEFzu913YY4/exec";
 
-    // 更新日期顯示 (格式：2026年7月21日 (星期二))
-    function updateHeaderDate() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth() + 1;
-        const date = now.getDate();
+    // --------------------------------------------------
+    // 1. 時間判斷與模組切換邏輯
+    // --------------------------------------------------
+    function checkAndToggleModule() {
+      var now = new Date();
+      var currentHour = now.getHours(); // 0 至 23
+
+      var busUI = document.getElementById("bus-module-ui");
+      var photoUI = document.getElementById("photo-module-ui");
+
+      if (currentHour >= 6 && currentHour < 10) {
+        busUI.style.display = "flex";
+        photoUI.style.display = "none";
+        fetchBusData();
+      } else {
+        busUI.style.display = "none";
+        photoUI.style.display = "block";
         
-        const weekDays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
-        const dayOfWeek = weekDays[now.getDay()];
-
-        document.getElementById("current-date").textContent = `${year}年${month}月${date}日 (${dayOfWeek})`;
-    }
-
-    async function fetchDashboardData() {
-        try {
-            // 刷新時順便更新日期
-            updateHeaderDate();
-
-            const response = await fetch(GAS_API_URL);
-            const data = await response.json();
-
-            if (data.status === "success") {
-                // 1. 更新最後更新時間
-                document.getElementById("updated-at").textContent = data.updated_at || "--:--";
-
-                // 2. 渲染巴士 ETA
-                renderBusEta("eta-680", data.bus.bus_680);
-                renderBusEta("eta-682B", data.bus.bus_682B);
-
-                // 3. 渲染地區天氣
-                renderWeather("shatin", data.weather.shatin);
-                renderWeather("quarry", data.weather.quarry_bay);
-                renderWeather("tinhau", data.weather.tin_hau);
-
-                // 4. 渲染食物清單
-                renderFoodList(data.food);
-            }
-        } catch (error) {
-            console.error("Fetch Data Error:", error);
+        var photoImg = document.getElementById("dashboard-photo");
+        if (!photoImg.src || photoImg.src.includes("#") || photoImg.src === window.location.href) {
+          fetchRandomPhoto();
         }
+      }
     }
 
-    // 渲染巴士 ETA 格式化函式
-    function renderBusEta(elementId, etaArray) {
-        const container = document.getElementById(elementId);
-
-        if (!etaArray || etaArray.length === 0) {
-            container.innerHTML = `<span class="eta-sub" style="color: #666;">非服務時間</span>`;
-            return;
-        }
-
-        let html = "";
-        etaArray.forEach((item, index) => {
-            let coBadge = "";
-            let minutes = item;
-
-            if (typeof item === 'object' && item !== null) {
-                minutes = item.min;
-                if (item.co) {
-                    let coName = item.co;
-                    if (coName === "CTB") coName = "城巴";
-                    if (coName === "KMB") coName = "九巴";
-                    coBadge = `<span class="co-badge">${coName}</span>`;
-                }
-            }
-
-            if (minutes < 0) return;
-
-            if (index === 0) {
-                html += `<span class="eta-main">${coBadge}${minutes} 分鐘</span>`;
-            } else {
-                html += `<span class="eta-sub">| ${coBadge}${minutes} 分</span>`;
-            }
-        });
-
-        if (html === "") {
-            html = `<span class="eta-sub" style="color: #666;">非服務時間</span>`;
-        }
-
-        container.innerHTML = html;
+    // --------------------------------------------------
+    // 2. Fetch 巴士數據
+    // --------------------------------------------------
+    function fetchBusData() {
+      fetch(GAS_WEB_APP_URL + "?action=getBus")
+        .then(response => response.json())
+        .then(data => renderBusData(data))
+        .catch(err => console.error("Bus Fetch Fail:", err));
     }
 
-    // 渲染天氣資訊
-    function renderWeather(prefix, weatherObj) {
-        if (!weatherObj) return;
-        document.getElementById(`${prefix}-temp`).textContent = weatherObj.temp || "--";
-        document.getElementById(`${prefix}-rh`).textContent = weatherObj.rh || "--";
-        document.getElementById(`${prefix}-icon`).textContent = weatherObj.icon || "☀️";
+    function renderBusData(data) {
+      if (!data) return;
+
+      var nowStr = new Date().toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById("bus-update-time").innerText = nowStr + " 更新";
+
+      // 680
+      if (data["680"] && data["680"].length > 0) {
+        var eta680Text = data["680"].map(item => item.min + " 分鐘 (" + item.co + ")").join(" / ");
+        document.getElementById("eta-680-min").innerText = eta680Text;
+      } else {
+        document.getElementById("eta-680-min").innerText = "暫無班次";
+      }
+
+      // 682B
+      if (data["682B"] && data["682B"].length > 0) {
+        var eta682bText = data["682B"].map(item => item.min + " 分鐘").join(" / ");
+        document.getElementById("eta-682b-min").innerText = eta682bText;
+      } else {
+        document.getElementById("eta-682b-min").innerText = "暫無班次";
+      }
     }
 
-    // 渲染食品清單
-    function renderFoodList(foodArray) {
-        const container = document.getElementById("food-list-container");
-
-        if (!foodArray || foodArray.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding: 20px 0; font-weight:bold;">🎉 目前沒有即將過期的食物！</div>`;
-            return;
-        }
-
-        let html = "";
-        foodArray.forEach(item => {
-            const isUrgent = item.days_left <= 3;
-            const badgeClass = isUrgent ? "food-badge urgent" : "food-badge";
-            
-            let daysText = "";
-            if (item.days_left < 0) {
-                daysText = `已過期 ${Math.abs(item.days_left)} 天`;
-            } else if (item.days_left === 0) {
-                daysText = `今日到期`;
-            } else {
-                daysText = `剩 ${item.days_left} 天`;
-            }
-
-            html += `
-                <div class="food-item">
-                    <span class="food-name">${item.name}</span>
-                    <span class="${badgeClass}">${daysText}</span>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
+    // --------------------------------------------------
+    // 3. Fetch 隨機相片
+    // --------------------------------------------------
+    function fetchRandomPhoto() {
+      fetch(GAS_WEB_APP_URL + "?action=getPhoto")
+        .then(response => response.json())
+        .then(res => {
+          if (res && res.success) {
+            var img = document.getElementById("dashboard-photo");
+            img.style.opacity = "0.3";
+            setTimeout(function() {
+              img.src = res.imageUrl;
+              img.style.opacity = "1";
+            }, 300);
+          }
+        })
+        .catch(err => console.error("Photo Fetch Fail:", err));
     }
 
-    // 初始化頁面
-    updateHeaderDate();
-    fetchDashboardData();
-    setInterval(fetchDashboardData, 60000);
-</script>
+    // --------------------------------------------------
+    // 4. 定時器與初始化
+    // --------------------------------------------------
+    document.addEventListener("DOMContentLoaded", function() {
+      checkAndToggleModule();
 
+      // 每 1 分鐘檢查時段
+      setInterval(checkAndToggleModule, 60 * 1000);
+
+      // 06:00-10:00 每 30 秒更新巴士
+      setInterval(function() {
+        var hour = new Date().getHours();
+        if (hour >= 6 && hour < 10) fetchBusData();
+      }, 30 * 1000);
+
+      // 其他時間每 10 分鐘換相片
+      setInterval(function() {
+        var hour = new Date().getHours();
+        if (hour < 6 || hour >= 10) fetchRandomPhoto();
+      }, 10 * 60 * 1000);
+    });
+  </script>
 </body>
 </html>
