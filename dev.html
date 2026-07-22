@@ -1,5 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Dashboard</title>
+    
+    <!-- PWA / iOS Web App 設定 -->
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dashboard">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f4f4;
+            padding: 10px;
+            color: #000;
+        }
+
+        /* 儀表板主容器 (黑白粗邊框風格) */
+        .dashboard {
+            max-width: 1000px;
+            margin: 0 auto;
+            border: 4px solid #000;
+            background-color: #fff;
+            padding: 16px;
+            box-shadow: 6px 6px 0px #000;
+        }
+
+        /* 頂部標題列 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid #000;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+
+        .header .last-updated {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* 主網格佈局 (左欄: 巴士+天氣, 右欄: 食物清單+提醒事項) */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 區塊容器 */
+        .section-box {
+            border: 2px solid #000;
+            margin-bottom: 16px;
+        }
+
+        .section-box:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-header {
+            background-color: #000;
+            color: #fff;
+            padding: 6px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-body {
+            padding: 12px;
+        }
+
+        /* 巴士卡片 */
+        .bus-card {
+            border: 2px solid #000;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            background-color: #fff;
+        }
+
+        .bus-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .bus-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+
+        .bus-number {
+            font-size: 28px;
+            font-weight: 900;
+        }
+
+        .bus-dest {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .bus-stop {
+            font-size: 12px;
+            color: #333;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .eta-container {
+            background-color: #eeeeee;
+            border-radius: 4px;
+            padding: 10px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .eta-main {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .eta-sub {
+            font-size: 15px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .co-badge {
+            font-size: 11px;
+            font-weight: 800;
+            border: 1px solid #000;
+            padding: 1px 4px;
+            border-radius: 3px;
+            background-color: #fff;
+            margin-right: 4px;
+        }
+
+        /* 天氣網格 */
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+            padding: 8px 0;
+        }
+
+        .weather-col {
+            border-right: 1px dashed #000;
+            padding: 0 4px;
+        }
+
+        .weather-col:last-child {
+            border-right: none;
+        }
+
+        .weather-location {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .weather-icon {
+            font-size: 26px;
+            margin: 4px 0;
+        }
+
+        .weather-temp {
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .weather-rh {
+            font-size: 12px;
+            color: #333;
+            margin-top: 4px;
+        }
+
+        /* 食品過期清單 & 提醒清單項目 */
+        .food-item, .remind-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #000;
+        }
+
+        .food-item:last-child, .remind-item:last-child {
+            border-bottom: none;
+        }
+
+        .food-name, .remind-title {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .food-badge, .remind-badge {
+            border: 1px solid #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            background-color: #fff;
+            white-space: nowrap;
+        }
+
+        .food-badge.urgent, .remind-badge.urgent {
+            background-color: #000;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <!-- 頁眉：日期顯示 -->
+    <div class="header">
+        <h1 id="current-date">----年--月--日 (星期-)</h1>
+        <div class="last-updated">最後更新: <span id="updated-at">--:--</span></div>
+    </div>
+
+    <!-- 主內容區塊 -->
+    <div class="main-grid">
+        
+        <!-- 左欄：巴士 ETA & 地區天氣 -->
+        <div class="left-column">
+            
+            <!-- 巴士實時到站 -->
+            <div class="section-box">
+                <div class="section-header">
+                    <span>🚌 巴士實時到站 (ETA)</span>
+                </div>
+                <div class="section-body">
+                    
+                    <!-- 680 巴士 -->
+                    <div class="bus-card">
+                        <div class="bus-header">
+                            <div>
+                                <span class="bus-number">680</span>
+                                <div class="bus-dest">往 金鐘站(東)</div>
+                            </div>
+                            <div class="bus-stop">小瀝源路草地滾球場</div>
+                        </div>
+                        <div class="eta-container" id="eta-680">
+                            載入中...
+                        </div>
+                    </div>
+
+                    <!-- 682B 巴士 -->
+                    <div class="bus-card">
+                        <div class="bus-header">
+                            <div>
+                                <span class="bus-number">682B</span>
+                                <div class="bus-dest">往 柴灣(東)</div>
+                            </div>
+                            <div class="bus-stop">第一城站，插桅杆街</div>
+                        </div>
+                        <div class="eta-container" id="eta-682B">
+                            載入中...
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 地區天氣簡報 -->
+            <div class="section-box">
+                <div class="section-header">
+                    <span>⛅ 地區天氣簡報</span>
+                </div>
+                <div class="section-body">
+                    <div class="weather-grid">
+                        
+                        <!-- 沙田 -->
+                        <div class="weather-col">
+                            <div class="weather-location">沙田</div>
+                            <div class="weather-icon" id="shatin-icon">☀️</div>
+                            <div class="weather-temp"><span id="shatin-temp">--</span>°C</div>
+                            <div class="weather-rh">相對濕度 <span id="shatin-rh">--</span>%</div>
+                        </div>
+
+                        <!-- 鰂魚涌 -->
+                        <div class="weather-col">
+                            <div class="weather-location">鰂魚涌</div>
+                            <div class="weather-icon" id="quarry-icon">☀️</div>
+                            <div class="weather-temp"><span id="quarry-temp">--</span>°C</div>
+                            <div class="weather-rh">相對濕度 <span id="quarry-rh">--</span>%</div>
+                        </div>
+
+                        <!-- 天后 -->
+                        <div class="weather-col">
+                            <div class="weather-location">天后</div>
+                            <div class="weather-icon" id="tinhau-icon">☀️</div>
+                            <div class="weather-temp"><span id="tinhau-temp">--</span>°C</div>
+                            <div class="weather-rh">相對濕度 <span id="tinhau-rh">--</span>%</div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 右欄：食品過期清單 + 重要事項提醒 -->
+        <div class="right-column">
+            
+            <!-- 上：食品過期清單 -->
+            <div class="section-box">
+                <div class="section-header">
+                    <span>🥑 食品過期清單</span>
+                </div>
+                <div class="section-body" id="food-list-container">
+                    載入中...
+                </div>
+            </div>
+
+            <!-- 下：重要事項提醒 -->
+            <div class="section-box">
+                <div class="section-header">
+                    <span>📌 重要事項提醒</span>
+                </div>
+                <div class="section-body" id="remind-list-container">
+                    <div style="padding: 12px; text-align: center; font-weight: bold; color: #666;">載入中...</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
 <script>
-    // ✅ 最新發布的 GAS API 網址
+    // ✅ 已更新為最新發布的 GAS Web App API 網址
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzuU7dE0AE-loLmJLL1dvQAhTvxI4X9jzcqsgsen42evVE-s71qZvAGntU66sUUUBrO/exec";
 
     // 更新日期顯示
@@ -19,6 +382,7 @@
         try {
             updateHeaderDate();
 
+            // 加上 ?t= 破解瀏覽器與 PWA 快取
             const cacheBuster = "?t=" + new Date().getTime();
             const response = await fetch(GAS_API_URL + cacheBuster, { redirect: "follow" });
             const data = await response.json();
@@ -50,7 +414,7 @@
                     renderFoodList(data.food);
                 }
 
-                // 5. 渲染提醒事項 (優先用 remind，若無則降級使用 all_remind 備援)
+                // 5. 渲染提醒事項 (雙重備援機制，優先用 remind，沒有則抓 all_remind)
                 const remindData = (data.remind && data.remind.length > 0) ? data.remind : (data.all_remind || []);
                 renderRemind(remindData);
             } else {
@@ -145,8 +509,7 @@
         container.innerHTML = html;
     }
 
-    // 渲染提醒事項 (支援 all_remind 前端日期計算)
-    // 渲染提醒事項 (完美解析 due_date / due / days_left)
+    // 渲染提醒事項 (支援 due_date / due 前端即時精準計算，修復 undefined 天)
     function renderRemind(remindData) {
         const container = document.getElementById("remind-list-container");
 
@@ -169,12 +532,11 @@
             // 抓取到期日欄位 (支援 due_date, due, rawDueDate)
             const dueDateRaw = item.due_date || item.due || item.rawDueDate;
 
-            // 如果後端沒算 days_left，由前端現場算
+            // 如果後端沒計算 days_left，由前端現場現場計算天數
             if (daysLeft === undefined || daysLeft === null || isNaN(daysLeft)) {
                 if (dueDateRaw) {
-                    // 處理 ISO 字串或 yyyy-MM-dd
                     let cleanStr = String(dueDateRaw).split("T")[0]; 
-                    const dueDate = new Date(cleanStr.replace(/-/g, "/")); // Safari 相容性格式
+                    const dueDate = new Date(cleanStr.replace(/-/g, "/")); // 兼顧 Safari 相容性
                     
                     if (!isNaN(dueDate.getTime())) {
                         dueDate.setHours(0, 0, 0, 0);
@@ -222,3 +584,6 @@
     fetchDashboardData();
     setInterval(fetchDashboardData, 60000);
 </script>
+
+</body>
+</html>
