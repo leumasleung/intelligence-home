@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard 後台管理系統</title>
+
+    <link rel="icon" type="image/png" href="food-manage.png">
+    <link rel="apple-touch-icon" href="food-manage.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="後台管理">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #f4f4f4; padding: 12px; color: #000; }
+        .container { max-width: 600px; margin: 0 auto; border: 4px solid #000; background-color: #fff; padding: 16px; box-shadow: 6px 6px 0px #000; }
+
+        .tab-group { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 4px solid #000; padding-bottom: 8px; }
+        .tab-btn { flex: 1; padding: 10px; border: 3px solid #000; background-color: #fff; color: #000; font-weight: 900; font-size: 15px; cursor: pointer; text-align: center; }
+        .tab-btn.active { background-color: #000; color: #fff; }
+
+        .form-box { border: 2px solid #000; padding: 12px; background-color: #f9f9f9; margin-bottom: 20px; }
+        .form-box h2 { font-size: 16px; margin-bottom: 12px; }
+        .input-group { margin-bottom: 10px; }
+        .input-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; }
+        .input-group input { 
+            width: 100%; max-width: 100%; padding: 8px; border: 2px solid #000; font-size: 15px; 
+            font-weight: bold; border-radius: 4px; outline: none; background-color: #fff;
+            -webkit-appearance: none; appearance: none;
+        }
+        
+        input[type="date"] { position: relative; min-height: 40px; }
+        input[type="date"]::-webkit-calendar-picker-indicator { 
+            background: transparent; bottom: 0; color: transparent; cursor: pointer; 
+            height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; 
+        }
+
+        .btn-group { display: flex; gap: 8px; }
+        button { padding: 10px 16px; border: 2px solid #000; background-color: #000; color: #fff; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 2px 2px 0px #888; border-radius: 4px; }
+        button:disabled { background-color: #666; cursor: not-allowed; box-shadow: none; }
+        button:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: 1px 1px 0px #888; }
+        button.cancel-btn { background-color: #fff; color: #000; }
+
+        .list-box { border: 2px solid #000; }
+        .list-header { background-color: #000; color: #fff; padding: 8px 12px; font-weight: bold; font-size: 15px; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #000; }
+        .item-row:last-child { border-bottom: none; }
+        .item-info { display: flex; flex-direction: column; gap: 2px; }
+        .item-title { font-size: 16px; font-weight: bold; }
+        .item-sub { font-size: 12px; color: #555; font-weight: bold; }
+        .action-btn { padding: 4px 8px; font-size: 12px; box-shadow: none; }
+        .edit-btn { background-color: #fff; color: #000; }
+        .loading-overlay { text-align: center; padding: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tab-group">
+        <button class="tab-btn active" id="tab-food" onclick="switchTab('food')">🥑 食品管理</button>
+        <button class="tab-btn" id="tab-remind" onclick="switchTab('remind')">📌 提醒事項</button>
+    </div>
+
+    <!-- 1. 食品管理區塊 -->
+    <div id="section-food">
+        <div class="form-box">
+            <h2 id="food-form-title">新增食品</h2>
+            <input type="hidden" id="food-edit-row" value="">
+            <div class="input-group">
+                <label>食品名稱</label>
+                <input type="text" id="food-name" placeholder="例如：牛奶、吐司">
+            </div>
+            <div class="input-group">
+                <label>到期日</label>
+                <input type="date" id="food-expiry">
+            </div>
+            <div class="btn-group">
+                <button id="food-save-btn" onclick="saveFood()">新增紀錄</button>
+                <button id="food-cancel-btn" class="cancel-btn" onclick="resetFoodForm()" style="display:none;">取消編輯</button>
+            </div>
+        </div>
+
+        <div class="list-box">
+            <div class="list-header">現有食品清單</div>
+            <div id="food-list" class="loading-overlay">載入中...</div>
+        </div>
+    </div>
+
+    <!-- 2. 提醒事項區塊 -->
+    <div id="section-remind" style="display: none;">
+        <div class="form-box">
+            <h2 id="remind-form-title">新增提醒事項</h2>
+            <input type="hidden" id="remind-edit-row" value="">
+            <div class="input-group">
+                <label>事項名稱</label>
+                <input type="text" id="remind-title" placeholder="例如：續領車牌、繳交保費">
+            </div>
+            <div class="input-group">
+                <label>到期日</label>
+                <input type="date" id="remind-due">
+            </div>
+            <div class="input-group">
+                <label>開始跟進日 (到了這天才顯示)</label>
+                <input type="date" id="remind-follow">
+            </div>
+            <div class="btn-group">
+                <button id="remind-save-btn" onclick="saveRemind()">新增提醒</button>
+                <button id="remind-cancel-btn" class="cancel-btn" onclick="resetRemindForm()" style="display:none;">取消編輯</button>
+            </div>
+        </div>
+
+        <div class="list-box">
+            <div class="list-header">現有提醒事項清單</div>
+            <div id="remind-list" class="loading-overlay">載入中...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzuU7dE0AE-loLmJLL1dvQAhTvxI4X9jzcqsgsen42evVE-s71qZvAGntU66sUUUBrO/exec";
+
+    let globalData = { food: [], remind: [] };
+
+    function switchTab(tab) {
+        document.getElementById("tab-food").className = tab === 'food' ? "tab-btn active" : "tab-btn";
+        document.getElementById("tab-remind").className = tab === 'remind' ? "tab-btn active" : "tab-btn";
+        document.getElementById("section-food").style.display = tab === 'food' ? "block" : "none";
+        document.getElementById("section-remind").style.display = tab === 'remind' ? "block" : "none";
+    }
+
+    async function loadAllData() {
+        try {
+            const cacheBuster = "?t=" + new Date().getTime();
+            const res = await fetch(GAS_API_URL + cacheBuster, { redirect: "follow" });
+            const data = await res.json();
+            
+            if (data.status === "success" || data.all_food || data.all_remind) {
+                globalData.food = data.all_food || [];
+                globalData.remind = data.all_remind || [];
+                
+                renderFoodList();
+                renderRemindList();
+            }
+        } catch (e) {
+            alert("資料載入失敗！");
+            console.error(e);
+        }
+    }
+
+    /* --- 食品 Logic (與原本 Food 邏輯完全一致) --- */
+    function renderFoodList() {
+        const box = document.getElementById("food-list");
+        if (!globalData.food || !globalData.food.length) { 
+            box.innerHTML = '<div class="loading-overlay">目前沒有食品資料</div>'; 
+            return; 
+        }
+        box.innerHTML = globalData.food.map(item => `
+            <div class="item-row">
+                <div class="item-info">
+                    <span class="item-title">${escapeHtml(item.name)}</span>
+                    <span class="item-sub">到期日: ${item.expiry}</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="action-btn edit-btn" onclick="editFood(${item.rowIndex})">編輯</button>
+                    <button class="action-btn" onclick="deleteItem('food', ${item.rowIndex})">刪除</button>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    async function saveFood() {
+        const name = document.getElementById("food-name").value.trim();
+        const expiry = document.getElementById("food-expiry").value;
+        const row = document.getElementById("food-edit-row").value;
+        if (!name || !expiry) return alert("請填寫食品名稱與到期日！");
+
+        const btn = document.getElementById("food-save-btn");
+        btn.disabled = true;
+        btn.textContent = "處理中...";
+
+        const success = await sendApi({ type: "food", action: row ? "edit" : "add", name: name, expiry: expiry, rowIndex: parseInt(row) });
+        
+        btn.disabled = false;
+        btn.textContent = row ? "更新紀錄" : "新增紀錄";
+
+        if (success) {
+            resetFoodForm();
+            setTimeout(loadAllData, 500);
+        }
+    }
+
+    function editFood(row) {
+        const item = globalData.food.find(f => f.rowIndex === row);
+        if (!item) return;
+        document.getElementById("food-name").value = item.name;
+        document.getElementById("food-expiry").value = item.expiry;
+        document.getElementById("food-edit-row").value = item.rowIndex;
+        document.getElementById("food-form-title").textContent = "編輯食品";
+        document.getElementById("food-save-btn").textContent = "更新紀錄";
+        document.getElementById("food-cancel-btn").style.display = "inline-block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetFoodForm() {
+        document.getElementById("food-name").value = "";
+        document.getElementById("food-expiry").value = "";
+        document.getElementById("food-edit-row").value = "";
+        document.getElementById("food-form-title").textContent = "新增食品";
+        document.getElementById("food-save-btn").textContent = "新增紀錄";
+        document.getElementById("food-cancel-btn").style.display = "none";
+    }
+
+    /* --- 提醒事項 Logic (比照 Food 乾淨寫法) --- */
+    function renderRemindList() {
+        const box = document.getElementById("remind-list");
+        if (!globalData.remind || !globalData.remind.length) { 
+            box.innerHTML = '<div class="loading-overlay">目前沒有提醒事項</div>'; 
+            return; 
+        }
+
+        box.innerHTML = globalData.remind.map(item => `
+            <div class="item-row">
+                <div class="item-info">
+                    <span class="item-title">📌 ${escapeHtml(item.title)}</span>
+                    <span class="item-sub">到期: ${item.due_date} | 跟進: ${item.follow_date}</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="action-btn edit-btn" onclick="editRemind(${item.rowIndex})">編輯</button>
+                    <button class="action-btn" onclick="deleteItem('remind', ${item.rowIndex})">刪除</button>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    async function saveRemind() {
+        const title = document.getElementById("remind-title").value.trim();
+        const due = document.getElementById("remind-due").value;
+        const follow = document.getElementById("remind-follow").value;
+        const row = document.getElementById("remind-edit-row").value;
+        if (!title || !due || !follow) return alert("請完整填寫事項名稱、到期日與開始跟進日！");
+
+        const btn = document.getElementById("remind-save-btn");
+        btn.disabled = true;
+        btn.textContent = "處理中...";
+
+        const success = await sendApi({ type: "remind", action: row ? "edit" : "add", title: title, due_date: due, follow_date: follow, rowIndex: parseInt(row) });
+        
+        btn.disabled = false;
+        btn.textContent = row ? "更新提醒" : "新增提醒";
+
+        if (success) {
+            resetRemindForm();
+            setTimeout(loadAllData, 500);
+        }
+    }
+
+    function editRemind(row) {
+        const item = globalData.remind.find(r => r.rowIndex === row);
+        if (!item) return;
+        document.getElementById("remind-title").value = item.title;
+        document.getElementById("remind-due").value = item.due_date;
+        document.getElementById("remind-follow").value = item.follow_date;
+        document.getElementById("remind-edit-row").value = item.rowIndex;
+        document.getElementById("remind-form-title").textContent = "編輯提醒";
+        document.getElementById("remind-save-btn").textContent = "更新提醒";
+        document.getElementById("remind-cancel-btn").style.display = "inline-block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetRemindForm() {
+        document.getElementById("remind-title").value = "";
+        document.getElementById("remind-due").value = "";
+        document.getElementById("remind-follow").value = "";
+        document.getElementById("remind-edit-row").value = "";
+        document.getElementById("remind-form-title").textContent = "新增提醒事項";
+        document.getElementById("remind-save-btn").textContent = "新增提醒";
+        document.getElementById("remind-cancel-btn").style.display = "none";
+    }
+
+    /* --- 通用 CRUD 與 API --- */
+    async function deleteItem(type, row) {
+        if (!confirm("確定要刪除這筆紀錄嗎？")) return;
+        const success = await sendApi({ type: type, action: "delete", rowIndex: row });
+        if (success) {
+            setTimeout(loadAllData, 500);
+        }
+    }
+
+    async function sendApi(payload) {
+        try {
+            await fetch(GAS_API_URL, { 
+                method: "POST", 
+                body: JSON.stringify(payload) 
+            });
+            return true;
+        } catch (e) {
+            alert("操作失敗！");
+            console.error(e);
+            return false;
+        }
+    }
+
+    function escapeHtml(str) { 
+        if (!str) return "";
+        return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m])); 
+    }
+
+    loadAllData();
+</script>
+</body>
+</html>
