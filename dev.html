@@ -95,6 +95,16 @@
             padding: 12px;
         }
 
+        /* 統一所有「載入中...」與「無資料」狀態的樣式 */
+        .loading-state {
+            width: 100%;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+        }
+
         /* 巴士卡片 */
         .bus-card {
             border: 2px solid #000;
@@ -139,6 +149,7 @@
             min-height: 44px;
             display: flex;
             align-items: center;
+            justify-content: center; /* 讓預設載入中狀態居中 */
             flex-wrap: wrap;
             gap: 6px;
         }
@@ -274,7 +285,7 @@
                             <div class="bus-stop">小瀝源路草地滾球場</div>
                         </div>
                         <div class="eta-container" id="eta-680">
-                            載入中...
+                            <div class="loading-state">載入中...</div>
                         </div>
                     </div>
 
@@ -288,7 +299,7 @@
                             <div class="bus-stop">第一城站，插桅杆街</div>
                         </div>
                         <div class="eta-container" id="eta-682B">
-                            載入中...
+                            <div class="loading-state">載入中...</div>
                         </div>
                     </div>
 
@@ -342,7 +353,7 @@
                     <span>🥑 食品過期清單</span>
                 </div>
                 <div class="section-body" id="food-list-container">
-                    載入中...
+                    <div class="loading-state">載入中...</div>
                 </div>
             </div>
 
@@ -352,7 +363,7 @@
                     <span>📌 重要事項提醒</span>
                 </div>
                 <div class="section-body" id="remind-list-container">
-                    <div style="padding: 12px; text-align: center; font-weight: bold; color: #666;">載入中...</div>
+                    <div class="loading-state">載入中...</div>
                 </div>
             </div>
 
@@ -362,7 +373,6 @@
 </div>
 
 <script>
-    // ✅ 已更新為最新發布的 GAS Web App API 網址
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzuU7dE0AE-loLmJLL1dvQAhTvxI4X9jzcqsgsen42evVE-s71qZvAGntU66sUUUBrO/exec";
 
     // 更新日期顯示
@@ -382,7 +392,6 @@
         try {
             updateHeaderDate();
 
-            // 加上 ?t= 破解瀏覽器與 PWA 快取
             const cacheBuster = "?t=" + new Date().getTime();
             const response = await fetch(GAS_API_URL + cacheBuster, { redirect: "follow" });
             const data = await response.json();
@@ -414,7 +423,7 @@
                     renderFoodList(data.food);
                 }
 
-                // 5. 渲染提醒事項 (雙重備援機制，優先用 remind，沒有則抓 all_remind)
+                // 5. 渲染提醒事項
                 const remindData = (data.remind && data.remind.length > 0) ? data.remind : (data.all_remind || []);
                 renderRemind(remindData);
             } else {
@@ -422,17 +431,17 @@
             }
         } catch (error) {
             console.error("抓取 Dashboard 資料失敗:", error);
-            document.getElementById("eta-680").innerHTML = `<span style="color:red; font-size:12px;">載入失敗 (請檢查網絡)</span>`;
-            document.getElementById("eta-682B").innerHTML = `<span style="color:red; font-size:12px;">載入失敗 (請檢查網絡)</span>`;
+            document.getElementById("eta-680").innerHTML = `<div class="loading-state" style="color:red;">載入失敗 (請檢查網絡)</div>`;
+            document.getElementById("eta-682B").innerHTML = `<div class="loading-state" style="color:red;">載入失敗 (請檢查網絡)</div>`;
         }
     }
 
-    // 渲染巴士 ETA 格式化函式
+    // 渲染巴士 ETA
     function renderBusEta(elementId, etaArray) {
         const container = document.getElementById(elementId);
 
         if (!etaArray || !Array.isArray(etaArray) || etaArray.length === 0) {
-            container.innerHTML = `<span class="eta-sub" style="color: #666;">非服務時間 / 暫無班次</span>`;
+            container.innerHTML = `<div class="loading-state">非服務時間 / 暫無班次</div>`;
             return;
         }
 
@@ -461,10 +470,11 @@
         });
 
         if (validItemCount === 0) {
-            html = `<span class="eta-sub" style="color: #666;">非服務時間 / 暫無班次</span>`;
+            html = `<div class="loading-state">非服務時間 / 暫無班次</div>`;
         }
 
         container.innerHTML = html;
+        container.style.justifyContent = "flex-start"; // 有內容時靠左對齊
     }
 
     // 渲染天氣資訊
@@ -480,7 +490,7 @@
         const container = document.getElementById("food-list-container");
 
         if (!foodArray || foodArray.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding: 12px 0; font-weight:bold;">🎉 目前沒有即將過期的食物！</div>`;
+            container.innerHTML = `<div class="loading-state">🎉 目前沒有即將過期的食物！</div>`;
             return;
         }
 
@@ -509,16 +519,12 @@
         container.innerHTML = html;
     }
 
-    // 渲染提醒事項 (支援 due_date / due 前端即時精準計算，修復 undefined 天)
+    // 渲染提醒事項 (改為 X 天後到期)
     function renderRemind(remindData) {
         const container = document.getElementById("remind-list-container");
 
         if (!remindData || !Array.isArray(remindData) || remindData.length === 0) {
-            container.innerHTML = `
-                <div style="padding: 12px 0; text-align: center; color: #555; font-weight: bold; font-size: 13px;">
-                    🎉 暫時沒有需要跟進的事項
-                </div>
-            `;
+            container.innerHTML = `<div class="loading-state">🎉 暫時沒有需要跟進的事項</div>`;
             return;
         }
 
@@ -528,15 +534,12 @@
         let html = "";
         remindData.forEach(item => {
             let daysLeft = item.days_left;
-            
-            // 抓取到期日欄位 (支援 due_date, due, rawDueDate)
             const dueDateRaw = item.due_date || item.due || item.rawDueDate;
 
-            // 如果後端沒計算 days_left，由前端現場現場計算天數
             if (daysLeft === undefined || daysLeft === null || isNaN(daysLeft)) {
                 if (dueDateRaw) {
                     let cleanStr = String(dueDateRaw).split("T")[0]; 
-                    const dueDate = new Date(cleanStr.replace(/-/g, "/")); // 兼顧 Safari 相容性
+                    const dueDate = new Date(cleanStr.replace(/-/g, "/"));
                     
                     if (!isNaN(dueDate.getTime())) {
                         dueDate.setHours(0, 0, 0, 0);
@@ -553,11 +556,12 @@
             if (daysLeft === undefined || daysLeft === null || isNaN(daysLeft)) {
                 statusBadge = dueDateRaw || "待處理";
             } else if (daysLeft < 0) {
-                statusBadge = `逾期 ${Math.abs(daysLeft)} 天`;
+                statusBadge = `已逾期 ${Math.abs(daysLeft)} 天`;
             } else if (daysLeft === 0) {
                 statusBadge = "今日到期";
             } else {
-                statusBadge = `剩 ${daysLeft} 天`;
+                // ✅ 改為「X 天後到期」
+                statusBadge = `${daysLeft} 天後到期`;
             }
 
             const titleText = item.title || item.name || "未命名事項";
