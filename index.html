@@ -336,6 +336,14 @@
             </div>
         </div>
 
+        <!-- 右下角：重要事項提醒 -->
+        <div class="card-box" style="margin-top: 16px;">
+            <div class="card-header">📌 重要事項提醒</div>
+            <div id="remind-list-container" class="card-body">
+                <div style="padding: 16px; text-align: center; font-weight: bold; color: #666;">載入中...</div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -483,6 +491,51 @@
         container.innerHTML = html;
     }
 
+    // 渲染提醒事項
+    function renderRemind(remindData) {
+        const container = document.getElementById("remind-list-container");
+    
+        // 暫時未有跟進事項時顯示的訊息
+        if (!remindData || remindData.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #555; font-weight: bold; font-size: 14px;">
+                    🎉 暫時沒有需要跟進的事項
+                </div>
+            `;
+            return;
+        }
+    
+        let html = "";
+        remindData.forEach(item => {
+            let statusBadge = "";
+            
+            if (item.days_left < 0) {
+                statusBadge = `逾期 ${Math.abs(item.days_left)} 天`;
+            } else if (item.days_left === 0) {
+                statusBadge = "今日到期";
+            } else {
+                statusBadge = `剩 ${item.days_left} 天`;
+            }
+    
+            html += `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 2px solid #000;">
+                    <div style="font-weight: 900; font-size: 15px; color: #000;">
+                        ${escapeHtml(item.title)}
+                    </div>
+                    <div style="background-color: #000; color: #fff; padding: 3px 8px; font-weight: 900; font-size: 12px; border-radius: 4px; white-space: nowrap;">
+                        ${statusBadge}
+                    </div>
+                </div>
+            `;
+        });
+    
+        container.innerHTML = html;
+    }
+
+// 防 XSS 轉義函數
+function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+}
     // 初始化頁面
     updateHeaderDate();
     fetchDashboardData();
