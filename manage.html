@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard 後台管理系統</title>
 
-    <!-- App Icon & PWA 設定 -->
     <link rel="icon" type="image/png" href="food-manage.png">
     <link rel="apple-touch-icon" href="food-manage.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,12 +16,10 @@
         body { background-color: #f4f4f4; padding: 12px; color: #000; }
         .container { max-width: 600px; margin: 0 auto; border: 4px solid #000; background-color: #fff; padding: 16px; box-shadow: 6px 6px 0px #000; }
 
-        /* 分頁切換 Tab */
         .tab-group { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 4px solid #000; padding-bottom: 8px; }
         .tab-btn { flex: 1; padding: 10px; border: 3px solid #000; background-color: #fff; color: #000; font-weight: 900; font-size: 15px; cursor: pointer; text-align: center; }
         .tab-btn.active { background-color: #000; color: #fff; }
 
-        /* 表單區域 */
         .form-box { border: 2px solid #000; padding: 12px; background-color: #f9f9f9; margin-bottom: 20px; }
         .form-box h2 { font-size: 16px; margin-bottom: 12px; }
         .input-group { margin-bottom: 10px; }
@@ -33,7 +30,6 @@
             -webkit-appearance: none; appearance: none;
         }
         
-        /* 解決 iOS/Android 日期選擇器突出框溢出問題 */
         input[type="date"] { position: relative; min-height: 40px; }
         input[type="date"]::-webkit-calendar-picker-indicator { 
             background: transparent; bottom: 0; color: transparent; cursor: pointer; 
@@ -46,7 +42,6 @@
         button:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: 1px 1px 0px #888; }
         button.cancel-btn { background-color: #fff; color: #000; }
 
-        /* 列表區域 */
         .list-box { border: 2px solid #000; }
         .list-header { background-color: #000; color: #fff; padding: 8px 12px; font-weight: bold; font-size: 15px; }
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #000; }
@@ -62,7 +57,6 @@
 <body>
 
 <div class="container">
-    <!-- 切換 Tab -->
     <div class="tab-group">
         <button class="tab-btn active" id="tab-food" onclick="switchTab('food')">🥑 食品管理</button>
         <button class="tab-btn" id="tab-remind" onclick="switchTab('remind')">📌 提醒事項</button>
@@ -137,13 +131,10 @@
 
     async function loadAllData() {
         try {
-            // 加入 timestamp 強制破解瀏覽器快取
             const cacheBuster = "?t=" + new Date().getTime();
             const res = await fetch(GAS_API_URL + cacheBuster, { redirect: "follow" });
             const data = await res.json();
             
-            console.log("API 回傳資料:", data);
-
             if (data.status === "success" || data.all_food || data.all_remind) {
                 globalData.food = data.all_food || [];
                 globalData.remind = data.all_remind || [];
@@ -152,12 +143,12 @@
                 renderRemindList();
             }
         } catch (e) {
-            alert("資料載入失敗，請檢查網絡設定！");
+            alert("資料載入失敗！");
             console.error(e);
         }
     }
 
-    /* --- 食品 Logic --- */
+    /* --- 食品 Logic (與原本 Food 邏輯完全一致) --- */
     function renderFoodList() {
         const box = document.getElementById("food-list");
         if (!globalData.food || !globalData.food.length) { 
@@ -167,8 +158,8 @@
         box.innerHTML = globalData.food.map(item => `
             <div class="item-row">
                 <div class="item-info">
-                    <span class="item-title">${escapeHtml(item.name || '')}</span>
-                    <span class="item-sub">到期日: ${cleanDateStr(item.expiry)}</span>
+                    <span class="item-title">${escapeHtml(item.name)}</span>
+                    <span class="item-sub">到期日: ${item.expiry}</span>
                 </div>
                 <div style="display:flex; gap:6px;">
                     <button class="action-btn edit-btn" onclick="editFood(${item.rowIndex})">編輯</button>
@@ -195,7 +186,7 @@
 
         if (success) {
             resetFoodForm();
-            setTimeout(loadAllData, 800);
+            setTimeout(loadAllData, 500);
         }
     }
 
@@ -203,7 +194,7 @@
         const item = globalData.food.find(f => f.rowIndex === row);
         if (!item) return;
         document.getElementById("food-name").value = item.name;
-        document.getElementById("food-expiry").value = cleanDateStr(item.expiry);
+        document.getElementById("food-expiry").value = item.expiry;
         document.getElementById("food-edit-row").value = item.rowIndex;
         document.getElementById("food-form-title").textContent = "編輯食品";
         document.getElementById("food-save-btn").textContent = "更新紀錄";
@@ -220,40 +211,26 @@
         document.getElementById("food-cancel-btn").style.display = "none";
     }
 
-    /* --- 提醒事項 Logic --- */
+    /* --- 提醒事項 Logic (比照 Food 乾淨寫法) --- */
     function renderRemindList() {
         const box = document.getElementById("remind-list");
-        
-        if (!globalData.remind || !Array.isArray(globalData.remind) || globalData.remind.length === 0) { 
+        if (!globalData.remind || !globalData.remind.length) { 
             box.innerHTML = '<div class="loading-overlay">目前沒有提醒事項</div>'; 
             return; 
         }
 
-        try {
-            let html = globalData.remind.map(item => {
-                const titleText = escapeHtml(item.title || item.name || '未命名事項');
-                const dueText = cleanDateStr(item.due_date || item.due);
-                const followText = cleanDateStr(item.follow_date || item.follow);
-
-                return `
-                    <div class="item-row">
-                        <div class="item-info">
-                            <span class="item-title">📌 ${titleText}</span>
-                            <span class="item-sub">到期: ${dueText} | 跟進: ${followText}</span>
-                        </div>
-                        <div style="display:flex; gap:6px;">
-                            <button class="action-btn edit-btn" onclick="editRemind(${item.rowIndex})">編輯</button>
-                            <button class="action-btn" onclick="deleteItem('remind', ${item.rowIndex})">刪除</button>
-                        </div>
-                    </div>
-                `;
-            }).join("");
-
-            box.innerHTML = html;
-        } catch (err) {
-            console.error("渲染 Remind 清單錯誤:", err);
-            box.innerHTML = `<div class="loading-overlay" style="color:red;">資料渲染錯誤</div>`;
-        }
+        box.innerHTML = globalData.remind.map(item => `
+            <div class="item-row">
+                <div class="item-info">
+                    <span class="item-title">📌 ${escapeHtml(item.title)}</span>
+                    <span class="item-sub">到期: ${item.due_date} | 跟進: ${item.follow_date}</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="action-btn edit-btn" onclick="editRemind(${item.rowIndex})">編輯</button>
+                    <button class="action-btn" onclick="deleteItem('remind', ${item.rowIndex})">刪除</button>
+                </div>
+            </div>
+        `).join("");
     }
 
     async function saveRemind() {
@@ -274,7 +251,7 @@
 
         if (success) {
             resetRemindForm();
-            setTimeout(loadAllData, 800);
+            setTimeout(loadAllData, 500);
         }
     }
 
@@ -282,8 +259,8 @@
         const item = globalData.remind.find(r => r.rowIndex === row);
         if (!item) return;
         document.getElementById("remind-title").value = item.title;
-        document.getElementById("remind-due").value = cleanDateStr(item.due_date);
-        document.getElementById("remind-follow").value = cleanDateStr(item.follow_date);
+        document.getElementById("remind-due").value = item.due_date;
+        document.getElementById("remind-follow").value = item.follow_date;
         document.getElementById("remind-edit-row").value = item.rowIndex;
         document.getElementById("remind-form-title").textContent = "編輯提醒";
         document.getElementById("remind-save-btn").textContent = "更新提醒";
@@ -301,43 +278,24 @@
         document.getElementById("remind-cancel-btn").style.display = "none";
     }
 
-    /* 安全的日期字串清理函式 */
-    function cleanDateStr(str) {
-        if (!str) return "--";
-        let s = String(str).trim();
-        
-        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-        if (s.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(s)) {
-            return s.substring(0, 10);
-        }
-
-        s = s.replace(/\s*\(.*?\)/g, ""); 
-        const d = new Date(s);
-        if (isNaN(d.getTime())) return String(str);
-        
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
+    /* --- 通用 CRUD 與 API --- */
     async function deleteItem(type, row) {
         if (!confirm("確定要刪除這筆紀錄嗎？")) return;
         const success = await sendApi({ type: type, action: "delete", rowIndex: row });
         if (success) {
-            setTimeout(loadAllData, 800);
+            setTimeout(loadAllData, 500);
         }
     }
 
     async function sendApi(payload) {
         try {
-            const res = await fetch(GAS_API_URL, { 
+            await fetch(GAS_API_URL, { 
                 method: "POST", 
                 body: JSON.stringify(payload) 
             });
             return true;
         } catch (e) {
-            alert("操作失敗，請檢查網絡連線！");
+            alert("操作失敗！");
             console.error(e);
             return false;
         }
