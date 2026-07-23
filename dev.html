@@ -12,48 +12,48 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dashboard">
 
-    <!-- 載入高品質繁體中文與數字字型 -->
+    <!-- 載入 Google 現代無襯線字型 (與日系指標常用的 Frutiger/Gothic 極度相似) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;700;900&family=Roboto:wght@700;900&display=swap" rel="stylesheet">
 
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Noto Sans HK', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Noto Sans HK', -apple-system, BlinkMacSystemFont, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
 
         body {
-            background-color: #f4f4f4;
-            padding: 10px;
+            background-color: #eef0f2;
+            padding: 20px 10px;
             color: #111;
         }
 
-        /* 儀表板主容器 (黑白粗邊框風格) */
+        /* 主容器：大量的留白 + 極簡邊框 */
         .dashboard {
             max-width: 1000px;
             margin: 0 auto;
-            border: 4px solid #000;
             background-color: #fff;
-            padding: 20px;
-            box-shadow: 6px 6px 0px #000;
+            padding: 28px;
+            border: 2px solid #111;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
-        /* 頂部標題列 - Typography 強化 */
+        /* 頁眉：極簡日系標線設計 */
         .header {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
-            border-bottom: 4px solid #000;
+            align-items: flex-end;
+            border-bottom: 3px solid #111;
             padding-bottom: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .header h1 {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 900;
             letter-spacing: -0.5px;
             color: #000;
@@ -71,210 +71,223 @@
             color: #000;
         }
 
-        /* 主網格佈局 */
+        /* 主網格：增加間距，營造 White Space 呼吸感 */
         .main-grid {
             display: grid;
-            grid-template-columns: 1.4fr 1fr;
-            gap: 20px;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 28px;
         }
 
         @media (max-width: 768px) {
             .main-grid {
                 grid-template-columns: 1fr;
+                gap: 20px;
             }
         }
 
         /* 區塊容器 */
         .section-box {
-            border: 2.5 solid #000;
-            border: 2px solid #000;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .section-box:last-child {
             margin-bottom: 0;
         }
 
+        /* 區塊標題：日系小方塊 Header */
         .section-header {
-            background-color: #000;
-            color: #fff;
-            padding: 8px 14px;
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: #000;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #111;
+        }
+
+        .section-header span {
+            display: inline-block;
         }
 
         .section-body {
-            padding: 14px;
+            padding: 4px 0;
         }
 
-        /* 統一所有「載入中...」狀態樣式 */
+        /* 載入中狀態 */
         .loading-state {
             width: 100%;
             text-align: center;
-            padding: 16px 0;
-            font-size: 14px;
+            padding: 20px 0;
+            font-size: 13px;
             font-weight: 500;
-            color: #777;
-            letter-spacing: 0.5px;
+            color: #888;
+            letter-spacing: 1px;
         }
 
-        /* 巴士卡片 - Typography 視覺分層 */
+        /* 巴士卡片：極簡指標排版 (日式巨大的數字 + 小單位字) */
         .bus-card {
-            border: 2px solid #000;
-            border-radius: 6px;
-            padding: 12px 14px;
-            margin-bottom: 14px;
-            background-color: #fff;
+            padding: 16px 0;
+            border-bottom: 1px solid #e5e5e5;
         }
 
         .bus-card:last-child {
-            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
         }
 
         .bus-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 10px;
+            align-items: baseline;
+            margin-bottom: 8px;
         }
 
-        /* 路線號碼強調 */
+        /* 日系路線 Block 標籤 */
         .bus-number {
-            font-size: 26px;
+            font-family: 'Roboto', 'Noto Sans HK', sans-serif;
+            background-color: #111;
+            color: #fff;
+            font-size: 20px;
             font-weight: 900;
-            line-height: 1;
-            letter-spacing: -0.5px;
+            padding: 2px 8px;
+            border-radius: 2px;
+            display: inline-block;
             margin-right: 8px;
-            display: inline-block;
+            letter-spacing: 0.5px;
         }
 
-        /* 目的地次要強調 */
         .bus-dest {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
-            color: #222;
+            color: #111;
             display: inline-block;
         }
 
-        /* 巴士站名最次要 */
         .bus-stop {
             font-size: 12px;
-            color: #666;
-            text-align: right;
+            color: #777;
             font-weight: 500;
-            max-width: 45%;
-            line-height: 1.3;
+            text-align: right;
         }
 
+        /* ETA 區域：模仿日文「2號車 4ドア」的極端大小跳躍率 */
         .eta-container {
-            background-color: #f8f8f8;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            padding: 10px 12px;
-            min-height: 52px;
+            padding: 8px 0 0 0;
             display: flex;
             align-items: baseline;
-            justify-content: center;
+            justify-content: flex-start;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 16px;
         }
 
-        /* 關鍵數字巨型化 (Primary Focus) */
+        /* 第一班車：超巨型數字 + 比例極小的「分鐘」單位 */
         .eta-main {
-            font-size: 26px;
+            font-family: 'Roboto', 'Noto Sans HK', sans-serif;
+            font-size: 38px;  /* 巨型數字 */
             font-weight: 900;
             color: #000;
             line-height: 1;
+            letter-spacing: -1px;
         }
 
-        /* 次要班次時間 (Secondary Focus) */
-        .eta-sub {
-            font-size: 15px;
+        .eta-main .unit {
+            font-size: 13px;  /* 單位字大幅縮小，形成日式跳躍率 */
             font-weight: 700;
             color: #555;
+            margin-left: 2px;
+            letter-spacing: 0;
+        }
+
+        /* 次班車：次要強調 */
+        .eta-sub {
+            font-family: 'Roboto', 'Noto Sans HK', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #666;
+        }
+
+        .eta-sub .unit {
+            font-size: 12px;
+            color: #888;
         }
 
         .co-badge {
             font-size: 10px;
             font-weight: 900;
-            border: 1px solid #000;
-            padding: 1px 4px;
-            border-radius: 3px;
+            border: 1px solid #111;
+            padding: 0 4px;
+            border-radius: 2px;
             background-color: #fff;
+            color: #111;
             margin-right: 4px;
             vertical-align: middle;
         }
 
-        /* 天氣網格 - 數字與文字極致層次化 */
+        /* 天氣網格：極致的大數字 + 留白欄位 */
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            text-align: center;
-            padding: 4px 0;
+            gap: 12px;
+            text-align: left; /* 改為日系常見的靠左排版 */
+            padding: 8px 0;
         }
 
         .weather-col {
-            border-right: 1px dashed #bbb;
-            padding: 0 4px;
+            border-left: 2px solid #111; /* 左側單線引導 */
+            padding-left: 12px;
         }
 
-        .weather-col:last-child {
-            border-right: none;
-        }
-
-        /* 地區標題 */
         .weather-location {
-            font-size: 13px;
-            font-weight: 700;
-            color: #444;
-            margin-bottom: 2px;
-            letter-spacing: 0.5px;
+            font-size: 12px;
+            font-weight: 900;
+            color: #666;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         .weather-icon {
-            font-size: 28px;
-            margin: 2px 0;
-            line-height: 1.1;
+            font-size: 24px;
+            margin: 4px 0;
         }
 
-        /* 溫度超大數字 (Primary Focus) */
+        /* 天氣超大數字 */
         .weather-temp {
-            font-size: 28px;
+            font-family: 'Roboto', 'Noto Sans HK', sans-serif;
+            font-size: 32px;
             font-weight: 900;
             color: #000;
-            line-height: 1.1;
+            line-height: 1;
             letter-spacing: -1px;
         }
 
-        .weather-temp span {
-            font-size: 28px;
+        .weather-temp .unit {
+            font-size: 14px;
+            font-weight: 700;
+            color: #666;
         }
 
-        /* 濕度標籤小字 (Tertiary Focus) */
         .weather-rh {
             font-size: 11px;
             font-weight: 500;
-            color: #666;
-            margin-top: 4px;
+            color: #777;
+            margin-top: 6px;
         }
 
         .weather-rh span {
             font-weight: 700;
-            color: #222;
+            color: #111;
         }
 
-        /* 食品與提醒清單 - Typography 列表化 */
+        /* 食品 & 提醒事項：簡約清爽的日系清單 */
         .food-item, .remind-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 12px 0;
+            border-bottom: 1px dashed #d5d5d5;
         }
 
         .food-item:last-child, .remind-item:last-child {
@@ -282,27 +295,26 @@
         }
 
         .food-name, .remind-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             color: #111;
-            letter-spacing: 0.2px;
-        }
-
-        .food-badge, .remind-badge {
-            border: 1.5px solid #000;
-            padding: 3px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 700;
-            background-color: #fff;
-            color: #000;
-            white-space: nowrap;
             letter-spacing: 0.3px;
         }
 
-        /* 緊急狀態黑底白字高反差 */
+        /* 標籤：日式 Mini Badge */
+        .food-badge, .remind-badge {
+            border: 1px solid #111;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            background-color: #fff;
+            color: #111;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+
         .food-badge.urgent, .remind-badge.urgent {
-            background-color: #000;
+            background-color: #111;
             color: #fff;
         }
     </style>
@@ -372,7 +384,7 @@
                         <div class="weather-col">
                             <div class="weather-location">沙田</div>
                             <div class="weather-icon" id="shatin-icon">☀️</div>
-                            <div class="weather-temp"><span id="shatin-temp">--</span>°C</div>
+                            <div class="weather-temp"><span id="shatin-temp">--</span><span class="unit">°C</span></div>
                             <div class="weather-rh">相對濕度 <span id="shatin-rh">--</span>%</div>
                         </div>
 
@@ -380,7 +392,7 @@
                         <div class="weather-col">
                             <div class="weather-location">鰂魚涌</div>
                             <div class="weather-icon" id="quarry-icon">☀️</div>
-                            <div class="weather-temp"><span id="quarry-temp">--</span>°C</div>
+                            <div class="weather-temp"><span id="quarry-temp">--</span><span class="unit">°C</span></div>
                             <div class="weather-rh">相對濕度 <span id="quarry-rh">--</span>%</div>
                         </div>
 
@@ -388,7 +400,7 @@
                         <div class="weather-col">
                             <div class="weather-location">天后</div>
                             <div class="weather-icon" id="tinhau-icon">☀️</div>
-                            <div class="weather-temp"><span id="tinhau-temp">--</span>°C</div>
+                            <div class="weather-temp"><span id="tinhau-temp">--</span><span class="unit">°C</span></div>
                             <div class="weather-rh">相對濕度 <span id="tinhau-rh">--</span>%</div>
                         </div>
 
@@ -490,7 +502,7 @@
         }
     }
 
-    // 渲染巴士 ETA
+    // 渲染巴士 ETA (包含日系「大數字+小單位」的排版結構)
     function renderBusEta(elementId, etaArray) {
         const container = document.getElementById(elementId);
 
@@ -516,9 +528,9 @@
             if (minutes < 0 || minutes === null || minutes === undefined) return;
 
             if (validItemCount === 0) {
-                html += `<span class="eta-main">${coBadge}${minutes} 分鐘</span>`;
+                html += `<span class="eta-main">${coBadge}${minutes}<span class="unit">分鐘</span></span>`;
             } else {
-                html += `<span class="eta-sub">| ${coBadge}${minutes} 分</span>`;
+                html += `<span class="eta-sub">| ${coBadge}${minutes}<span class="unit">分</span></span>`;
             }
             validItemCount++;
         });
@@ -528,7 +540,7 @@
         }
 
         container.innerHTML = html;
-        container.style.justifyContent = "flex-start"; // 有內容時靠左對齊
+        container.style.justifyContent = "flex-start";
     }
 
     // 渲染天氣資訊
@@ -573,7 +585,7 @@
         container.innerHTML = html;
     }
 
-    // 渲染提醒事項 (改為 X 天後跟進)
+    // 渲染提醒事項
     function renderRemind(remindData) {
         const container = document.getElementById("remind-list-container");
 
