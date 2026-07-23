@@ -42,7 +42,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
-        /* 頁眉：日期字體已調小 (16px) */
+        /* 頁眉 */
         .header {
             display: flex;
             justify-content: space-between;
@@ -53,7 +53,7 @@
         }
 
         .header h1 {
-            font-size: 16px; /* ✅ 已調小日期字體 (原本 28px) */
+            font-size: 16px;
             font-weight: 700;
             letter-spacing: 0px;
             color: #111;
@@ -85,16 +85,20 @@
             }
         }
 
-        /* 區塊容器 */
+        /* 區塊容器：上下 Section 之間加入深灰實線分隔 */
         .section-box {
+            padding-bottom: 24px;
             margin-bottom: 24px;
+            border-bottom: 2px solid #555; /* 深灰實線分隔 */
         }
 
         .section-box:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
             margin-bottom: 0;
         }
 
-        /* 區塊標題 */
+        /* 區塊標題：已移除下方的黑色分隔線 */
         .section-header {
             display: flex;
             align-items: center;
@@ -103,13 +107,13 @@
             font-weight: 900;
             letter-spacing: 1px;
             color: #000;
-            margin-bottom: 16px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #111;
+            margin-bottom: 16px; /* 統一與內容之間的垂直 White Space (16px) */
+            padding-bottom: 0;
+            border-bottom: none; /* 移除黑色分隔線 */
         }
 
         .section-body {
-            padding: 4px 0;
+            padding: 0;
         }
 
         /* 載入中狀態 */
@@ -267,7 +271,7 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             text-align: left;
-            padding: 8px 0;
+            padding: 0;
         }
 
         .weather-col {
@@ -328,11 +332,11 @@
             color: #111;
         }
 
-        /* 🥑 食品清單 2 COLUMN 網格佈局 */
+        /* 🥑 食品清單 2 COLUMN 網格佈局 (已移除欄位之間的垂直淺灰線) */
         .food-grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 0 16px;
+            gap: 0 20px;
         }
 
         @media (max-width: 480px) {
@@ -349,13 +353,14 @@
             border-bottom: 1px dashed #d5d5d5;
         }
 
+        /* 移除雙欄之間的垂直線 */
         .food-grid-container .food-item:nth-child(odd) {
-            padding-right: 12px;
-            border-right: 1px solid #f0f0f0;
+            padding-right: 0;
+            border-right: none;
         }
 
         .food-grid-container .food-item:nth-child(even) {
-            padding-left: 4px;
+            padding-left: 0;
         }
 
         .food-name {
