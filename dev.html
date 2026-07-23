@@ -148,14 +148,14 @@
             padding-right: 0;
         }
 
-        /* 路線編號 Header：680 在左，資訊在右 */
+        /* 路線編號 Header：已移除黑色下劃實線 */
         .bus-header {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #111;
+            padding-bottom: 0; /* 移除 padding */
+            border-bottom: none; /* 移除黑色實線 */
         }
 
         .bus-number {
@@ -205,11 +205,12 @@
             flex-direction: column;
         }
 
-        /* 每班車列：使用淺灰虛線分割 */
+        /* 每班車列：時間靠左，公司靠右 */
         .eta-row {
             font-family: 'Roboto', 'Noto Sans HK', sans-serif;
             display: flex;
             align-items: baseline;
+            justify-content: space-between; /* 左右分開對齊 */
             padding: 8px 0;
             border-bottom: 1px dashed #d5d5d5;
         }
@@ -218,7 +219,7 @@
             border-bottom: none;
         }
 
-        /* 第一班車 (巨型數字) */
+        /* 第一班車 (最快到的班次，字體較大) */
         .eta-row-first .eta-min {
             font-size: 32px;
             font-weight: 900;
@@ -235,10 +236,6 @@
         }
 
         /* 次班車 (第二、三班) */
-        .eta-row-sub {
-            color: #555;
-        }
-
         .eta-row-sub .eta-min {
             font-size: 18px;
             font-weight: 900;
@@ -252,24 +249,24 @@
             margin-left: 2px;
         }
 
+        /* 巴士公司 Badge 靠右 */
         .co-badge {
             font-size: 10px;
             font-weight: 900;
             border: 1px solid #111;
-            padding: 0 4px;
+            padding: 1px 5px;
             border-radius: 2px;
             background-color: #fff;
             color: #111;
-            margin-right: 6px;
-            vertical-align: middle;
+            margin-left: auto; /* 自動推至最右側 */
         }
 
-        /* 天氣網格：垂直結構調整 (Icon -> 地名 -> 溫度 -> 濕度) */
+        /* 天氣網格：靠左對齊，Icon 與地名同行 */
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
-            text-align: center;
+            text-align: left;
             padding: 8px 0;
         }
 
@@ -278,17 +275,24 @@
             padding: 0 8px;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start; /* 靠左對齊 */
         }
 
         .weather-col:last-child {
             border-right: none;
         }
 
+        /* ☀️ 地名 同行欄位 */
+        .weather-header-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
         .weather-icon {
-            font-size: 28px;
+            font-size: 20px;
             line-height: 1;
-            margin-bottom: 6px;
         }
 
         .weather-location {
@@ -296,7 +300,6 @@
             font-weight: 900;
             color: #111;
             letter-spacing: 0.5px;
-            margin-bottom: 4px;
         }
 
         .weather-temp {
@@ -304,9 +307,9 @@
             font-size: 28px;
             font-weight: 900;
             color: #000;
-            line-height: 1;
+            line-height: 1.1;
             letter-spacing: -1px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .weather-temp .unit {
@@ -420,7 +423,7 @@
                 </div>
             </div>
 
-            <!-- 地區天氣簡報 (Icon -> 地名 -> 溫度 -> 濕度) -->
+            <!-- 地區天氣簡報 (Icon與地名同行 -> 靠左對齊) -->
             <div class="section-box">
                 <div class="section-header">
                     <span>⛅ 地區天氣簡報</span>
@@ -430,24 +433,30 @@
                         
                         <!-- 沙田 -->
                         <div class="weather-col">
-                            <div class="weather-icon" id="shatin-icon">☀️</div>
-                            <div class="weather-location">沙田</div>
+                            <div class="weather-header-line">
+                                <span class="weather-icon" id="shatin-icon">☀️</span>
+                                <span class="weather-location">沙田</span>
+                            </div>
                             <div class="weather-temp"><span id="shatin-temp">--</span><span class="unit">°C</span></div>
                             <div class="weather-rh">相對濕度 <span id="shatin-rh">--</span>%</div>
                         </div>
 
                         <!-- 鰂魚涌 -->
                         <div class="weather-col">
-                            <div class="weather-icon" id="quarry-icon">☀️</div>
-                            <div class="weather-location">鰂魚涌</div>
+                            <div class="weather-header-line">
+                                <span class="weather-icon" id="quarry-icon">☀️</span>
+                                <span class="weather-location">鰂魚涌</span>
+                            </div>
                             <div class="weather-temp"><span id="quarry-temp">--</span><span class="unit">°C</span></div>
                             <div class="weather-rh">相對濕度 <span id="quarry-rh">--</span>%</div>
                         </div>
 
                         <!-- 天后 -->
                         <div class="weather-col">
-                            <div class="weather-icon" id="tinhau-icon">☀️</div>
-                            <div class="weather-location">天后</div>
+                            <div class="weather-header-line">
+                                <span class="weather-icon" id="tinhau-icon">☀️</span>
+                                <span class="weather-location">天后</span>
+                            </div>
                             <div class="weather-temp"><span id="tinhau-temp">--</span><span class="unit">°C</span></div>
                             <div class="weather-rh">相對濕度 <span id="tinhau-rh">--</span>%</div>
                         </div>
@@ -550,7 +559,7 @@
         }
     }
 
-    // 渲染巴士 ETA (最高可呈現 3 班車，並使用虛線隔開)
+    // 渲染巴士 ETA (時間靠左，公司靠右)
     function renderBusEta(elementId, etaArray) {
         const container = document.getElementById(elementId);
 
@@ -579,9 +588,11 @@
 
             const rowClass = (validItemCount === 0) ? "eta-row eta-row-first" : "eta-row eta-row-sub";
 
+            // 時間靠左，公司 Badge 靠右
             html += `
                 <div class="${rowClass}">
-                    ${coBadge}<span class="eta-min">${minutes}</span><span class="unit">分鐘</span>
+                    <div><span class="eta-min">${minutes}</span><span class="unit">分鐘</span></div>
+                    ${coBadge}
                 </div>
             `;
             validItemCount++;
