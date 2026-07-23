@@ -71,11 +71,11 @@
             color: #000;
         }
 
-        /* 主網格：左右欄位 */
+        /* 網格重構：改為 2x2 對齊矩陣，確保同一列高度 100% 一致 */
         .main-grid {
             display: grid;
             grid-template-columns: 1.25fr 1fr;
-            gap: 28px;
+            gap: 24px 28px; /* 列間距 24px，欄間距 28px */
         }
 
         @media (max-width: 768px) {
@@ -85,20 +85,30 @@
             }
         }
 
-        /* 區塊容器：上下 Section 之間加入深灰實線分隔 */
+        /* 區塊容器：高度彈性拉伸 (Stretch) */
         .section-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            height: 100%; /* 強制填滿同一 Row 的高度 */
+        }
+
+        /* 第一列 (Row 1) 下方加入深灰分隔線 */
+        .row-1 {
             padding-bottom: 24px;
-            margin-bottom: 24px;
-            border-bottom: 2px solid #555; /* 深灰實線分隔 */
+            border-bottom: 2px solid #555;
         }
 
-        .section-box:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-            margin-bottom: 0;
+        @media (max-width: 768px) {
+            .row-1 {
+                padding-bottom: 20px;
+            }
+            .row-1.left-item {
+                border-bottom: 2px solid #555; /* 手機版維護分隔 */
+            }
         }
 
-        /* 區塊標題：已移除下方的黑色分隔線 */
+        /* 區塊標題 */
         .section-header {
             display: flex;
             align-items: center;
@@ -107,13 +117,14 @@
             font-weight: 900;
             letter-spacing: 1px;
             color: #000;
-            margin-bottom: 16px; /* 統一與內容之間的垂直 White Space (16px) */
+            margin-bottom: 16px; /* 垂直 White Space 16px 保持一致 */
             padding-bottom: 0;
-            border-bottom: none; /* 移除黑色分隔線 */
+            border-bottom: none;
         }
 
         .section-body {
             padding: 0;
+            flex-grow: 1; /* 內部自動垂直撐滿 */
         }
 
         /* 載入中狀態 */
@@ -332,7 +343,7 @@
             color: #111;
         }
 
-        /* 🥑 食品清單 2 COLUMN 網格佈局 (已移除欄位之間的垂直淺灰線) */
+        /* 🥑 食品清單 2 COLUMN 網格佈局 */
         .food-grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -353,7 +364,6 @@
             border-bottom: 1px dashed #d5d5d5;
         }
 
-        /* 移除雙欄之間的垂直線 */
         .food-grid-container .food-item:nth-child(odd) {
             padding-right: 0;
             border-right: none;
@@ -437,123 +447,107 @@
         <div class="last-updated">最後更新 <span id="updated-at">--:--</span></div>
     </div>
 
-    <!-- 主內容區塊 -->
+    <!-- 主網格：改為 2x2 排列，確保每一列左右 Module 高度自動拉伸對齊 -->
     <div class="main-grid">
         
-        <!-- 左欄：巴士 ETA & 地區天氣 -->
-        <div class="left-column">
-            
-            <!-- 巴士實時到站 -->
-            <div class="section-box">
-                <div class="section-header">
-                    <span>🚌 巴士實時到站 (ETA)</span>
-                </div>
-                <div class="section-body">
-                    
-                    <div class="bus-split-container">
-                        
-                        <!-- 左邊：680 巴士 -->
-                        <div class="bus-column">
-                            <div class="bus-header">
-                                <div class="bus-number">680</div>
-                                <div class="bus-header-info">
-                                    <div class="bus-dest">往 金鐘站(東)</div>
-                                    <div class="bus-stop">小瀝源路草地滾球場</div>
-                                </div>
-                            </div>
-                            <div class="eta-list" id="eta-680">
-                                <div class="loading-state">載入中...</div>
+        <!-- 【Row 1 左】巴士實時到站 -->
+        <div class="section-box row-1 left-item">
+            <div class="section-header">
+                <span>🚌 巴士實時到站 (ETA)</span>
+            </div>
+            <div class="section-body">
+                <div class="bus-split-container">
+                    <!-- 左邊：680 巴士 -->
+                    <div class="bus-column">
+                        <div class="bus-header">
+                            <div class="bus-number">680</div>
+                            <div class="bus-header-info">
+                                <div class="bus-dest">往 金鐘站(東)</div>
+                                <div class="bus-stop">小瀝源路草地滾球場</div>
                             </div>
                         </div>
-
-                        <!-- 右邊：682B 巴士 -->
-                        <div class="bus-column">
-                            <div class="bus-header">
-                                <div class="bus-number">682B</div>
-                                <div class="bus-header-info">
-                                    <div class="bus-dest">往 柴灣(東)</div>
-                                    <div class="bus-stop">第一城站，插桅杆街</div>
-                                </div>
-                            </div>
-                            <div class="eta-list" id="eta-682B">
-                                <div class="loading-state">載入中...</div>
-                            </div>
+                        <div class="eta-list" id="eta-680">
+                            <div class="loading-state">載入中...</div>
                         </div>
-
                     </div>
 
-                </div>
-            </div>
-
-            <!-- 地區天氣簡報 -->
-            <div class="section-box">
-                <div class="section-header">
-                    <span>⛅ 地區天氣簡報</span>
-                </div>
-                <div class="section-body">
-                    <div class="weather-grid">
-                        
-                        <!-- 沙田 -->
-                        <div class="weather-col">
-                            <div class="weather-header-line">
-                                <span class="weather-icon" id="shatin-icon">☀️</span>
-                                <span class="weather-location">沙田</span>
+                    <!-- 右邊：682B 巴士 -->
+                    <div class="bus-column">
+                        <div class="bus-header">
+                            <div class="bus-number">682B</div>
+                            <div class="bus-header-info">
+                                <div class="bus-dest">往 柴灣(東)</div>
+                                <div class="bus-stop">第一城站，插桅杆街</div>
                             </div>
-                            <div class="weather-temp"><span id="shatin-temp">--</span><span class="unit">°C</span></div>
-                            <div class="weather-rh">相對濕度 <span id="shatin-rh">--</span>%</div>
                         </div>
-
-                        <!-- 鰂魚涌 -->
-                        <div class="weather-col">
-                            <div class="weather-header-line">
-                                <span class="weather-icon" id="quarry-icon">☀️</span>
-                                <span class="weather-location">鰂魚涌</span>
-                            </div>
-                            <div class="weather-temp"><span id="quarry-temp">--</span><span class="unit">°C</span></div>
-                            <div class="weather-rh">相對濕度 <span id="quarry-rh">--</span>%</div>
+                        <div class="eta-list" id="eta-682B">
+                            <div class="loading-state">載入中...</div>
                         </div>
-
-                        <!-- 天后 -->
-                        <div class="weather-col">
-                            <div class="weather-header-line">
-                                <span class="weather-icon" id="tinhau-icon">☀️</span>
-                                <span class="weather-location">天后</span>
-                            </div>
-                            <div class="weather-temp"><span id="tinhau-temp">--</span><span class="unit">°C</span></div>
-                            <div class="weather-rh">相對濕度 <span id="tinhau-rh">--</span>%</div>
-                        </div>
-
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- 右欄：食品過期清單 (2 Column) + 重要事項提醒 -->
-        <div class="right-column">
-            
-            <!-- 上：食品過期清單 -->
-            <div class="section-box">
-                <div class="section-header">
-                    <span>🥑 食品過期清單</span>
-                </div>
-                <div class="section-body">
-                    <div class="food-grid-container" id="food-list-container">
-                        <div class="loading-state">載入中...</div>
-                    </div>
-                </div>
+        <!-- 【Row 1 右】食品過期清單 (高度與巴士 Module 永遠對齊) -->
+        <div class="section-box row-1">
+            <div class="section-header">
+                <span>🥑 食品過期清單</span>
             </div>
-
-            <!-- 下：重要事項提醒 -->
-            <div class="section-box">
-                <div class="section-header">
-                    <span>📌 重要事項提醒</span>
-                </div>
-                <div class="section-body" id="remind-list-container">
+            <div class="section-body">
+                <div class="food-grid-container" id="food-list-container">
                     <div class="loading-state">載入中...</div>
                 </div>
             </div>
+        </div>
 
+        <!-- 【Row 2 左】地區天氣簡報 -->
+        <div class="section-box">
+            <div class="section-header">
+                <span>⛅ 地區天氣簡報</span>
+            </div>
+            <div class="section-body">
+                <div class="weather-grid">
+                    <!-- 沙田 -->
+                    <div class="weather-col">
+                        <div class="weather-header-line">
+                            <span class="weather-icon" id="shatin-icon">☀️</span>
+                            <span class="weather-location">沙田</span>
+                        </div>
+                        <div class="weather-temp"><span id="shatin-temp">--</span><span class="unit">°C</span></div>
+                        <div class="weather-rh">相對濕度 <span id="shatin-rh">--</span>%</div>
+                    </div>
+
+                    <!-- 鰂魚涌 -->
+                    <div class="weather-col">
+                        <div class="weather-header-line">
+                            <span class="weather-icon" id="quarry-icon">☀️</span>
+                            <span class="weather-location">鰂魚涌</span>
+                        </div>
+                        <div class="weather-temp"><span id="quarry-temp">--</span><span class="unit">°C</span></div>
+                        <div class="weather-rh">相對濕度 <span id="quarry-rh">--</span>%</div>
+                    </div>
+
+                    <!-- 天后 -->
+                    <div class="weather-col">
+                        <div class="weather-header-line">
+                            <span class="weather-icon" id="tinhau-icon">☀️</span>
+                            <span class="weather-location">天后</span>
+                        </div>
+                        <div class="weather-temp"><span id="tinhau-temp">--</span><span class="unit">°C</span></div>
+                        <div class="weather-rh">相對濕度 <span id="tinhau-rh">--</span>%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 【Row 2 右】重要事項提醒 -->
+        <div class="section-box">
+            <div class="section-header">
+                <span>📌 重要事項提醒</span>
+            </div>
+            <div class="section-body" id="remind-list-container">
+                <div class="loading-state">載入中...</div>
+            </div>
         </div>
 
     </div>
