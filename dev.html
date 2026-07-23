@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dashboard">
 
-    <!-- 載入 Google 現代無襯線字型 (與日系指標常用的 Frutiger/Gothic 極度相似) -->
+    <!-- 載入 Google 現代無襯線字型 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;700;900&family=Roboto:wght@700;900&display=swap" rel="stylesheet">
@@ -32,7 +32,7 @@
             color: #111;
         }
 
-        /* 主容器：大量的留白 + 極簡邊框 */
+        /* 主容器 */
         .dashboard {
             max-width: 1000px;
             margin: 0 auto;
@@ -42,7 +42,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
-        /* 頁眉：極簡日系標線設計 */
+        /* 頁眉 */
         .header {
             display: flex;
             justify-content: space-between;
@@ -71,7 +71,7 @@
             color: #000;
         }
 
-        /* 主網格：增加間距，營造 White Space 呼吸感 */
+        /* 主網格：左右欄位 */
         .main-grid {
             display: grid;
             grid-template-columns: 1.35fr 1fr;
@@ -94,7 +94,7 @@
             margin-bottom: 0;
         }
 
-        /* 區塊標題：日系小方塊 Header */
+        /* 區塊標題 */
         .section-header {
             display: flex;
             align-items: center;
@@ -103,13 +103,9 @@
             font-weight: 900;
             letter-spacing: 1px;
             color: #000;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             padding-bottom: 6px;
             border-bottom: 1px solid #111;
-        }
-
-        .section-header span {
-            display: inline-block;
         }
 
         .section-body {
@@ -127,93 +123,120 @@
             letter-spacing: 1px;
         }
 
-        /* 巴士卡片：極簡指標排版 (日式巨大的數字 + 小單位字) */
-        .bus-card {
-            padding: 16px 0;
-            border-bottom: 1px solid #e5e5e5;
+        /* 🚌 巴士雙欄並排容器 (1一左一右 Layout) */
+        .bus-split-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
-        .bus-card:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
+        @media (max-width: 480px) {
+            .bus-split-container {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
         }
 
+        /* 單一巴士欄位 (左或右) */
+        .bus-column {
+            border-right: 1px solid #e0e0e0;
+            padding-right: 16px;
+        }
+
+        .bus-column:last-child {
+            border-right: none;
+            padding-right: 0;
+        }
+
+        /* 路線編號 Header */
         .bus-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
 
-        /* 日系路線 Block 標籤 */
         .bus-number {
             font-family: 'Roboto', 'Noto Sans HK', sans-serif;
             background-color: #111;
             color: #fff;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 900;
-            padding: 2px 8px;
+            padding: 2px 10px;
             border-radius: 2px;
             display: inline-block;
-            margin-right: 8px;
+            margin-bottom: 6px;
             letter-spacing: 0.5px;
         }
 
         .bus-dest {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: #111;
-            display: inline-block;
+            line-height: 1.2;
         }
 
         .bus-stop {
-            font-size: 12px;
+            font-size: 11px;
             color: #777;
             font-weight: 500;
-            text-align: right;
+            margin-top: 4px;
+            line-height: 1.3;
         }
 
-        /* ETA 區域：模仿日文「2號車 4ドア」的極端大小跳躍率 */
-        .eta-container {
-            padding: 8px 0 0 0;
+        /* ETA 班次垂直清單 (Vertical Departure List) */
+        .eta-list {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* 第一班車 (超大號字體強調) */
+        .eta-row-first {
+            font-family: 'Roboto', 'Noto Sans HK', sans-serif;
             display: flex;
             align-items: baseline;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-            gap: 16px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #111;
         }
 
-        /* 第一班車：超巨型數字 + 比例極小的「分鐘」單位 */
-        .eta-main {
-            font-family: 'Roboto', 'Noto Sans HK', sans-serif;
-            font-size: 38px;  /* 巨型數字 */
+        .eta-row-first .eta-min {
+            font-size: 36px; /* 巨型數字 */
             font-weight: 900;
             color: #000;
             line-height: 1;
             letter-spacing: -1px;
         }
 
-        .eta-main .unit {
-            font-size: 13px;  /* 單位字大幅縮小，形成日式跳躍率 */
+        .eta-row-first .unit {
+            font-size: 13px; /* 縮小單位字 */
             font-weight: 700;
-            color: #555;
+            color: #444;
             margin-left: 2px;
-            letter-spacing: 0;
         }
 
-        /* 次班車：次要強調 */
-        .eta-sub {
+        /* 次班車 (第二、三班) */
+        .eta-row-sub {
             font-family: 'Roboto', 'Noto Sans HK', sans-serif;
-            font-size: 18px;
+            display: flex;
+            align-items: baseline;
+            color: #555;
+            font-size: 16px;
             font-weight: 700;
-            color: #666;
+            padding: 2px 0;
         }
 
-        .eta-sub .unit {
+        .eta-row-sub .eta-min {
+            font-size: 18px;
+            font-weight: 900;
+            color: #333;
+        }
+
+        .eta-row-sub .unit {
             font-size: 12px;
-            color: #888;
+            color: #777;
+            margin-left: 2px;
         }
 
+        /* 巴士公司 Badge (如 九巴/城巴) */
         .co-badge {
             font-size: 10px;
             font-weight: 900;
@@ -222,21 +245,21 @@
             border-radius: 2px;
             background-color: #fff;
             color: #111;
-            margin-right: 4px;
+            margin-right: 6px;
             vertical-align: middle;
         }
 
-        /* 天氣網格：極致的大數字 + 留白欄位 */
+        /* 天氣網格 */
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
-            text-align: left; /* 改為日系常見的靠左排版 */
+            text-align: left;
             padding: 8px 0;
         }
 
         .weather-col {
-            border-left: 2px solid #111; /* 左側單線引導 */
+            border-left: 2px solid #111;
             padding-left: 12px;
         }
 
@@ -253,7 +276,6 @@
             margin: 4px 0;
         }
 
-        /* 天氣超大數字 */
         .weather-temp {
             font-family: 'Roboto', 'Noto Sans HK', sans-serif;
             font-size: 32px;
@@ -281,7 +303,7 @@
             color: #111;
         }
 
-        /* 食品 & 提醒事項：簡約清爽的日系清單 */
+        /* 食品 & 提醒清單 */
         .food-item, .remind-item {
             display: flex;
             justify-content: space-between;
@@ -301,7 +323,6 @@
             letter-spacing: 0.3px;
         }
 
-        /* 標籤：日式 Mini Badge */
         .food-badge, .remind-badge {
             border: 1px solid #111;
             padding: 2px 8px;
@@ -334,39 +355,39 @@
         <!-- 左欄：巴士 ETA & 地區天氣 -->
         <div class="left-column">
             
-            <!-- 巴士實時到站 -->
+            <!-- 巴士實時到站 (左右一左一右對開 Layout) -->
             <div class="section-box">
                 <div class="section-header">
                     <span>🚌 巴士實時到站 (ETA)</span>
                 </div>
                 <div class="section-body">
                     
-                    <!-- 680 巴士 -->
-                    <div class="bus-card">
-                        <div class="bus-header">
-                            <div>
-                                <span class="bus-number">680</span>
+                    <div class="bus-split-container">
+                        
+                        <!-- 左邊：680 巴士 -->
+                        <div class="bus-column">
+                            <div class="bus-header">
+                                <div class="bus-number">680</div>
                                 <div class="bus-dest">往 金鐘站(東)</div>
+                                <div class="bus-stop">小瀝源路草地滾球場</div>
                             </div>
-                            <div class="bus-stop">小瀝源路草地滾球場</div>
+                            <div class="eta-list" id="eta-680">
+                                <div class="loading-state">載入中...</div>
+                            </div>
                         </div>
-                        <div class="eta-container" id="eta-680">
-                            <div class="loading-state">載入中...</div>
-                        </div>
-                    </div>
 
-                    <!-- 682B 巴士 -->
-                    <div class="bus-card">
-                        <div class="bus-header">
-                            <div>
-                                <span class="bus-number">682B</span>
+                        <!-- 右邊：682B 巴士 -->
+                        <div class="bus-column">
+                            <div class="bus-header">
+                                <div class="bus-number">682B</div>
                                 <div class="bus-dest">往 柴灣(東)</div>
+                                <div class="bus-stop">第一城站，插桅杆街</div>
                             </div>
-                            <div class="bus-stop">第一城站，插桅杆街</div>
+                            <div class="eta-list" id="eta-682B">
+                                <div class="loading-state">載入中...</div>
+                            </div>
                         </div>
-                        <div class="eta-container" id="eta-682B">
-                            <div class="loading-state">載入中...</div>
-                        </div>
+
                     </div>
 
                 </div>
@@ -502,7 +523,7 @@
         }
     }
 
-    // 渲染巴士 ETA (包含日系「大數字+小單位」的排版結構)
+    // 渲染巴士 ETA (垂直多班次列表排版)
     function renderBusEta(elementId, etaArray) {
         const container = document.getElementById(elementId);
 
@@ -528,9 +549,19 @@
             if (minutes < 0 || minutes === null || minutes === undefined) return;
 
             if (validItemCount === 0) {
-                html += `<span class="eta-main">${coBadge}${minutes}<span class="unit">分鐘</span></span>`;
+                // 第一班車：巨型數字強調
+                html += `
+                    <div class="eta-row-first">
+                        ${coBadge}<span class="eta-min">${minutes}</span><span class="unit">分鐘</span>
+                    </div>
+                `;
             } else {
-                html += `<span class="eta-sub">| ${coBadge}${minutes}<span class="unit">分</span></span>`;
+                // 第二、三班車：垂直列表展示
+                html += `
+                    <div class="eta-row-sub">
+                        ${coBadge}<span class="eta-min">${minutes}</span><span class="unit">分鐘</span>
+                    </div>
+                `;
             }
             validItemCount++;
         });
@@ -540,7 +571,6 @@
         }
 
         container.innerHTML = html;
-        container.style.justifyContent = "flex-start";
     }
 
     // 渲染天氣資訊
