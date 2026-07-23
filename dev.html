@@ -12,72 +12,70 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dashboard">
 
-    <style>
-        /* 
-         * Typography & JR-Style Design Inspired by image_b68c3b.jpg
-         * Key elements: High contrast, clean sans-serif (similar to Frutiger/Helvetica), 
-         * distinct visual hierarchy, strong use of borders for separation, and precise alignment.
-         */
-        
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;700;900&display=swap');
+    <!-- 載入高品質繁體中文與數字字型 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;700;900&display=swap" rel="stylesheet">
 
+    <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            /* Use a clean, modern sans-serif stack prioritized for legibility, similar to JR signage */
-            font-family: 'Noto Sans HK', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Noto Sans HK', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
         body {
-            background-color: #e8e8e8; /* Slightly darker gray to make the white panels pop */
-            padding: 20px;
-            color: #1a1a1a; /* Off-black for better readability than pure black */
+            background-color: #f4f4f4;
+            padding: 10px;
+            color: #111;
         }
 
-        /* 儀表板主容器 */
+        /* 儀表板主容器 (黑白粗邊框風格) */
         .dashboard {
             max-width: 1000px;
             margin: 0 auto;
+            border: 4px solid #000;
             background-color: #fff;
-            /* Remove heavy drop shadow, use a subtle modern shadow and rounded corners */
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            overflow: hidden; /* Ensure headers don't spill over rounded corners */
-            border: 1px solid #ccc;
+            padding: 20px;
+            box-shadow: 6px 6px 0px #000;
         }
 
-        /* 頂部標題列 (JR Style Header) */
+        /* 頂部標題列 - Typography 強化 */
         .header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end; /* Align baselines */
-            padding: 20px 24px 16px;
-            background-color: #fff;
-            border-bottom: 4px solid #4CAF50; /* JR Yamanote Green accent line */
+            align-items: baseline;
+            border-bottom: 4px solid #000;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
         }
 
         .header h1 {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 900;
-            letter-spacing: 0.5px;
-            color: #222;
+            letter-spacing: -0.5px;
+            color: #000;
         }
 
         .header .last-updated {
-            font-size: 14px;
-            font-weight: 700;
+            font-size: 13px;
+            font-weight: 500;
             color: #666;
-            margin-bottom: 4px; /* Align slightly above the h1 baseline */
+            letter-spacing: 0.5px;
+        }
+
+        .header .last-updated span {
+            font-weight: 700;
+            color: #000;
         }
 
         /* 主網格佈局 */
         .main-grid {
             display: grid;
-            grid-template-columns: 1.5fr 1fr; /* Slightly adjust ratio for better balance */
-            gap: 0; /* Remove gap, use borders for separation like JR panels */
+            grid-template-columns: 1.4fr 1fr;
+            gap: 20px;
         }
 
         @media (max-width: 768px) {
@@ -86,220 +84,197 @@
             }
         }
 
-        .left-column {
-            border-right: 1px solid #ddd;
-        }
-
-        @media (max-width: 768px) {
-            .left-column {
-                border-right: none;
-                border-bottom: 1px solid #ddd;
-            }
-        }
-
         /* 區塊容器 */
         .section-box {
-            /* Remove individual borders, handle separation in grid layout */
-            margin-bottom: 0;
-            border-bottom: 1px solid #ddd;
+            border: 2.5 solid #000;
+            border: 2px solid #000;
+            margin-bottom: 20px;
         }
-        
+
         .section-box:last-child {
-             border-bottom: none;
+            margin-bottom: 0;
         }
 
         .section-header {
-            background-color: #f8f9fa; /* Light gray background instead of harsh black */
-            color: #333;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: 900;
+            background-color: #000;
+            color: #fff;
+            padding: 8px 14px;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
             gap: 8px;
-            border-bottom: 1px solid #eee;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .section-body {
-            padding: 24px;
+            padding: 14px;
         }
 
-        /* 統一所有「載入中...」與「無資料」狀態的樣式 */
+        /* 統一所有「載入中...」狀態樣式 */
         .loading-state {
             width: 100%;
             text-align: center;
-            padding: 24px 0;
-            font-size: 15px;
-            font-weight: 700;
-            color: #888;
+            padding: 16px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: #777;
+            letter-spacing: 0.5px;
         }
 
-        /* 巴士卡片 (JR Transfer Info Style) */
+        /* 巴士卡片 - Typography 視覺分層 */
         .bus-card {
-            border: none;
-            padding: 0 0 20px 0;
-            margin-bottom: 20px;
+            border: 2px solid #000;
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
             background-color: #fff;
-            border-bottom: 1px dashed #ddd;
         }
 
         .bus-card:last-child {
             margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
         }
 
         .bus-header {
             display: flex;
-            justify-content: flex-start;
-            align-items: baseline;
-            margin-bottom: 12px;
-            gap: 16px;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
         }
 
-        /* JR Line Indicator Style */
+        /* 路線號碼強調 */
         .bus-number {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 900;
-            background-color: #1976D2; /* JR Blue */
-            color: white;
-            padding: 4px 12px;
-            border-radius: 4px;
+            line-height: 1;
+            letter-spacing: -0.5px;
+            margin-right: 8px;
             display: inline-block;
-            min-width: 70px;
-            text-align: center;
         }
 
-        /* Destination Text Style */
+        /* 目的地次要強調 */
         .bus-dest {
-            font-size: 18px;
-            font-weight: 700;
-            color: #333;
-        }
-        
-        .bus-dest::after {
-            content: " 行"; /* Append "Bound for" in Japanese style, adjust as needed */
             font-size: 14px;
-            color: #777;
-            font-weight: normal;
-            margin-left: 4px;
+            font-weight: 700;
+            color: #222;
+            display: inline-block;
         }
 
+        /* 巴士站名最次要 */
         .bus-stop {
-            font-size: 13px;
-            color: #777;
-            font-weight: 700;
-            margin-left: auto; /* Push to the right */
+            font-size: 12px;
+            color: #666;
+            text-align: right;
+            font-weight: 500;
+            max-width: 45%;
+            line-height: 1.3;
         }
 
         .eta-container {
-            background-color: transparent; /* Remove gray box */
-            padding: 0 0 0 86px; /* Align with destination text (70px box + 16px gap) */
-            min-height: auto;
+            background-color: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px 12px;
+            min-height: 52px;
             display: flex;
             align-items: baseline;
-            justify-content: flex-start;
+            justify-content: center;
             flex-wrap: wrap;
             gap: 12px;
         }
 
+        /* 關鍵數字巨型化 (Primary Focus) */
         .eta-main {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 900;
-            color: #d32f2f; /* Highlight ETA in red */
-        }
-        
-        .eta-main::after {
-             content: " 分";
-             font-size: 16px;
-             font-weight: 700;
-             color: #555;
+            color: #000;
+            line-height: 1;
         }
 
+        /* 次要班次時間 (Secondary Focus) */
         .eta-sub {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 700;
-            color: #666;
-        }
-        
-        .eta-sub::before {
-            content: "次発 "; /* "Next departure" */
-            font-size: 12px;
-            color: #999;
+            color: #555;
         }
 
         .co-badge {
-            font-size: 11px;
-            font-weight: 800;
-            border: 1px solid #ccc;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background-color: #f4f4f4;
-            color: #555;
-            margin-right: 6px;
+            font-size: 10px;
+            font-weight: 900;
+            border: 1px solid #000;
+            padding: 1px 4px;
+            border-radius: 3px;
+            background-color: #fff;
+            margin-right: 4px;
             vertical-align: middle;
         }
 
-        /* 天氣網格 */
+        /* 天氣網格 - 數字與文字極致層次化 */
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 0; /* Use borders */
+            gap: 8px;
             text-align: center;
-            padding: 0;
+            padding: 4px 0;
         }
 
         .weather-col {
-            border-right: 1px solid #eee;
-            padding: 16px 8px;
+            border-right: 1px dashed #bbb;
+            padding: 0 4px;
         }
 
         .weather-col:last-child {
             border-right: none;
         }
 
+        /* 地區標題 */
         .weather-location {
-            font-size: 14px;
-            font-weight: 900;
-            color: #555;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #444;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
         }
 
         .weather-icon {
-            font-size: 32px;
-            margin: 8px 0;
+            font-size: 28px;
+            margin: 2px 0;
+            line-height: 1.1;
         }
 
+        /* 溫度超大數字 (Primary Focus) */
         .weather-temp {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 900;
+            color: #000;
+            line-height: 1.1;
+            letter-spacing: -1px;
+        }
+
+        .weather-temp span {
+            font-size: 28px;
+        }
+
+        /* 濕度標籤小字 (Tertiary Focus) */
+        .weather-rh {
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .weather-rh span {
+            font-weight: 700;
             color: #222;
         }
 
-        .weather-rh {
-            font-size: 12px;
-            color: #777;
-            margin-top: 6px;
-            font-weight: 700;
-        }
-
-        /* 食品過期清單 & 提醒清單項目 */
-        .list-container {
-             /* Remove padding from section-body and apply here for lists */
-             padding: 0 24px;
-        }
-
+        /* 食品與提醒清單 - Typography 列表化 */
         .food-item, .remind-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         .food-item:last-child, .remind-item:last-child {
@@ -307,25 +282,27 @@
         }
 
         .food-name, .remind-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
-            color: #333;
+            color: #111;
+            letter-spacing: 0.2px;
         }
 
-        /* Badge Style - Refined for contrast */
         .food-badge, .remind-badge {
-            border: none;
-            padding: 4px 10px;
-            border-radius: 12px; /* Pill shape */
-            font-size: 13px;
-            font-weight: 900;
-            background-color: #f0f0f0;
-            color: #555;
+            border: 1.5px solid #000;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            background-color: #fff;
+            color: #000;
             white-space: nowrap;
+            letter-spacing: 0.3px;
         }
 
+        /* 緊急狀態黑底白字高反差 */
         .food-badge.urgent, .remind-badge.urgent {
-            background-color: #d32f2f; /* Red for urgent */
+            background-color: #000;
             color: #fff;
         }
     </style>
@@ -336,7 +313,7 @@
     <!-- 頁眉：日期顯示 -->
     <div class="header">
         <h1 id="current-date">----年--月--日 (星期-)</h1>
-        <div class="last-updated">最後更新: <span id="updated-at">--:--</span></div>
+        <div class="last-updated">最後更新 <span id="updated-at">--:--</span></div>
     </div>
 
     <!-- 主內容區塊 -->
@@ -355,8 +332,10 @@
                     <!-- 680 巴士 -->
                     <div class="bus-card">
                         <div class="bus-header">
-                            <span class="bus-number">680</span>
-                            <div class="bus-dest">金鐘站(東)</div>
+                            <div>
+                                <span class="bus-number">680</span>
+                                <div class="bus-dest">往 金鐘站(東)</div>
+                            </div>
                             <div class="bus-stop">小瀝源路草地滾球場</div>
                         </div>
                         <div class="eta-container" id="eta-680">
@@ -367,8 +346,10 @@
                     <!-- 682B 巴士 -->
                     <div class="bus-card">
                         <div class="bus-header">
-                            <span class="bus-number" style="background-color: #F57C00;">682B</span> <!-- Different color for different line -->
-                            <div class="bus-dest">柴灣(東)</div>
+                            <div>
+                                <span class="bus-number">682B</span>
+                                <div class="bus-dest">往 柴灣(東)</div>
+                            </div>
                             <div class="bus-stop">第一城站，插桅杆街</div>
                         </div>
                         <div class="eta-container" id="eta-682B">
@@ -384,7 +365,7 @@
                 <div class="section-header">
                     <span>⛅ 地區天氣簡報</span>
                 </div>
-                <div class="section-body" style="padding: 0;"> <!-- Remove padding for edge-to-edge grid -->
+                <div class="section-body">
                     <div class="weather-grid">
                         
                         <!-- 沙田 -->
@@ -425,7 +406,7 @@
                 <div class="section-header">
                     <span>🥑 食品過期清單</span>
                 </div>
-                <div class="section-body list-container" id="food-list-container">
+                <div class="section-body" id="food-list-container">
                     <div class="loading-state">載入中...</div>
                 </div>
             </div>
@@ -435,7 +416,7 @@
                 <div class="section-header">
                     <span>📌 重要事項提醒</span>
                 </div>
-                <div class="section-body list-container" id="remind-list-container">
+                <div class="section-body" id="remind-list-container">
                     <div class="loading-state">載入中...</div>
                 </div>
             </div>
@@ -504,8 +485,8 @@
             }
         } catch (error) {
             console.error("抓取 Dashboard 資料失敗:", error);
-            document.getElementById("eta-680").innerHTML = `<div class="loading-state" style="color:#d32f2f;">載入失敗 (請檢查網絡)</div>`;
-            document.getElementById("eta-682B").innerHTML = `<div class="loading-state" style="color:#d32f2f;">載入失敗 (請檢查網絡)</div>`;
+            document.getElementById("eta-680").innerHTML = `<div class="loading-state" style="color:red;">載入失敗 (請檢查網絡)</div>`;
+            document.getElementById("eta-682B").innerHTML = `<div class="loading-state" style="color:red;">載入失敗 (請檢查網絡)</div>`;
         }
     }
 
@@ -534,11 +515,10 @@
 
             if (minutes < 0 || minutes === null || minutes === undefined) return;
 
-            // Updated HTML structure to match new CSS
             if (validItemCount === 0) {
-                html += `<span class="eta-main">${coBadge}${minutes}</span>`;
+                html += `<span class="eta-main">${coBadge}${minutes} 分鐘</span>`;
             } else {
-                html += `<span class="eta-sub">${coBadge}${minutes}</span>`;
+                html += `<span class="eta-sub">| ${coBadge}${minutes} 分</span>`;
             }
             validItemCount++;
         });
@@ -634,7 +614,6 @@
             } else if (daysLeft === 0) {
                 statusBadge = "今日到期";
             } else {
-                // ✅ 改為「X 天後跟進」
                 statusBadge = `${daysLeft} 天後跟進`;
             }
 
