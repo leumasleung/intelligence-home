@@ -123,7 +123,7 @@
             letter-spacing: 1px;
         }
 
-        /* 🚌 巴士雙欄並排容器 (1一左一右 Layout) */
+        /* 🚌 巴士雙欄並排容器 */
         .bus-split-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -137,7 +137,7 @@
             }
         }
 
-        /* 單一巴士欄位 (左或右) */
+        /* 單一巴士欄位 */
         .bus-column {
             border-right: 1px solid #e0e0e0;
             padding-right: 16px;
@@ -148,58 +148,79 @@
             padding-right: 0;
         }
 
-        /* 路線編號 Header */
+        /* 路線編號 Header：680 在左，資訊在右 */
         .bus-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #111;
         }
 
         .bus-number {
             font-family: 'Roboto', 'Noto Sans HK', sans-serif;
             background-color: #111;
             color: #fff;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 900;
-            padding: 2px 10px;
+            padding: 4px 8px;
             border-radius: 2px;
-            display: inline-block;
-            margin-bottom: 6px;
             letter-spacing: 0.5px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .bus-header-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
         }
 
         .bus-dest {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             color: #111;
             line-height: 1.2;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
 
         .bus-stop {
             font-size: 11px;
             color: #777;
             font-weight: 500;
-            margin-top: 4px;
-            line-height: 1.3;
+            margin-top: 2px;
+            line-height: 1.2;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
 
-        /* ETA 班次垂直清單 (Vertical Departure List) */
+        /* ETA 班次垂直清單 */
         .eta-list {
-            margin-top: 12px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
         }
 
-        /* 第一班車 (超大號字體強調) */
-        .eta-row-first {
+        /* 每班車列：使用淺灰虛線分割 */
+        .eta-row {
             font-family: 'Roboto', 'Noto Sans HK', sans-serif;
             display: flex;
             align-items: baseline;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #111;
+            padding: 8px 0;
+            border-bottom: 1px dashed #d5d5d5;
         }
 
+        .eta-row:last-child {
+            border-bottom: none;
+        }
+
+        /* 第一班車 (巨型數字) */
         .eta-row-first .eta-min {
-            font-size: 36px; /* 巨型數字 */
+            font-size: 32px;
             font-weight: 900;
             color: #000;
             line-height: 1;
@@ -207,7 +228,7 @@
         }
 
         .eta-row-first .unit {
-            font-size: 13px; /* 縮小單位字 */
+            font-size: 13px;
             font-weight: 700;
             color: #444;
             margin-left: 2px;
@@ -215,19 +236,14 @@
 
         /* 次班車 (第二、三班) */
         .eta-row-sub {
-            font-family: 'Roboto', 'Noto Sans HK', sans-serif;
-            display: flex;
-            align-items: baseline;
             color: #555;
-            font-size: 16px;
-            font-weight: 700;
-            padding: 2px 0;
         }
 
         .eta-row-sub .eta-min {
             font-size: 18px;
             font-weight: 900;
             color: #333;
+            line-height: 1;
         }
 
         .eta-row-sub .unit {
@@ -236,7 +252,6 @@
             margin-left: 2px;
         }
 
-        /* 巴士公司 Badge (如 九巴/城巴) */
         .co-badge {
             font-size: 10px;
             font-weight: 900;
@@ -249,53 +264,61 @@
             vertical-align: middle;
         }
 
-        /* 天氣網格 */
+        /* 天氣網格：垂直結構調整 (Icon -> 地名 -> 溫度 -> 濕度) */
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
-            text-align: left;
+            text-align: center;
             padding: 8px 0;
         }
 
         .weather-col {
-            border-left: 2px solid #111;
-            padding-left: 12px;
+            border-right: 1px dashed #d5d5d5;
+            padding: 0 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .weather-location {
-            font-size: 12px;
-            font-weight: 900;
-            color: #666;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+        .weather-col:last-child {
+            border-right: none;
         }
 
         .weather-icon {
-            font-size: 24px;
-            margin: 4px 0;
+            font-size: 28px;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .weather-location {
+            font-size: 13px;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
         }
 
         .weather-temp {
             font-family: 'Roboto', 'Noto Sans HK', sans-serif;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 900;
             color: #000;
             line-height: 1;
             letter-spacing: -1px;
+            margin-bottom: 6px;
         }
 
         .weather-temp .unit {
             font-size: 14px;
             font-weight: 700;
-            color: #666;
+            color: #555;
         }
 
         .weather-rh {
             font-size: 11px;
             font-weight: 500;
-            color: #777;
-            margin-top: 6px;
+            color: #666;
         }
 
         .weather-rh span {
@@ -355,7 +378,7 @@
         <!-- 左欄：巴士 ETA & 地區天氣 -->
         <div class="left-column">
             
-            <!-- 巴士實時到站 (左右一左一右對開 Layout) -->
+            <!-- 巴士實時到站 -->
             <div class="section-box">
                 <div class="section-header">
                     <span>🚌 巴士實時到站 (ETA)</span>
@@ -368,8 +391,10 @@
                         <div class="bus-column">
                             <div class="bus-header">
                                 <div class="bus-number">680</div>
-                                <div class="bus-dest">往 金鐘站(東)</div>
-                                <div class="bus-stop">小瀝源路草地滾球場</div>
+                                <div class="bus-header-info">
+                                    <div class="bus-dest">往 金鐘站(東)</div>
+                                    <div class="bus-stop">小瀝源路草地滾球場</div>
+                                </div>
                             </div>
                             <div class="eta-list" id="eta-680">
                                 <div class="loading-state">載入中...</div>
@@ -380,8 +405,10 @@
                         <div class="bus-column">
                             <div class="bus-header">
                                 <div class="bus-number">682B</div>
-                                <div class="bus-dest">往 柴灣(東)</div>
-                                <div class="bus-stop">第一城站，插桅杆街</div>
+                                <div class="bus-header-info">
+                                    <div class="bus-dest">往 柴灣(東)</div>
+                                    <div class="bus-stop">第一城站，插桅杆街</div>
+                                </div>
                             </div>
                             <div class="eta-list" id="eta-682B">
                                 <div class="loading-state">載入中...</div>
@@ -393,7 +420,7 @@
                 </div>
             </div>
 
-            <!-- 地區天氣簡報 -->
+            <!-- 地區天氣簡報 (Icon -> 地名 -> 溫度 -> 濕度) -->
             <div class="section-box">
                 <div class="section-header">
                     <span>⛅ 地區天氣簡報</span>
@@ -403,24 +430,24 @@
                         
                         <!-- 沙田 -->
                         <div class="weather-col">
-                            <div class="weather-location">沙田</div>
                             <div class="weather-icon" id="shatin-icon">☀️</div>
+                            <div class="weather-location">沙田</div>
                             <div class="weather-temp"><span id="shatin-temp">--</span><span class="unit">°C</span></div>
                             <div class="weather-rh">相對濕度 <span id="shatin-rh">--</span>%</div>
                         </div>
 
                         <!-- 鰂魚涌 -->
                         <div class="weather-col">
-                            <div class="weather-location">鰂魚涌</div>
                             <div class="weather-icon" id="quarry-icon">☀️</div>
+                            <div class="weather-location">鰂魚涌</div>
                             <div class="weather-temp"><span id="quarry-temp">--</span><span class="unit">°C</span></div>
                             <div class="weather-rh">相對濕度 <span id="quarry-rh">--</span>%</div>
                         </div>
 
                         <!-- 天后 -->
                         <div class="weather-col">
-                            <div class="weather-location">天后</div>
                             <div class="weather-icon" id="tinhau-icon">☀️</div>
+                            <div class="weather-location">天后</div>
                             <div class="weather-temp"><span id="tinhau-temp">--</span><span class="unit">°C</span></div>
                             <div class="weather-rh">相對濕度 <span id="tinhau-rh">--</span>%</div>
                         </div>
@@ -523,7 +550,7 @@
         }
     }
 
-    // 渲染巴士 ETA (垂直多班次列表排版)
+    // 渲染巴士 ETA (最高可呈現 3 班車，並使用虛線隔開)
     function renderBusEta(elementId, etaArray) {
         const container = document.getElementById(elementId);
 
@@ -536,6 +563,8 @@
         let validItemCount = 0;
 
         etaArray.forEach((item) => {
+            if (validItemCount >= 3) return; // 最多顯示 3 班車
+
             let coBadge = "";
             let minutes = item;
 
@@ -548,21 +577,13 @@
 
             if (minutes < 0 || minutes === null || minutes === undefined) return;
 
-            if (validItemCount === 0) {
-                // 第一班車：巨型數字強調
-                html += `
-                    <div class="eta-row-first">
-                        ${coBadge}<span class="eta-min">${minutes}</span><span class="unit">分鐘</span>
-                    </div>
-                `;
-            } else {
-                // 第二、三班車：垂直列表展示
-                html += `
-                    <div class="eta-row-sub">
-                        ${coBadge}<span class="eta-min">${minutes}</span><span class="unit">分鐘</span>
-                    </div>
-                `;
-            }
+            const rowClass = (validItemCount === 0) ? "eta-row eta-row-first" : "eta-row eta-row-sub";
+
+            html += `
+                <div class="${rowClass}">
+                    ${coBadge}<span class="eta-min">${minutes}</span><span class="unit">分鐘</span>
+                </div>
+            `;
             validItemCount++;
         });
 
