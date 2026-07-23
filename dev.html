@@ -42,7 +42,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
-        /* 頁眉 */
+        /* 頁眉：日期字體已調小 (16px) */
         .header {
             display: flex;
             justify-content: space-between;
@@ -53,10 +53,10 @@
         }
 
         .header h1 {
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: -0.5px;
-            color: #000;
+            font-size: 16px; /* ✅ 已調小日期字體 (原本 28px) */
+            font-weight: 700;
+            letter-spacing: 0px;
+            color: #111;
         }
 
         .header .last-updated {
@@ -74,7 +74,7 @@
         /* 主網格：左右欄位 */
         .main-grid {
             display: grid;
-            grid-template-columns: 1.35fr 1fr;
+            grid-template-columns: 1.25fr 1fr;
             gap: 28px;
         }
 
@@ -121,6 +121,7 @@
             font-weight: 500;
             color: #888;
             letter-spacing: 1px;
+            grid-column: 1 / -1;
         }
 
         /* 🚌 巴士雙欄並排容器 */
@@ -148,14 +149,14 @@
             padding-right: 0;
         }
 
-        /* 路線編號 Header：已移除黑色下劃實線 */
+        /* 路線編號 Header */
         .bus-header {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 12px;
-            padding-bottom: 0; /* 移除 padding */
-            border-bottom: none; /* 移除黑色實線 */
+            padding-bottom: 0;
+            border-bottom: none;
         }
 
         .bus-number {
@@ -205,12 +206,12 @@
             flex-direction: column;
         }
 
-        /* 每班車列：時間靠左，公司靠右 */
+        /* 每班車列 */
         .eta-row {
             font-family: 'Roboto', 'Noto Sans HK', sans-serif;
             display: flex;
             align-items: baseline;
-            justify-content: space-between; /* 左右分開對齊 */
+            justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px dashed #d5d5d5;
         }
@@ -219,7 +220,7 @@
             border-bottom: none;
         }
 
-        /* 第一班車 (最快到的班次，字體較大) */
+        /* 第一班車 (巨型數字) */
         .eta-row-first .eta-min {
             font-size: 32px;
             font-weight: 900;
@@ -249,7 +250,6 @@
             margin-left: 2px;
         }
 
-        /* 巴士公司 Badge 靠右 */
         .co-badge {
             font-size: 10px;
             font-weight: 900;
@@ -258,10 +258,10 @@
             border-radius: 2px;
             background-color: #fff;
             color: #111;
-            margin-left: auto; /* 自動推至最右側 */
+            margin-left: auto;
         }
 
-        /* 天氣網格：靠左對齊，Icon 與地名同行 */
+        /* 天氣網格 */
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -275,14 +275,13 @@
             padding: 0 8px;
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* 靠左對齊 */
+            align-items: flex-start;
         }
 
         .weather-col:last-child {
             border-right: none;
         }
 
-        /* ☀️ 地名 同行欄位 */
         .weather-header-line {
             display: flex;
             align-items: center;
@@ -329,8 +328,66 @@
             color: #111;
         }
 
-        /* 食品 & 提醒清單 */
-        .food-item, .remind-item {
+        /* 🥑 食品清單 2 COLUMN 網格佈局 */
+        .food-grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0 16px;
+        }
+
+        @media (max-width: 480px) {
+            .food-grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #d5d5d5;
+        }
+
+        .food-grid-container .food-item:nth-child(odd) {
+            padding-right: 12px;
+            border-right: 1px solid #f0f0f0;
+        }
+
+        .food-grid-container .food-item:nth-child(even) {
+            padding-left: 4px;
+        }
+
+        .food-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #111;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60%;
+        }
+
+        .food-badge {
+            border: 1px solid #111;
+            padding: 1px 6px;
+            font-size: 11px;
+            font-weight: 700;
+            background-color: #fff;
+            color: #111;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+            flex-shrink: 0;
+        }
+
+        .food-badge.urgent {
+            background-color: #111;
+            color: #fff;
+        }
+
+        /* 📌 提醒事項單欄清單 */
+        .remind-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -338,18 +395,18 @@
             border-bottom: 1px dashed #d5d5d5;
         }
 
-        .food-item:last-child, .remind-item:last-child {
+        .remind-item:last-child {
             border-bottom: none;
         }
 
-        .food-name, .remind-title {
+        .remind-title {
             font-size: 14px;
             font-weight: 700;
             color: #111;
             letter-spacing: 0.3px;
         }
 
-        .food-badge, .remind-badge {
+        .remind-badge {
             border: 1px solid #111;
             padding: 2px 8px;
             font-size: 11px;
@@ -360,7 +417,7 @@
             letter-spacing: 0.5px;
         }
 
-        .food-badge.urgent, .remind-badge.urgent {
+        .remind-badge.urgent {
             background-color: #111;
             color: #fff;
         }
@@ -423,7 +480,7 @@
                 </div>
             </div>
 
-            <!-- 地區天氣簡報 (Icon與地名同行 -> 靠左對齊) -->
+            <!-- 地區天氣簡報 -->
             <div class="section-box">
                 <div class="section-header">
                     <span>⛅ 地區天氣簡報</span>
@@ -467,7 +524,7 @@
 
         </div>
 
-        <!-- 右欄：食品過期清單 + 重要事項提醒 -->
+        <!-- 右欄：食品過期清單 (2 Column) + 重要事項提醒 -->
         <div class="right-column">
             
             <!-- 上：食品過期清單 -->
@@ -475,8 +532,10 @@
                 <div class="section-header">
                     <span>🥑 食品過期清單</span>
                 </div>
-                <div class="section-body" id="food-list-container">
-                    <div class="loading-state">載入中...</div>
+                <div class="section-body">
+                    <div class="food-grid-container" id="food-list-container">
+                        <div class="loading-state">載入中...</div>
+                    </div>
                 </div>
             </div>
 
@@ -559,7 +618,7 @@
         }
     }
 
-    // 渲染巴士 ETA (時間靠左，公司靠右)
+    // 渲染巴士 ETA
     function renderBusEta(elementId, etaArray) {
         const container = document.getElementById(elementId);
 
@@ -588,7 +647,6 @@
 
             const rowClass = (validItemCount === 0) ? "eta-row eta-row-first" : "eta-row eta-row-sub";
 
-            // 時間靠左，公司 Badge 靠右
             html += `
                 <div class="${rowClass}">
                     <div><span class="eta-min">${minutes}</span><span class="unit">分鐘</span></div>
