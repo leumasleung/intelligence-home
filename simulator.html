@@ -2,72 +2,89 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>LilyGo T5 S3 (960x540) 墨水屏 1:1 模擬器</title>
+  <title>LilyGo T5 S3 純黑白 E-Ink 擬真模擬器</title>
   <style>
     body {
-      background-color: #2b2b2b;
+      background-color: #1a1a1a;
       color: #ffffff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 20px;
     }
 
-    h1 { margin-bottom: 5px; font-size: 22px; }
-    p { color: #aaa; margin-top: 0; margin-bottom: 20px; font-size: 14px; }
+    h1 { margin-bottom: 5px; font-size: 22px; color: #ececec; }
+    p { color: #888; font-size: 13px; margin-top: 0; margin-bottom: 15px; }
 
     /* 模擬 E-Ink 墨水屏實體外框 */
     .epd-frame {
-      background-color: #ffffff;
-      border: 12px solid #1a1a1a;
-      border-right: 35px solid #1a1a1a; /* 模擬右側 LILYGO 邊框 */
+      background-color: #dededc; /* 墨水屏底色（非純白，帶微灰紙張感） */
+      border: 14px solid #111111;
+      border-right: 38px solid #111111;
       border-radius: 6px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.7);
       position: relative;
     }
 
-    /* 右側 LILYGO® 標誌 */
     .epd-frame::after {
       content: "LILYGO®";
       position: absolute;
-      right: -28px;
+      right: -30px;
       top: 50%;
       transform: translateY(-50%) rotate(90deg);
-      color: #888;
+      color: #666;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 15px;
       letter-spacing: 2px;
     }
 
-    /* 畫布 Canvas (960 x 540) */
+    /* 畫布 Canvas (960 x 540) - 純黑白顯示 */
     canvas {
       display: block;
-      background-color: #ffffff; /* 墨水屏純白底色 */
+      background-color: #e3e3df; /* 墨水屏底色 */
     }
 
-    .info-panel {
+    .controls {
       margin-top: 15px;
-      background: #1e1e1e;
-      padding: 12px 20px;
-      border-radius: 6px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    button {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
       font-size: 13px;
-      color: #4af626;
+    }
+    button:hover { background: #444; }
+
+    .info-panel {
+      background: #000;
+      color: #00ff66;
+      padding: 8px 16px;
+      border-radius: 4px;
       font-family: monospace;
+      font-size: 13px;
     }
   </style>
 </head>
 <body>
 
-  <h1>LilyGo T5 S3 Dashboard 精確模擬器</h1>
-  <p>解析度：960 x 540 | 滑鼠移到畫布上可即時顯示 (X, Y) 座標</p>
+  <h1>LilyGo T5 S3 純黑白 E-Ink 擬真模擬器</h1>
+  <p>模擬 1:1 單色/灰階墨水屏 (EPD47 API) | 滑鼠查看 (X, Y) 座標</p>
 
   <div class="epd-frame">
     <canvas id="epdCanvas" width="960" height="540"></canvas>
   </div>
 
-  <div class="info-panel" id="coordInfo">
-    滑鼠座標：X: 0, Y: 0
+  <div class="controls">
+    <button onclick="triggerEinkRefresh()">⚡ 模擬墨水屏清屏刷新 (E-Ink Refresh)</button>
+    <div class="info-panel" id="coordInfo">X: 0, Y: 0</div>
   </div>
 
 <script>
@@ -75,70 +92,68 @@
   const ctx = canvas.getContext('2d');
   const coordInfo = document.getElementById('coordInfo');
 
-  // 即時顯示 X, Y 座標
   canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
     const x = Math.round(e.clientX - rect.left);
     const y = Math.round(e.clientY - rect.top);
-    coordInfo.innerText = `滑鼠座標：X: ${x}, Y: ${y}`;
+    coordInfo.innerText = `X: ${x}, Y: ${y}`;
   });
 
   // =========================================================
-  // 🎨 繪製小工具函數 (與 C++ / Canvas 1:1 對應)
+  // 🎨 純黑白 / 灰階 墨水屏專用繪製邏輯 (E-Ink Only)
   // =========================================================
 
-  // 太陽 Icon (與圖片一致)
-  function drawSunIcon(x, y) {
-    ctx.beginPath();
-    ctx.arc(x, y, 9, 0, Math.PI * 2);
-    ctx.fillStyle = "#f39c12"; // 太陽亮黃/橘色
-    ctx.fill();
-
-    ctx.strokeStyle = "#f39c12";
+  // 純黑白太陽 Icon (墨水屏線條畫法)
+  function drawEInKSunIcon(x, y) {
+    ctx.strokeStyle = "#000000";
+    ctx.fillStyle = "#e3e3df"; // 填滿紙張底色
     ctx.lineWidth = 2;
+
+    // 中心空心圓
+    ctx.beginPath();
+    ctx.arc(x, y, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // 八方向線條光芒
     for (let i = 0; i < 8; i++) {
       const angle = (i * Math.PI) / 4;
       ctx.beginPath();
-      ctx.moveTo(x + Math.cos(angle) * 12, y + Math.sin(angle) * 12);
-      ctx.lineTo(x + Math.cos(angle) * 16, y + Math.sin(angle) * 16);
+      ctx.moveTo(x + Math.cos(angle) * 11, y + Math.sin(angle) * 11);
+      ctx.lineTo(x + Math.cos(angle) * 15, y + Math.sin(angle) * 15);
       ctx.stroke();
     }
-    ctx.strokeStyle = "#000000";
     ctx.fillStyle = "#000000";
   }
 
-  // 橫向虛線
+  // 橫向黑白虛線
   function drawDashedHLine(x1, x2, y) {
     ctx.setLineDash([3, 3]);
     ctx.lineWidth = 1;
-    ctx.strokeStyle = "#dddddd";
+    ctx.strokeStyle = "#000000"; // 純黑虛線
     ctx.beginPath();
     ctx.moveTo(x1, y);
     ctx.lineTo(x2, y);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.strokeStyle = "#000000";
   }
 
-  // 垂直虛線
+  // 垂直黑白虛線
   function drawDashedVLine(x, y1, y2) {
     ctx.setLineDash([3, 3]);
     ctx.lineWidth = 1;
-    ctx.strokeStyle = "#dddddd";
+    ctx.strokeStyle = "#000000";
     ctx.beginPath();
     ctx.moveTo(x, y1);
     ctx.lineTo(x, y2);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.strokeStyle = "#000000";
   }
 
-  // =========================================================
-  // 🚀 1:1 還原圖片格調的渲染核心
-  // =========================================================
-  function renderDashboard() {
-    // 1. 底色
-    ctx.fillStyle = '#ffffff';
+  // 渲染黑白 Dashboard
+  function renderEInKDashboard() {
+    // 1. 純黑白底色 (清屏)
+    ctx.fillStyle = '#e3e3df';
     ctx.fillRect(0, 0, 960, 540);
     ctx.fillStyle = '#000000';
     ctx.strokeStyle = '#000000';
@@ -147,43 +162,38 @@
     ctx.font = "bold 20px 'PingFang TC', 'Microsoft JhengHei', sans-serif";
     ctx.fillText("2026年7月24日 (星期五)", 20, 35);
     ctx.font = "14px sans-serif";
-    ctx.fillStyle = "#555555";
     ctx.fillText("最後更新", 810, 35);
     ctx.font = "bold 15px sans-serif";
-    ctx.fillStyle = "#000000";
     ctx.fillText("10:50", 875, 35);
 
-    // 頂部黑色粗線
+    // 頂部粗線
     ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.moveTo(20, 48); ctx.lineTo(940, 48); ctx.stroke();
 
-    // ---------------------------------------------------------
     // ----------------【左上】🚌 巴士實時到站 (ETA) ----------------
-    // ---------------------------------------------------------
     ctx.font = "bold 17px sans-serif";
-    ctx.fillText("🚌  巴士實時到站 (ETA)", 20, 85);
+    ctx.fillText("巴士實時到站 (ETA)", 20, 85);
 
-    // 680 標牌 (黑底白字)
+    // 680 標牌 (純黑底白字)
     ctx.fillRect(20, 105, 58, 30);
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#e3e3df";
     ctx.font = "bold 22px sans-serif";
     ctx.fillText("680", 28, 128);
     ctx.fillStyle = "#000000";
 
     ctx.font = "bold 15px sans-serif";
     ctx.fillText("往 金鐘站(東)", 88, 118);
-    ctx.font = "12px sans-serif"; ctx.fillStyle = "#777777";
+    ctx.font = "12px sans-serif";
     ctx.fillText("小瀝源路草地滾球場", 88, 134);
-    ctx.fillStyle = "#000000";
 
-    // 到站時間行繪製
+    // 到站時間行
     const drawEtaRow = (num, y) => {
       ctx.font = "bold 26px sans-serif";
       ctx.fillText(num, 20, y);
       ctx.font = "14px sans-serif";
       ctx.fillText("分鐘", 38, y - 2);
 
-      // 城巴邊框
+      // 城巴黑框 Tag
       ctx.lineWidth = 1;
       ctx.strokeRect(200, y - 18, 32, 20);
       ctx.font = "11px sans-serif";
@@ -196,45 +206,41 @@
     drawDashedHLine(20, 235, 237);
     drawEtaRow("42", 265);
 
-    // 垂直線 (分隔 680 與 682B)
-    ctx.lineWidth = 1; ctx.strokeStyle = "#eee";
+    // 分隔線
+    ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(250, 105); ctx.lineTo(250, 270); ctx.stroke();
-    ctx.strokeStyle = "#000";
 
-    // 682B 標牌 (黑底白字)
+    // 682B 標牌
     ctx.fillRect(270, 105, 72, 30);
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#e3e3df";
     ctx.font = "bold 22px sans-serif";
     ctx.fillText("682B", 276, 128);
     ctx.fillStyle = "#000000";
 
     ctx.font = "bold 15px sans-serif";
     ctx.fillText("往 柴灣(東)", 352, 118);
-    ctx.font = "12px sans-serif"; ctx.fillStyle = "#777777";
+    ctx.font = "12px sans-serif";
     ctx.fillText("第一城站，插桅杆街", 352, 134);
 
-    ctx.font = "14px sans-serif"; ctx.fillStyle = "#999999";
+    ctx.font = "14px sans-serif";
     ctx.fillText("非服務時間 / 暫無班次", 320, 190);
-    ctx.fillStyle = "#000000";
 
-    // 左側主橫線 (Y = 300)
+    // 主橫線 (Y = 300)
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(20, 300); ctx.lineTo(510, 300); ctx.stroke();
 
-    // ---------------------------------------------------------
     // ----------------【右上】🥑 食品過期清單 ----------------
-    // ---------------------------------------------------------
     ctx.font = "bold 17px sans-serif";
-    ctx.fillText("🥑  食品過期清單", 535, 85);
+    ctx.fillText("食品過期清單", 535, 85);
 
-    // 節瓜 (黑底白字)
+    // 節瓜 (黑底白字 Tag)
     ctx.font = "bold 15px sans-serif";
     ctx.fillText("節瓜", 535, 128);
     ctx.fillRect(675, 110, 48, 22);
-    ctx.fillStyle = "#ffffff"; ctx.font = "12px sans-serif";
+    ctx.fillStyle = "#e3e3df"; ctx.font = "12px sans-serif";
     ctx.fillText("剩 2 天", 681, 125); ctx.fillStyle = "#000000";
 
-    // 豆腐 (白底黑框)
+    // 豆腐 (白底黑框 Tag)
     ctx.font = "bold 15px sans-serif";
     ctx.fillText("豆腐", 740, 128);
     ctx.strokeRect(880, 110, 48, 22);
@@ -243,28 +249,26 @@
 
     drawDashedHLine(535, 930, 145);
 
-    // 火腿 (白底黑框)
+    // 火腿 (白底黑框 Tag)
     ctx.font = "bold 15px sans-serif";
     ctx.fillText("火腿", 535, 173);
     ctx.strokeRect(668, 155, 55, 22);
     ctx.font = "12px sans-serif";
     ctx.fillText("剩 13 天", 672, 170);
 
-    // 雞蛋 (白底黑框)
+    // 雞蛋 (白底黑框 Tag)
     ctx.font = "bold 15px sans-serif";
     ctx.fillText("雞蛋", 740, 173);
     ctx.strokeRect(873, 155, 55, 22);
     ctx.font = "12px sans-serif";
     ctx.fillText("剩 69 天", 877, 170);
 
-    // ---------------------------------------------------------
     // ----------------【左下】⛅ 地區天氣簡報 ----------------
-    // ---------------------------------------------------------
     ctx.font = "bold 17px sans-serif";
-    ctx.fillText("⛅  地區天氣簡報", 20, 340);
+    ctx.fillText("地區天氣簡報", 20, 340);
 
     const drawWeatherCol = (city, temp, hum, x) => {
-      drawSunIcon(x + 12, 380);
+      drawEInKSunIcon(x + 12, 380);
       ctx.font = "bold 16px sans-serif";
       ctx.fillText(city, x + 30, 385);
 
@@ -272,9 +276,8 @@
       ctx.fillText(temp, x, 428);
       ctx.font = "16px sans-serif"; ctx.fillText("°C", x + 58, 415);
 
-      ctx.font = "12px sans-serif"; ctx.fillStyle = "#555555";
+      ctx.font = "12px sans-serif";
       ctx.fillText(`相對濕度 ${hum}%`, x, 452);
-      ctx.fillStyle = "#000000";
     };
 
     drawWeatherCol("沙田", "32.0", "58", 20);
@@ -285,21 +288,18 @@
 
     drawWeatherCol("天后", "32.0", "58", 365);
 
-    // ---------------------------------------------------------
     // ----------------【右下】📌 重要事項提醒 ----------------
-    // ---------------------------------------------------------
-    // 右側主橫線 (Y = 300)
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(535, 300); ctx.lineTo(930, 300); ctx.stroke();
 
     ctx.font = "bold 17px sans-serif";
-    ctx.fillText("📌  重要事項提醒", 535, 340);
+    ctx.fillText("重要事項提醒", 535, 340);
 
     // 買蠔油 (黑底白字 Tag)
     ctx.font = "bold 16px sans-serif";
     ctx.fillText("買蠔油", 535, 395);
     ctx.fillRect(865, 378, 65, 24);
-    ctx.fillStyle = "#ffffff"; ctx.font = "12px sans-serif";
+    ctx.fillStyle = "#e3e3df"; ctx.font = "12px sans-serif";
     ctx.fillText("今日到期", 873, 394); ctx.fillStyle = "#000000";
 
     drawDashedHLine(535, 930, 420);
@@ -314,8 +314,21 @@
     drawDashedHLine(535, 930, 480);
   }
 
-  // 執行繪製
-  renderDashboard();
+  // 模擬墨水屏物理刷屏 (全黑 -> 全白 -> 畫面)
+  function triggerEinkRefresh() {
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, 960, 540); // 全黑
+    setTimeout(() => {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, 960, 540); // 全白
+      setTimeout(() => {
+        renderEInKDashboard(); // 印出真實黑白畫面
+      }, 150);
+    }, 150);
+  }
+
+  // 初始化繪製
+  renderEInKDashboard();
 </script>
 
 </body>
