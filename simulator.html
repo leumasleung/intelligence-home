@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>LilyGo T5 S3 (960x540) 墨水屏 Canvas 模擬器</title>
+  <style>
+    body {
+      background-color: #2b2b2b;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 5px;
+      font-size: 22px;
+    }
+
+    p {
+      color: #aaa;
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    /* 模擬 E-Ink 墨水屏實體外框 */
+    .epd-frame {
+      background-color: #e2e2df; /* 墨水屏底色 */
+      border: 12px solid #1a1a1a;
+      border-right: 35px solid #1a1a1a; /* 模擬右側 LILYGO 邊框 */
+      border-radius: 6px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    /* 右側 LILYGO® 標誌 */
+    .epd-frame::after {
+      content: "LILYGO®";
+      position: absolute;
+      right: -28px;
+      top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      color: #888;
+      font-weight: bold;
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+
+    /* 畫布 Canvas (960 x 540) */
+    canvas {
+      display: block;
+      background-color: #e5e5e2; /* 墨水屏紙張感底色 */
+    }
+
+    .info-panel {
+      margin-top: 15px;
+      background: #1e1e1e;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #4af626;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>LilyGo T5 S3 Dashboard 模擬器</h1>
+  <p>解析度：960 x 540 | 滑鼠移到畫布上可即時顯示 (X, Y) 座標</p>
+
+  <div class="epd-frame">
+    <canvas id="epdCanvas" width="960" height="540"></canvas>
+  </div>
+
+  <div class="info-panel" id="coordInfo">
+    滑鼠座標：X: 0, Y: 0
+  </div>
+
+<script>
+  const canvas = document.getElementById('epdCanvas');
+  const ctx = canvas.getContext('2d');
+  const coordInfo = document.getElementById('coordInfo');
+
+  // 滑鼠移動時顯示即時 X, Y 座標 (方便排版)
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.round(e.clientX - rect.left);
+    const y = Math.round(e.clientY - rect.top);
+    coordInfo.innerText = `滑鼠座標：X: ${x}, Y: ${y}`;
+  });
+
+  // =========================================================
+  // 🎨 模擬 ESP32 繪製函數 (與 C++ epd_driver API 1:1 對應)
+  // =========================================================
+
+  function drawRect(x, y, w, h) {
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x, y, w, h);
+  }
+
+  function drawHLine(x, y, w) {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + w, y);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  function drawVLine(x, y, h) {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y + h);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  function writeText(text, x, y, fontSize = 18, isBold = false) {
+    ctx.fillStyle = '#000000';
+    ctx.font = `${isBold ? 'bold' : 'normal'} ${fontSize}px "Arial", "PingFang TC", "Microsoft JhengHei", sans-serif`;
+    ctx.fillText(text, x, y);
+  }
+
+  // 模擬畫一個基礎 Weather Icon (太陽 + 雲朵)
+  function drawWeatherIcon(x, y) {
+    // 太陽
+    ctx.beginPath();
+    ctx.arc(x + 15, y - 15, 10, 0, Math.PI * 2);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 雲朵
+    ctx.beginPath();
+    ctx.arc(x + 20, y, 12, Math.PI * 0.5, Math.PI * 1.5);
+    ctx.arc(x + 32, y - 8, 14, Math.PI * 1, Math.PI * 1.85);
+    ctx.arc(x + 48, y, 12, Math.PI * 1.5, Math.PI * 0.5);
+    ctx.closePath();
+    ctx.fillStyle = '#e5e5e2'; // 填滿墨水屏底色
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // =========================================================
+  // 🚀 繪製渲染面板內容 (模仿 renderDashboardOnEPD)
+  // =========================================================
+  function renderDashboard() {
+    // 清空背景
+    ctx.fillStyle = '#e5e5e2';
+    ctx.fillRect(0, 0, 960, 540);
+
+    // 外框 (10, 10, 940, 520)
+    drawRect(10, 10, 940, 520);
+
+    // 1. 頁眉 Header
+    writeText("2026-07-24 (Fri)  |  Last Update: 10:40", 25, 40, 18, true);
+    drawHLine(10, 55, 940);
+
+    // 中間垂直分隔線 (X = 480)
+    drawVLine(480, 55, 475);
+
+    // ----------------【ROW 1 左】🚌 巴士 ETA ----------------
+    writeText("BUS REAL-TIME ETA / 巴士到站", 25, 85, 18, true);
+
+    // 680 路線
+    drawRect(25, 102, 50, 24);
+    writeText("680", 32, 120, 16, true);
+    writeText("To Admiralty (金鐘)", 85, 120, 16);
+    writeText("5 mins", 25, 155, 20, true);
+    writeText("18 mins", 25, 185, 16);
+
+    // 682B 路線
+    drawRect(250, 102, 58, 24);
+    writeText("682B", 255, 120, 16, true);
+    writeText("To Chai Wan (柴灣)", 318, 120, 16);
+    writeText("12 mins", 250, 155, 20, true);
+    writeText("27 mins", 250, 185, 16);
+
+    // 橫向分隔線 (Y = 240)
+    drawHLine(10, 240, 940);
+
+    // ----------------【ROW 1 右】🥑 食品過期清單 ----------------
+    writeText("FOOD EXPIRY LIST / 食品過期", 500, 85, 18, true);
+    
+    // 食品項目列表
+    const foods = [
+      { name: "牛奶 (Milk)", days: "2d left" },
+      { name: "芝士 (Cheese)", days: "3d left" },
+      { name: "蘋果 (Apple)", days: "7d left" },
+      { name: "火腿 (Ham)", days: "14d left" }
+    ];
+
+    foods.forEach((item, index) => {
+      const currentX = (index % 2 === 0) ? 500 : 720;
+      const currentY = 125 + Math.floor(index / 2) * 45;
+      writeText(item.name, currentX, currentY, 16);
+      writeText(item.days, currentX + 110, currentY, 15, true);
+    });
+
+    // ----------------【ROW 2 左】⛅ 地區天氣 ----------------
+    writeText("WEATHER REPORT / 天氣預報", 25, 270, 18, true);
+
+    // 沙田
+    writeText("Shatin (沙田)", 25, 305, 16);
+    writeText("29.0 °C", 25, 335, 22, true);
+    drawWeatherIcon(100, 325);
+
+    // 鰂魚涌
+    writeText("Quarry Bay (鰂魚涌)", 185, 305, 16);
+    writeText("29.0 °C", 185, 335, 22, true);
+    drawWeatherIcon(280, 325);
+
+    // 天后
+    writeText("Tin Hau (天后)", 350, 305, 16);
+    writeText("30.0 °C", 350, 335, 22, true);
+
+    // ----------------【ROW 2 右】📌 重要提醒 ----------------
+    writeText("REMINDERS / 重要提醒", 500, 270, 18, true);
+
+    const reminders = [
+      { title: "繳交電費 (Electricity Bill)", date: "2026-07-28" },
+      { title: "牙醫檢查 (Dentist Appt)", date: "2026-08-02" }
+    ];
+
+    reminders.forEach((item, index) => {
+      const rY = 310 + index * 40;
+      writeText(item.title, 500, rY, 16);
+      writeText(item.date, 750, rY, 15);
+    });
+  }
+
+  // 執行渲染
+  renderDashboard();
+</script>
+
+</body>
+</html>
