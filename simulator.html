@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>LilyGo T5 S3 墨水屏 1:1 模擬器 (加寬 White Space 版)</title>
+  <title>LilyGo T5 S3 墨水屏 1:1 模擬器 (標題微縮 + 中文更新時間版)</title>
   <style>
     body {
       background-color: #1a1a1a;
@@ -74,8 +74,8 @@
 </head>
 <body>
 
-  <h1>LilyGo T5 S3 Dashboard (完美間距 + 低調更新時間)</h1>
-  <p>加大上下 Module 留白 | 右下角 Subtle 更新時間</p>
+  <h1>LilyGo T5 S3 Dashboard (標題精緻化 + 中文標籤)</h1>
+  <p>Module 標題縮小至 17px | 右下角中文低調更新時間</p>
 
   <div class="epd-frame">
     <canvas id="epdCanvas" width="960" height="540"></canvas>
@@ -150,7 +150,8 @@
     // ---------------------------------------------------------
     // ----------------【左上】🚌 巴士實時到站 (ETA) ----------------
     // ---------------------------------------------------------
-    ctx.font = "bold 20px sans-serif";
+    // 🔴 標題微縮至 17px
+    ctx.font = "bold 17px sans-serif";
     ctx.fillText("巴士實時到站 (ETA)", 20, 38);
 
     // 680 標牌
@@ -205,14 +206,15 @@
     ctx.font = "16px sans-serif";
     ctx.fillText("非服務時間 / 暫無班次", 320, 155);
 
-    // 🔴 上下 Module 主分隔橫線：由 Y = 265 下移至 Y = 280 (加大留白 White Space)
+    // 上下 Module 主分隔線 (Y = 280)
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(20, 280); ctx.lineTo(510, 280); ctx.stroke();
 
     // ---------------------------------------------------------
     // ----------------【右上】🥑 食品過期清單 ----------------
     // ---------------------------------------------------------
-    ctx.font = "bold 20px sans-serif";
+    // 🔴 標題微縮至 17px
+    ctx.font = "bold 17px sans-serif";
     ctx.fillText("食品過期清單", 535, 38);
 
     ctx.font = "bold 18px sans-serif";
@@ -243,15 +245,15 @@
 
     drawDashedHLine(535, 935, 165);
 
-    // 🔴 右側主分隔線：同步下移至 Y = 280
+    // 右側主分隔線 (Y = 280)
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(535, 280); ctx.lineTo(935, 280); ctx.stroke();
 
     // ---------------------------------------------------------
     // ----------------【左下】⛅ 地區天氣簡報 ----------------
     // ---------------------------------------------------------
-    // 下方區塊同步微調 Y 軸（從 305 下移至 325），留白效果極佳
-    ctx.font = "bold 20px sans-serif";
+    // 🔴 標題微縮至 17px
+    ctx.font = "bold 17px sans-serif";
     ctx.fillText("地區天氣簡報", 20, 325);
 
     const drawWeatherCol = (city, temp, hum, x) => {
@@ -278,7 +280,8 @@
     // ---------------------------------------------------------
     // ----------------【右下】📌 重要事項提醒 ----------------
     // ---------------------------------------------------------
-    ctx.font = "bold 20px sans-serif";
+    // 🔴 標題微縮至 17px
+    ctx.font = "bold 17px sans-serif";
     ctx.fillText("重要事項提醒", 535, 325);
 
     ctx.font = "bold 18px sans-serif";
@@ -298,11 +301,11 @@
     drawDashedHLine(535, 935, 470);
 
     // ---------------------------------------------------------
-    // 🔴 📌 SUBTLE 最低調顯示最後更新時間 (右下角最底部)
+    // 🔴 📌 中文 Subtle 顯示最後更新時間 (右下角底部)
     // ---------------------------------------------------------
-    ctx.font = "12px sans-serif";
-    ctx.fillStyle = "#666666"; // 使用淡淡的灰色字體（墨水屏會呈現淡灰階點陣）
-    ctx.fillText("Updated at 10:50", 830, 520);
+    ctx.font = "13px sans-serif";
+    ctx.fillStyle = "#666666"; 
+    ctx.fillText("最後更新: 10:50", 830, 520);
     ctx.fillStyle = "#000000";
   }
 
