@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>LilyGo T5 S3 墨水屏 1:1 模擬器 (左寬右窄版)</title>
+  <title>LilyGo T5 S3 墨水屏 1:1 模擬器 (極簡 14px 標題版)</title>
   <style>
     body {
       background-color: #1a1a1a;
@@ -74,8 +74,8 @@
 </head>
 <body>
 
-  <h1>LilyGo T5 S3 Dashboard (左寬右窄黄金比例)</h1>
-  <p>左側擴展至 560px | 右側精簡至 370px | 視覺不壓迫</p>
+  <h1>LilyGo T5 S3 Dashboard (極簡調性版)</h1>
+  <p>Module 標題調為與相對濕度相同的 14px 普通體 | 高對比視覺層次</p>
 
   <div class="epd-frame">
     <canvas id="epdCanvas" width="960" height="540"></canvas>
@@ -147,14 +147,14 @@
     ctx.fillStyle = '#000000';
     ctx.strokeStyle = '#000000';
 
-    // 🔴 左右主軸分隔點重設：X = 560
     const LEFT_END_X = 535;
     const RIGHT_START_X = 575;
 
     // ---------------------------------------------------------
     // ----------------【左上】🚌 巴士實時到站 (ETA) ----------------
     // ---------------------------------------------------------
-    ctx.font = "bold 17px sans-serif";
+    // 🔴 標題改為與「相對濕度」相同的 14px 普通體 (non-bold)
+    ctx.font = "14px sans-serif";
     ctx.fillText("巴士實時到站 (ETA)", 20, 38);
 
     // 680 標牌
@@ -179,7 +179,7 @@
       ctx.fillText("分鐘", minX, y - 2);
 
       ctx.lineWidth = 1;
-      ctx.strokeRect(215, y - 20, 36, 22); // 空間寬了，城巴 Tag 可以稍微拉開
+      ctx.strokeRect(215, y - 20, 36, 22);
       ctx.font = "12px sans-serif";
       ctx.fillText("城巴", 220, y - 4);
     };
@@ -190,7 +190,7 @@
     drawDashedHLine(20, 255, 198);
     drawEtaRow("42", 232);
 
-    // 分隔 680 / 682B 垂直線 (拉寬至 X = 270)
+    // 分隔線
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(270, 55); ctx.lineTo(270, 240); ctx.stroke();
 
@@ -209,14 +209,15 @@
     ctx.font = "16px sans-serif";
     ctx.fillText("非服務時間 / 暫無班次", 330, 155);
 
-    // 左側主橫線 (延伸至 X = 535)
+    // 左側主橫線
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(20, 280); ctx.lineTo(LEFT_END_X, 280); ctx.stroke();
 
     // ---------------------------------------------------------
     // ----------------【右上】🥑 食品過期清單 ----------------
     // ---------------------------------------------------------
-    ctx.font = "bold 17px sans-serif";
+    // 🔴 標題改為 14px 普通體
+    ctx.font = "14px sans-serif";
     ctx.fillText("食品過期清單", RIGHT_START_X, 38);
 
     // 節瓜
@@ -251,14 +252,15 @@
 
     drawDashedHLine(RIGHT_START_X, 935, 165);
 
-    // 右側主橫線 (從 X = 575 開始)
+    // 右側主橫線
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(RIGHT_START_X, 280); ctx.lineTo(935, 280); ctx.stroke();
 
     // ---------------------------------------------------------
     // ----------------【左下】⛅ 地區天氣簡報 ----------------
     // ---------------------------------------------------------
-    ctx.font = "bold 17px sans-serif";
+    // 🔴 標題改為 14px 普通體
+    ctx.font = "14px sans-serif";
     ctx.fillText("地區天氣簡報", 20, 325);
 
     const drawWeatherCol = (city, temp, hum, x) => {
@@ -270,11 +272,11 @@
       ctx.fillText(temp, x, 428);
       ctx.font = "18px sans-serif"; ctx.fillText("°C", x + 72, 412);
 
+      // 🔴 相對濕度字體 (14px sans-serif)
       ctx.font = "14px sans-serif";
       ctx.fillText(`相對濕度 ${hum}%`, x, 456);
     };
 
-    // 空間寬了，三欄天氣座標拉開：20 -> 190 -> 360，間距更完美
     drawWeatherCol("沙田", "32.0", "58", 20);
     drawDashedVLine(175, 355, 470);
 
@@ -286,7 +288,8 @@
     // ---------------------------------------------------------
     // ----------------【右下】📌 重要事項提醒 ----------------
     // ---------------------------------------------------------
-    ctx.font = "bold 17px sans-serif";
+    // 🔴 標題改為 14px 普通體
+    ctx.font = "14px sans-serif";
     ctx.fillText("重要事項提醒", RIGHT_START_X, 325);
 
     ctx.font = "bold 18px sans-serif";
@@ -305,9 +308,7 @@
 
     drawDashedHLine(RIGHT_START_X, 935, 470);
 
-    // ---------------------------------------------------------
     // 📌 中文 Subtle 最後更新時間
-    // ---------------------------------------------------------
     ctx.font = "13px sans-serif";
     ctx.fillStyle = "#666666"; 
     ctx.fillText("最後更新: 10:50", 830, 520);
