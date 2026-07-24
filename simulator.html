@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>LilyGo T5 S3 墨水屏 1:1 模擬器 (無頂欄/大字體版)</title>
+  <title>LilyGo T5 S3 墨水屏 1:1 模擬器 (加寬 White Space 版)</title>
   <style>
     body {
       background-color: #1a1a1a;
@@ -74,8 +74,8 @@
 </head>
 <body>
 
-  <h1>LilyGo T5 S3 純黑白 Dashboard (優化放大版)</h1>
-  <p>移除頂欄 | 全面放大內文字體 | 統一 Tag 為白底黑框</p>
+  <h1>LilyGo T5 S3 Dashboard (完美間距 + 低調更新時間)</h1>
+  <p>加大上下 Module 留白 | 右下角 Subtle 更新時間</p>
 
   <div class="epd-frame">
     <canvas id="epdCanvas" width="960" height="540"></canvas>
@@ -165,17 +165,15 @@
     ctx.font = "14px sans-serif";
     ctx.fillText("小瀝源路草地滾球場", 96, 88);
 
-    // 到站時間行 (加大數字 & 拉開 X 軸防止字體重疊)
+    // 到站時間行
     const drawEtaRow = (num, y) => {
       ctx.font = "bold 32px sans-serif";
       ctx.fillText(num, 20, y);
       
-      // 動態計算「分鐘」的 X 座標，避免個位數與雙位數重疊
       const minX = num.length > 1 ? 62 : 42;
       ctx.font = "16px sans-serif";
       ctx.fillText("分鐘", minX, y - 2);
 
-      // 城巴 Tag
       ctx.lineWidth = 1;
       ctx.strokeRect(200, y - 20, 36, 22);
       ctx.font = "12px sans-serif";
@@ -188,7 +186,7 @@
     drawDashedHLine(20, 236, 198);
     drawEtaRow("42", 232);
 
-    // 分隔 680 / 682B 垂直線
+    // 分隔線
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(250, 55); ctx.lineTo(250, 240); ctx.stroke();
 
@@ -207,9 +205,9 @@
     ctx.font = "16px sans-serif";
     ctx.fillText("非服務時間 / 暫無班次", 320, 155);
 
-    // 主橫線 (Y = 265，整體上移)
+    // 🔴 上下 Module 主分隔橫線：由 Y = 265 下移至 Y = 280 (加大留白 White Space)
     ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(20, 265); ctx.lineTo(510, 265); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(20, 280); ctx.lineTo(510, 280); ctx.stroke();
 
     // ---------------------------------------------------------
     // ----------------【右上】🥑 食品過期清單 ----------------
@@ -217,14 +215,12 @@
     ctx.font = "bold 20px sans-serif";
     ctx.fillText("食品過期清單", 535, 38);
 
-    // 節瓜 (取消黑底反白 -> 統一改為白底黑框 Tag)
     ctx.font = "bold 18px sans-serif";
     ctx.fillText("節瓜", 535, 85);
     ctx.strokeRect(670, 66, 60, 26);
     ctx.font = "14px sans-serif";
     ctx.fillText("剩 2 天", 676, 84);
 
-    // 豆腐
     ctx.font = "bold 18px sans-serif";
     ctx.fillText("豆腐", 750, 85);
     ctx.strokeRect(875, 66, 60, 26);
@@ -233,14 +229,12 @@
 
     drawDashedHLine(535, 935, 108);
 
-    // 火腿
     ctx.font = "bold 18px sans-serif";
     ctx.fillText("火腿", 535, 142);
     ctx.strokeRect(662, 123, 68, 26);
     ctx.font = "14px sans-serif";
     ctx.fillText("剩 13 天", 667, 141);
 
-    // 雞蛋
     ctx.font = "bold 18px sans-serif";
     ctx.fillText("雞蛋", 750, 142);
     ctx.strokeRect(867, 123, 68, 26);
@@ -249,34 +243,35 @@
 
     drawDashedHLine(535, 935, 165);
 
-    // 右側主橫線 (Y = 265)
+    // 🔴 右側主分隔線：同步下移至 Y = 280
     ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(535, 265); ctx.lineTo(935, 265); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(535, 280); ctx.lineTo(935, 280); ctx.stroke();
 
     // ---------------------------------------------------------
     // ----------------【左下】⛅ 地區天氣簡報 ----------------
     // ---------------------------------------------------------
+    // 下方區塊同步微調 Y 軸（從 305 下移至 325），留白效果極佳
     ctx.font = "bold 20px sans-serif";
-    ctx.fillText("地區天氣簡報", 20, 305);
+    ctx.fillText("地區天氣簡報", 20, 325);
 
     const drawWeatherCol = (city, temp, hum, x) => {
-      drawEInKSunIcon(x + 12, 348);
+      drawEInKSunIcon(x + 12, 368);
       ctx.font = "bold 18px sans-serif";
-      ctx.fillText(city, x + 32, 354);
+      ctx.fillText(city, x + 32, 374);
 
       ctx.font = "bold 34px sans-serif";
-      ctx.fillText(temp, x, 408);
-      ctx.font = "18px sans-serif"; ctx.fillText("°C", x + 72, 392);
+      ctx.fillText(temp, x, 428);
+      ctx.font = "18px sans-serif"; ctx.fillText("°C", x + 72, 412);
 
       ctx.font = "14px sans-serif";
-      ctx.fillText(`相對濕度 ${hum}%`, x, 436);
+      ctx.fillText(`相對濕度 ${hum}%`, x, 456);
     };
 
     drawWeatherCol("沙田", "32.0", "58", 20);
-    drawDashedVLine(170, 335, 450);
+    drawDashedVLine(170, 355, 470);
 
     drawWeatherCol("鰂魚涌", "32.0", "58", 195);
-    drawDashedVLine(340, 335, 450);
+    drawDashedVLine(340, 355, 470);
 
     drawWeatherCol("天后", "32.0", "58", 365);
 
@@ -284,25 +279,31 @@
     // ----------------【右下】📌 重要事項提醒 ----------------
     // ---------------------------------------------------------
     ctx.font = "bold 20px sans-serif";
-    ctx.fillText("重要事項提醒", 535, 305);
+    ctx.fillText("重要事項提醒", 535, 325);
 
-    // 買蠔油 (取消黑底反白 -> 統一白底黑框 Tag)
     ctx.font = "bold 18px sans-serif";
-    ctx.fillText("買蠔油", 535, 360);
-    ctx.strokeRect(855, 340, 80, 26);
+    ctx.fillText("買蠔油", 535, 380);
+    ctx.strokeRect(855, 360, 80, 26);
     ctx.font = "14px sans-serif";
-    ctx.fillText("今日到期", 863, 358);
+    ctx.fillText("今日到期", 863, 378);
 
-    drawDashedHLine(535, 935, 388);
+    drawDashedHLine(535, 935, 408);
 
-    // 續借書
     ctx.font = "bold 18px sans-serif";
-    ctx.fillText("續借書", 535, 422);
-    ctx.strokeRect(835, 402, 100, 26);
+    ctx.fillText("續借書", 535, 442);
+    ctx.strokeRect(835, 422, 100, 26);
     ctx.font = "14px sans-serif";
-    ctx.fillText("14 天後跟進", 843, 420);
+    ctx.fillText("14 天後跟進", 843, 440);
 
-    drawDashedHLine(535, 935, 450);
+    drawDashedHLine(535, 935, 470);
+
+    // ---------------------------------------------------------
+    // 🔴 📌 SUBTLE 最低調顯示最後更新時間 (右下角最底部)
+    // ---------------------------------------------------------
+    ctx.font = "12px sans-serif";
+    ctx.fillStyle = "#666666"; // 使用淡淡的灰色字體（墨水屏會呈現淡灰階點陣）
+    ctx.fillText("Updated at 10:50", 830, 520);
+    ctx.fillStyle = "#000000";
   }
 
   function triggerEinkRefresh() {
