@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Eason 2026-2027 演唱錄音會 26場夫妻選場決策器 (Top 10加強版)</title>
+  <title>Eason 2026-2027 演唱錄音會 26場全曲目決策器 (Wiki全曲庫版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -32,7 +32,7 @@
         </div>
         <div>
           <h1 class="text-lg sm:text-2xl font-black text-white leading-tight">Eason 2026-2027 錄音會選場</h1>
-          <p class="text-xs sm:text-sm text-slate-400 font-medium">香港演藝學院 · 官方 26 場專輯重錄全集</p>
+          <p class="text-xs sm:text-sm text-slate-400 font-medium">Wiki 完整曲目庫 · 官方 26 場大碟重錄全集</p>
         </div>
       </div>
       
@@ -57,7 +57,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div class="flex items-center gap-2.5 text-base sm:text-lg font-black text-white">
           <i class="fa-solid fa-scale-balanced text-amber-400 text-xl"></i>
-          <span>話事權重調配 (夫妻比例)</span>
+          <span>話事權重調配 (夫妻佔比)</span>
         </div>
         <div class="flex items-center gap-1.5 bg-slate-800/80 p-1.5 rounded-2xl text-xs sm:text-sm font-bold">
           <button onclick="setWeightPreset(50)" class="px-3 py-1.5 rounded-xl hover:bg-slate-700 text-slate-300 transition">平權 50:50</button>
@@ -79,7 +79,7 @@
         <input id="weightSlider" type="range" min="0" max="100" value="70" oninput="updateWeight(this.value)"
                class="w-full h-3 bg-slate-800 rounded-lg appearance-none cursor-pointer slider">
         <p class="text-xs sm:text-sm text-slate-400 text-center font-medium">
-          💡 避雷保護：若任一方打出 1~2 分或標註「跳過」，系統將扣除 18 分避雷罰分，防止抽到悶場！
+          💡 避雷保護：若任一方打出 1~2 分或標註「跳過」，系統將自動扣除 18 分避雷罰分，防止抽中悶場。
         </p>
       </div>
     </section>
@@ -93,23 +93,20 @@
         <span class="text-xs sm:text-sm font-semibold text-slate-400" id="totalRatedCount">已評分 0 / 26 場</span>
       </div>
       
-      <!-- 動態渲染 Top 10 容器 -->
       <div id="topRecommendations" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-        <!-- 動態注入 -->
+        <!-- 動態渲染 Top 10 -->
       </div>
     </section>
 
     <!-- 搜尋與場次月份過濾 -->
     <section class="space-y-3">
-      <!-- 歌名即時搜尋 -->
       <div class="relative">
         <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
         <input type="text" id="songSearchInput" oninput="handleSearch(this.value)"
-               placeholder="🔍 搜尋想聽的歌或專輯（如：陀飛輪、浮誇、1874、苦瓜、十年）..."
+               placeholder="🔍 搜尋想聽的歌或專輯（如：陀飛輪、浮誇、1874、苦瓜、十年、黑擇明）..."
                class="w-full pl-11 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-base text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition shadow-inner">
       </div>
 
-      <!-- 月份分類標籤 -->
       <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scroll text-sm sm:text-base font-bold">
         <button onclick="filterMonth('all')" id="tab-all" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 shrink-0 shadow-md">全部 26 場</button>
         <button onclick="filterMonth('2026-12')" id="tab-2026-12" class="px-4 py-2 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800">2026年12月 (10場)</button>
@@ -138,7 +135,7 @@
     <div class="pt-6 flex justify-between items-center text-sm text-slate-500">
       <div class="flex items-center gap-2">
         <i class="fa-solid fa-shield-halved text-emerald-500"></i>
-        <span>數據自動保存在此手機，換手機時請用 WhatsApp 連結同步</span>
+        <span>數據自動保存在此瀏覽器，換手機時使用 WhatsApp 連結無縫同步</span>
       </div>
       <button onclick="resetData()" class="hover:text-rose-400 transition font-medium">
         <i class="fa-regular fa-trash-can mr-1"></i> 清空重置
@@ -148,267 +145,241 @@
   </main>
 
   <script>
-    // 官方 26 場完整資料庫
+    // 依據維基百科（Wikipedia）官方大碟完整收錄曲目全量整理
     const OFFICIAL_26_SESSIONS = [
       {
         sessionNo: 1,
-        date: '2026-12-12',
         dateText: '2026年12月12日 (星期六)',
         monthGroup: '2026-12',
         name: '《陳奕迅》',
-        year: '1996 華星出道專輯',
-        desc: '首場開鑼 · 出道初心代表作',
-        tracks: ['時代曲', '傷信', '游離分子', '我怕你不肯', '有意無意', '安守本分', '愛情，幼稚！', '從未癡心', '其實我記得', '當心中有戀愛感覺']
+        year: '1996 華星出道大碟',
+        desc: '首場開鑼 · 出道初心代表作 (全10首完整)',
+        tracks: ['時代曲', '傷信', '遊離份子', '我怕你不肯', '有意無意', '安守本份', '愛情，幼稚！', '從未癡心', '其實我記得', '當心中有戀愛感覺']
       },
       {
         sessionNo: 2,
-        date: '2026-12-13',
         dateText: '2026年12月13日 (星期日)',
         monthGroup: '2026-12',
         name: '《與我常在》',
         year: '1997 華星代表作',
-        desc: '經典常在 · 初露鋒芒溫情大碟',
-        tracks: ['與我常在', '抱擁這分鐘', '今天等我來', '現場直播', '愛沒有左右', '生命有幾好', '伴遊', '跟我走好嗎', '敵人', '那一夜有沒有說?']
+        desc: '經典常在 · 初露鋒芒溫情大碟 (全10首完整)',
+        tracks: ['與我常在', '愛沒有左右', '抱擁這分鐘', '生命有幾好', '藍天與白雲', '伴遊', '跟我走好嗎', '敵人', '那一夜有沒有說?', '今天等我來']
       },
       {
         sessionNo: 3,
-        date: '2026-12-16',
         dateText: '2026年12月16日 (星期三)',
         monthGroup: '2026-12',
-        name: '《I Had A Great Time!》',
+        name: '《I Had A Great Time...》',
         year: '2004 英皇經典',
-        desc: '感觸至深 · 溫暖療癒之作',
-        tracks: ['一切還好', '最後今晚', '不求人', '八里公路', '24', '萬佛朝宗', '放下來', '愛你入骨', '冤氣', '開不了心']
+        desc: '感觸至深 · 溫暖療癒之作 (全11首完整)',
+        tracks: ['一切還好', '萬佛朝宗', '冤氣', '八里公路', '放下來', '開不了心', '大無畏', '屋村新人', '24', '不求人', '最後今晚']
       },
       {
         sessionNo: 4,
-        date: '2026-12-17',
         dateText: '2026年12月17日 (星期四)',
         monthGroup: '2026-12',
         name: '《The Easy Ride》',
         year: '2001 英皇經典大碟',
-        desc: '前衛狂瀾 · 黃偉文聯手巔峰',
-        tracks: ['大開眼戒 (打回原形)', '衝口而出', '阿士匹靈', '熱帶雨林', '活著多好', '陽性反應', '我不好愛', '人工智能', '結束開始', '他一個人', '不知所謂']
+        desc: '前衛狂瀾 · 黃偉文聯手巔峰 (全11首完整)',
+        tracks: ['阿士匹靈', '陽性反應', '衝口而出', '大開眼戒', '我不好愛', '熱帶雨林', '人工智能', '結束開始', '活著多好', '他一個人', '不知所謂']
       },
       {
         sessionNo: 5,
-        date: '2026-12-19',
         dateText: '2026年12月19日 (星期六)',
         monthGroup: '2026-12',
         name: '《H³M》',
         year: '2009 新藝寶大碟',
-        desc: '太極與兄弟樂隊巡演哲理神碟',
-        tracks: ['沙龍', '於心有愧', '七百年後', '今天只做一件事', '太陽照常升起', '不來也不去', 'Allegro, Opus 3.3 a.m.', '還有什麼可以送給你', '一個旅人', 'Life Goes On']
+        desc: '太極與兄弟樂隊巡演哲理神碟 (全10首完整)',
+        tracks: ['Allegro, Opus 3.3 a.m.', '還有甚麼可以送給你', '於心有愧', '今天只做一件事', '一個旅人', '七百年後', 'Life Goes On', '太陽照常升起', '不來也不去', '沙龍']
       },
       {
         sessionNo: 6,
-        date: '2026-12-20',
         dateText: '2026年12月20日 (星期日)',
         monthGroup: '2026-12',
         name: '《Taste the Atmosphere》+《Stranger Under My Skin》',
         year: '2010-2011 雙EP專場',
-        desc: '暗黑哲思、苦瓜與因為愛情神合璧',
-        tracks: ['苦瓜', '六月飛霜', '最後派對', '講男講女', '超錯', '因為愛情', 'Stranger Under My Skin', '沼氣', 'My Private Christmas Song', 'Welcome To The Future', '花花世界', '我杯茶']
+        desc: '暗黑哲思、苦瓜與因為愛情神合璧 (全14首完整)',
+        tracks: ['Welcome to the Future', '花花世界', '我杯茶', '超錯', '葉問風中轉', '講男講女', '六月飛霜', 'Stranger Under My Skin', '最後派對', '苦瓜', '沼氣', 'My Private Christmas Song', '因為愛情', '等你愛我']
       },
       {
         sessionNo: 7,
-        date: '2026-12-23',
         dateText: '2026年12月23日 (星期三)',
         monthGroup: '2026-12',
         name: '《不想放手》',
-        year: '2008 國語大碟',
-        desc: '插畫概念 · 記憶與人生長途',
-        tracks: ['不要說話', '路...一直都在', '倒帶人生', '獨居動物', '漂亮小姐', '臭美', '土星環', 'Aren\'t You Glad', '7', '然後怎樣']
+        year: '2008 新藝寶國語大碟',
+        desc: '插畫概念 · 記憶與人生長途 (全11首完整)',
+        tracks: ['27 Seconds', '路...一直都在', '獨居動物', '倒帶人生', 'Aren\'t You Glad', '7', '不要說話', '漂亮小姐', '臭美', '土星環', '然後怎樣']
       },
       {
         sessionNo: 8,
-        date: '2026-12-24',
         dateText: '2026年12月24日 (星期四 平安夜)',
         monthGroup: '2026-12',
-        name: '《4 A Change》+《幸福》+《新生活》',
+        name: '《4 A Change & Hits》+《幸福》+《新生活》',
         year: '1998-2002 聖誕平安夜專場',
-        desc: '平安夜必聽 · 幸福摩天輪與孤獨聖誕',
-        tracks: ['幸福摩天輪', 'Lonely Christmas', '時光倒流二十年', '飄飄飄飄', 'King Kong', '第一類接觸', '少見不怪', '忽然難過', '專家話', '新生活']
+        desc: '平安夜必聽 · 幸福摩天輪與孤獨聖誕 (全12首精選)',
+        tracks: ['幸福摩天輪', '飄飄飄飄', '時光倒流二十年', '忽然難過', '專家話', 'Lonely Christmas', 'King Kong', '第一類接觸', '少見不怪', '新生活', '謝謝儂 (粵語版)', '傷信 (現場版)']
       },
       {
         sessionNo: 9,
-        date: '2026-12-26',
         dateText: '2026年12月26日 (星期六 節禮日)',
         monthGroup: '2026-12',
         name: '《黑·白·灰》',
-        year: '2003 國語里程碑',
-        desc: '街知巷聞 · 華語傳唱神話',
-        tracks: ['十年', '兄妹', '我們都寂寞', '阿怪', '世界', '謝謝', '像一句廣告', '寂寞奏鳴曲', '要你的', 'Last Order']
+        year: '2003 英皇國語里程碑',
+        desc: '街知巷聞 · 華語傳唱神話 (全10首完整)',
+        tracks: ['阿怪', '我們都寂寞', '兄妹', '十年', '要你的', '世界', '謝謝', '像一句廣告', '寂寞奏鳴曲', 'Last Order']
       },
       {
         sessionNo: 10,
-        date: '2026-12-27',
         dateText: '2026年12月27日 (星期日)',
         monthGroup: '2026-12',
         name: '《Special Thanks to...》',
         year: '2002 金曲獎最佳國語專輯',
-        desc: '金曲歌王 · 極致細膩抒情',
-        tracks: ['你的背包', '想哭', '謝謝儂', '男人的錯', '故事', '你會不會', '狂人日記', '人造衛星', '沒有手機的日子', '跳蚤市場', '給愛麗斯']
+        desc: '金曲歌王 · 極致細膩抒情 (全13首完整)',
+        tracks: ['特別謝謝 (Interlude 1)', '你的背包', '謝謝儂', '一疋布', '故事', '想哭', '狂人日記', '男人的錯', '你會不會', '跳蚤市場', '人造衛星', '給愛麗斯', '沒有手機的日子']
       },
       {
         sessionNo: 11,
-        date: '2027-01-06',
         dateText: '2027年1月6日 (星期三)',
         monthGroup: '2027-01',
         name: '《What\'s Going On...?》',
         year: '2006 新藝寶巔峰',
-        desc: '富士山下白玫瑰 · 熟男成熟獨白',
-        tracks: ['富士山下', '最佳損友', '裙下之臣', '黑擇明', '不如不見', '白玫瑰', '心深傷透', '粵語殘片', '最後的嬉皮士', '解藥', '天公地道']
+        desc: '富士山下白玫瑰 · 熟男成熟獨白 (全11首完整)',
+        tracks: ['裙下之臣', '富士山下', '不如不見', '心深傷透', '解藥', '天公地道', '粵語殘片', '黑擇明', '最佳損友', '白玫瑰', '最後的嬉皮士']
       },
       {
         sessionNo: 12,
-        date: '2027-01-07',
         dateText: '2027年1月7日 (星期四)',
         monthGroup: '2027-01',
         name: '《認了吧》',
-        year: '2007 國語大碟',
-        desc: '周杰倫作曲淘汰 · 愛情轉移',
-        tracks: ['愛情轉移', '好久不見', '淘汰', '紅玫瑰', '月球上的人', '煙味', '快樂男生', '月黑風高', '愛是一本書', '第一個雅皮士', '白色球鞋']
+        year: '2007 新藝寶國語大碟',
+        desc: '周杰倫作曲淘汰 · 愛情轉移 (全10首完整)',
+        tracks: ['煙味', '淘汰', '快樂男生', '紅玫瑰', '月黑風高', '愛情轉移', '白色的球鞋', '第一個雅皮士', '愛是一本書', '月球上的人']
       },
       {
         sessionNo: 13,
-        date: '2027-01-09',
         dateText: '2027年1月9日 (星期六)',
         monthGroup: '2027-01',
         name: '《Life Continues...》+《Time Flies》',
         year: '2006-2010 雙EP神合體',
-        desc: '陀飛輪一絲不掛落花流水黃金六部曲',
-        tracks: ['陀飛輪', '一絲不掛', '落花流水', '最佳損友', '無人之境', '人車誌', '大人', '低調', '暴殄天物', '想聽', '大得太快', '心腹', '味之素']
+        desc: '陀飛輪一絲不掛落花流水黃金六部曲 (全13首完整)',
+        tracks: ['最佳損友', '落花流水', '人車誌', '大得太快', '想聽', '暴殄天物', '低調', '無人之境', '大人', '一絲不掛', '陀飛輪', '心腹', '味之素']
       },
       {
         sessionNo: 14,
-        date: '2027-01-10',
         dateText: '2027年1月10日 (星期日)',
         monthGroup: '2027-01',
-        name: '《Other Solidays / ？》',
-        year: '2008-2011 新曲與遺珠專場',
-        desc: '向幕後致敬的歌頌與孤獨患者',
-        tracks: ['歌·頌', '後台', '孤獨患者', '張氏情歌', '內疚', '看穿', 'Baby Song', '哎呀咿呀', '吟遊詩人', '聽一千遍後', '盲婚啞嫁 (Bonus)']
+        name: '《Solidays / ？》',
+        year: '2008-2011 新曲與概念專場',
+        desc: '向幕後致敬的歌頌與孤獨患者 (全12首完整)',
+        tracks: ['歌·頌', '後台', '孤獨患者', '哎呀咿呀', '看穿', '吟遊詩人', '張氏情歌', 'Baby Song', '內疚', '誰來剪月光', '盲婚啞嫁', '聽一千遍後']
       },
       {
         sessionNo: 15,
-        date: '2027-01-23',
         dateText: '2027年1月23日 (星期六)',
         monthGroup: '2027-01',
         name: '《天佑愛人》',
         year: '1999 華星經典',
-        desc: '世紀末溫暖暖流 · 今日與每一個明天',
-        tracks: ['今日', '每一個明天', '昨日', '快高長大', '我的世界末日', '貝多芬與我', '如果這一秒鐘你跟我講你不愛我', '眼眉調', '一', '第五個現代化']
+        desc: '世紀末溫暖暖流 · 今日與每一個明天 (全10首完整)',
+        tracks: ['今日', '每一個明天', '一', '眼眉調', '我的世界末日', '貝多芬與我', '快高長大', '如果這一秒鐘你跟我講你不愛我', '昨日', '第五個現代化']
       },
       {
         sessionNo: 16,
-        date: '2027-01-24',
         dateText: '2027年1月24日 (星期日)',
         monthGroup: '2027-01',
-        name: '《Listen To Eason Chan》',
+        name: '《Listen to Eason Chan》',
         year: '2007 概念跳舞盤',
-        desc: '極速跳舞節奏 · Crying in the Party',
-        tracks: ['Crying in the Party', '演唱會', '瑪利奧派對', '熱島小夜曲', '時代巨輪', '變色龍', '狂熱革命', '閃', '滑鐵盧車站', '乜嘢啫']
+        desc: '極速跳舞節奏 · Crying in the Party (全11首完整)',
+        tracks: ['瑪利奧派對', '熱島小夜曲', '閃', '演唱會', '滑鐵盧車站', 'Crying In The Party', '狂熱革命', '變色龍', '時代巨輪', '乜嘢啫', '兄弟']
       },
       {
         sessionNo: 17,
-        date: '2027-01-27',
         dateText: '2027年1月27日 (星期三)',
         monthGroup: '2027-01',
         name: '《Nothing Really Matters》',
         year: '2000 華星前衛突破',
-        desc: '世紀交替之作 · 黑夜不再來與地球沒有花',
-        tracks: ['黑夜不再來', '當這地球沒有花', '美麗有罪', '愛上你是我眼睛的錯', '送院途中', '和平飯店', '戲迷情人', '到此一遊', '我感激', 'Made in Hong Kong']
+        desc: '世紀交替之作 · 黑夜不再來 (全10首完整)',
+        tracks: ['送院途中', '黑夜不再來', '美麗有罪', '戲迷情人', '和平飯店', '我感激', '到此一遊', '當這地球沒有花', 'Made in Hong Kong', '愛上你是我眼睛的錯']
       },
       {
         sessionNo: 18,
-        date: '2027-01-28',
         dateText: '2027年1月28日 (星期四)',
         monthGroup: '2027-01',
         name: '《怎麼樣》',
         year: '2005 國語大碟',
-        desc: '對不起謝謝 · 城市漂泊男人的自白',
-        tracks: ['對不起 謝謝', '不睡', '不能再等待', '一夜銷魂', '浮城', '早開的長途班', '聽聽', '人神鬥', 'Hippie', '不然你要我怎麼樣']
+        desc: '對不起謝謝 · 城市漂泊男人的自白 (全10首完整)',
+        tracks: ['不能再等待', '對不起 謝謝', 'Hippie', '不睡', '一夜銷魂', '浮城', '早開的長途班', '聽聽', '人神鬥', '不然你要我怎麼樣']
       },
       {
         sessionNo: 19,
-        date: '2027-01-30',
         dateText: '2027年1月30日 (星期六)',
         monthGroup: '2027-01',
         name: '《The Line-Up》',
         year: '2002 雙碟世紀神專',
-        desc: '林夕與黃偉文各包辦五首的傳世對壘',
-        tracks: ['人來人往', '明年今日', '1874', '防不勝防', '我有我愛你', '隨意門', '心裡有鬼', '兩名男子街頭相遇', '黑面', '季軍']
+        desc: '林夕與黃偉文各包辦五首傳世對壘 (全10首完整)',
+        tracks: ['心裡有鬼', '兩名男子街頭相遇', '1874', '防不勝防', '黑面', '人來人往', '季軍', '明年今日', '我有我愛你', '隨意門']
       },
       {
         sessionNo: 20,
-        date: '2027-01-31',
         dateText: '2027年1月31日 (星期日)',
         monthGroup: '2027-01',
         name: '《Live For Today》',
         year: '2003 英皇大碟',
-        desc: '歲月如歌與衝上雲霄的集體青春記憶',
-        tracks: ['歲月如歌', '十面埋伏', '忘記歌詞', '幸災樂禍', '猜情尋', 'Katrina', '謊言', '真相', 'New Order', '呀邊個邊個', '小孩不懂怕']
+        desc: '歲月如歌與衝上雲霄青春記憶 (全11首完整)',
+        tracks: ['幸災樂禍', 'Katrina', '十面埋伏', '呀邊個邊個', '猜情尋', '忘記歌詞', 'New Order', '歲月如歌', '謊言', '真相', '小孩不懂怕']
       },
       {
         sessionNo: 21,
-        date: '2027-02-12',
         dateText: '2027年2月12日 (星期五 年初一前夕)',
         monthGroup: '2027-02',
         name: '《打得火熱》',
         year: '2000 英皇千禧狂熱',
-        desc: 'K歌之王封神 · 綿綿與低等動物',
-        tracks: ['K歌之王', '綿綿', '打得火熱', '低等動物', '溫室效應', '吹微風', '美麗謊言', '新廣告歌', '活躍症', '下週同樣時間(再見!)']
+        desc: 'K歌之王封神 · 綿綿與低等動物 (全10首完整)',
+        tracks: ['打得火熱', 'K歌之王', '新廣告歌', '綿綿', '美麗謊言', '低等動物', '吹微風', '溫室效應', '活躍症', '下週同樣時間(再見!)']
       },
       {
         sessionNo: 22,
-        date: '2027-02-13',
         dateText: '2027年2月13日 (星期六 年初二)',
         monthGroup: '2027-02',
-        name: '《It\'s me 反正是我》',
+        name: '《反正是我》',
         year: '2001 國語大碟',
-        desc: '愛是懷疑與全世界失眠 · 節奏律動感',
-        tracks: ['愛是懷疑', '全世界失眠', '不如這樣', 'K歌之王 (國語版)', '低等動物 (國語版)', 'Because You\'re Good to Me', '沒有你', '冤家', '我也不會那麼做', 'Good Times']
+        desc: '愛是懷疑與全世界失眠 · 律動狂歡 (全10首完整)',
+        tracks: ['Because You\'re Good to Me', '低等動物 (國語版)', '不如這樣', '愛是懷疑', '我也不會那麼做', 'K歌之王 (國語版)', '沒有你', '冤家', '全世界失眠', 'Good Times']
       },
       {
         sessionNo: 23,
-        date: '2027-02-16',
         dateText: '2027年2月16日 (星期二 年初五)',
         monthGroup: '2027-02',
         name: '《上五樓的快活》',
         year: '2009 國語大碟',
-        desc: '蔡健雅青峰聯手 · 多少與床頭燈',
-        tracks: ['多少', '床頭燈', '給你', '在你身邊', '心的距離', '這樣的一個麻煩', 'Nothing Ever Happened', '你為什麼哭了呢', '謀財害命', '我甲你', '從何說起']
+        desc: '蔡健雅青峰聯手 · 多少與床頭燈 (全11首完整)',
+        tracks: ['心的距離', '床頭燈', '給你', '多少', 'Nothing Ever Happened', '你為什麼哭了呢', '謀財害命', '我甲你', '這樣的一個麻煩', '從何說起', '在你身邊']
       },
       {
         sessionNo: 24,
-        date: '2027-02-17',
         dateText: '2027年2月17日 (星期三)',
         monthGroup: '2027-02',
         name: '《我的快樂時代》',
         year: '1998 華星樂壇封神作',
-        desc: '天下無雙黃金時代 · 香港樂壇里程碑',
-        tracks: ['我的快樂時代', '天下無雙', '黃金時代', '我甚麼都沒有', '反高潮', '新曲+精選', '相信相依', '愈想愈無謂', '兩種講法', '請相信我']
+        desc: '天下無雙黃金時代 · 香港樂壇里程碑 (全10首完整)',
+        tracks: ['我的快樂時代', '我甚麼都沒有', '天下無雙', '黃金時代', '新曲+精選', '愈想愈無謂', '相信相依', '兩種講法', '請相信我', '反高潮']
       },
       {
         sessionNo: 25,
-        date: '2027-02-19',
         dateText: '2027年2月19日 (星期五)',
         monthGroup: '2027-02',
         name: '《Shall We Dance? Shall We Talk!》',
         year: '2001 英皇神級大碟',
-        desc: '單車與天使的禮物 · 細膩溫情動人',
-        tracks: ['Shall We Talk', '單車', '2001太空漫遊', '天使的禮物', '失戀太少', '孤獨探戈', '黑暗中漫舞', '信心花舍', 'Shall We Dance', '怪物']
+        desc: '單車與天使的禮物 · 細膩溫情動人 (全10首完整)',
+        tracks: ['嚟緊', 'Shall We Dance', 'Shall We Talk', '失戀太少', '單車', '天使的禮物', '孤獨探戈', '信心花舍', '黑暗中漫舞', '2001太空漫遊']
       },
       {
         sessionNo: 26,
-        date: '2027-02-20',
         dateText: '2027年2月20日 (星期六 終極尾場)',
         monthGroup: '2027-02',
         name: '《U87》',
         year: '2005 世紀經典大碟',
-        desc: '四台大滿貫 · 浮誇葡萄成熟時夕陽無限好',
-        tracks: ['浮誇', '葡萄成熟時', '夕陽無限好', '阿牛', '爛', '大個女', '16月6日晴', '不良嗜好', '怕死', '三個人的探戈', '新美人主義']
+        desc: '四台大滿貫 · 浮誇葡萄成熟時夕陽無限好 (全12首完整)',
+        tracks: ['爛', '阿牛', '開心病', '葡萄成熟時', '塞黑', '夕陽無限好', '16月6日晴', '浮誇', '怕死', '大個女', '新美人主義', '三個人的探戈']
       }
     ];
 
@@ -431,6 +402,71 @@
       });
     }
 
+    // 採用高壓縮率序列化，防止 URL 過長
+    function packSyncData() {
+      const compact = {
+        ww: appState.wifeWeight,
+        hw: appState.husbandWeight,
+        r: {}
+      };
+      for (const id in appState.ratings) {
+        const item = appState.ratings[id];
+        const trk = {};
+        let hasTrk = false;
+        if (item.tracks) {
+          for (const t in item.tracks) {
+            if (item.tracks[t].h > 0 || item.tracks[t].w > 0) {
+              trk[t] = { h: item.tracks[t].h || 0, w: item.tracks[t].w || 0 };
+              hasTrk = true;
+            }
+          }
+        }
+        if (item.hOverall > 0 || item.wOverall > 0 || hasTrk) {
+          compact.r[id] = {
+            h: item.hOverall || 0,
+            w: item.wOverall || 0,
+            t: trk
+          };
+        }
+      }
+      return btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
+    }
+
+    function unpackSyncData(rawCode) {
+      const parsed = JSON.parse(decodeURIComponent(escape(atob(rawCode))));
+      initRatings();
+      if (parsed.ww !== undefined) {
+        appState.wifeWeight = parsed.ww;
+        appState.husbandWeight = parsed.hw;
+        for (const sNo in parsed.r) {
+          if (appState.ratings[sNo]) {
+            appState.ratings[sNo].hOverall = parsed.r[sNo].h || 0;
+            appState.ratings[sNo].wOverall = parsed.r[sNo].w || 0;
+            if (parsed.r[sNo].t) {
+              for (const t in parsed.r[sNo].t) {
+                if (appState.ratings[sNo].tracks[t]) {
+                  appState.ratings[sNo].tracks[t] = parsed.r[sNo].t[t];
+                }
+              }
+            }
+          }
+        }
+      } else if (parsed.ratings) {
+        // 向下兼容舊格式
+        OFFICIAL_26_SESSIONS.forEach(s => {
+          if (parsed.ratings[s.sessionNo]) {
+            appState.ratings[s.sessionNo].hOverall = parsed.ratings[s.sessionNo].hOverall || 0;
+            appState.ratings[s.sessionNo].wOverall = parsed.ratings[s.sessionNo].wOverall || 0;
+            s.tracks.forEach(t => {
+              if (parsed.ratings[s.sessionNo].tracks && parsed.ratings[s.sessionNo].tracks[t]) {
+                appState.ratings[s.sessionNo].tracks[t] = parsed.ratings[s.sessionNo].tracks[t];
+              }
+            });
+          }
+        });
+      }
+    }
+
     function loadInitialData() {
       initRatings();
 
@@ -438,17 +474,15 @@
       if (window.location.hash.startsWith('#data=')) {
         try {
           const raw = window.location.hash.replace('#data=', '');
-          const parsed = JSON.parse(decodeURIComponent(escape(atob(raw))));
-          if (parsed && parsed.ratings) {
-            mergeLoadedRatings(parsed);
-            window.location.hash = '';
-            alert('🎉 成功從分享連結同步夫妻打分數據！');
-          }
+          unpackSyncData(raw);
+          saveToStorage();
+          window.location.hash = '';
+          alert('🎉 成功從分享連結同步夫妻打分數據！');
         } catch(e) {
           console.error("無法解析 URL Hash", e);
         }
       } else {
-        const saved = localStorage.getItem('eason_recording_sessions_26_v4');
+        const saved = localStorage.getItem('eason_recording_sessions_26_wiki');
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
@@ -467,7 +501,7 @@
     }
 
     function saveToStorage() {
-      localStorage.setItem('eason_recording_sessions_26_v4', JSON.stringify(appState));
+      localStorage.setItem('eason_recording_sessions_26_wiki', JSON.stringify(appState));
     }
 
     function updateWeight(val) {
@@ -570,7 +604,6 @@
       };
     }
 
-    // 重算並渲染 TOP 10
     function recalculateScores() {
       const results = OFFICIAL_26_SESSIONS.map(s => ({
         ...s,
@@ -588,12 +621,9 @@
           </div>
         `;
       } else {
-        // 取前 10 名
         const top10 = ratedList.slice(0, 10);
         topBox.innerHTML = top10.map((item, idx) => {
           const rank = idx + 1;
-          
-          // 前 3 名採用搶眼徽章與金銀銅邊框，4-10 名採用精準數值徽章
           let rankBadge = '';
           let borderClass = '';
           let bgClass = 'bg-slate-900/90';
@@ -662,7 +692,6 @@
       container.innerHTML = filtered.map(s => `
         <div id="card-${s.sessionNo}" class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-md transition">
           
-          <!-- 卡片頂部資訊列 -->
           <div class="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div class="flex flex-wrap items-center gap-2 mb-1">
@@ -673,10 +702,7 @@
               <p class="text-xs sm:text-sm text-slate-400 mt-1 font-medium">${s.year} · ${s.desc}</p>
             </div>
 
-            <!-- 星星評分操作大按鈕區 -->
             <div class="flex items-center gap-4 sm:gap-6 justify-between md:justify-end bg-slate-950/60 p-3 sm:p-4 rounded-2xl border border-slate-800 shrink-0">
-              
-              <!-- 老公星級 -->
               <div class="flex flex-col items-center">
                 <span class="text-xs sm:text-sm font-black text-blue-400 mb-1">🤵 老公打分</span>
                 <div class="flex items-center gap-1" id="stars-h-${s.sessionNo}">
@@ -688,7 +714,6 @@
                 </div>
               </div>
 
-              <!-- 老婆星級 -->
               <div class="flex flex-col items-center">
                 <span class="text-xs sm:text-sm font-black text-pink-400 mb-1">👰 老婆打分</span>
                 <div class="flex items-center gap-1" id="stars-w-${s.sessionNo}">
@@ -700,22 +725,18 @@
                 </div>
               </div>
 
-              <!-- 總分 Badge -->
               <div id="badge-score-${s.sessionNo}" class="min-w-[64px] text-right"></div>
-
             </div>
           </div>
 
-          <!-- 折疊欄 -->
           <div class="px-5 py-2.5 border-t border-slate-800/80 bg-slate-950/40 flex items-center justify-between text-xs sm:text-sm">
             <button onclick="toggleTracks(${s.sessionNo})" class="text-slate-300 hover:text-amber-400 font-bold flex items-center gap-2 py-1">
               <i id="toggle-icon-${s.sessionNo}" class="fa-solid fa-chevron-down text-xs transition-transform"></i>
-              <span>查看此場次完整 ${s.tracks.length} 首收錄曲目打分</span>
+              <span>查看此場次完整 ${s.tracks.length} 首 Wiki 全曲目打分</span>
             </button>
             <span id="thunder-tag-${s.sessionNo}"></span>
           </div>
 
-          <!-- 曲目展開評分細項 -->
           <div id="tracks-wrapper-${s.sessionNo}" class="${searchQuery ? '' : 'hidden'} border-t border-slate-800 px-4 sm:px-6 py-4 bg-slate-950/70 space-y-2.5">
             <div class="text-xs sm:text-sm font-bold text-slate-400 flex justify-between px-3 pb-2 border-b border-slate-800/60">
               <span>曲目名 (${s.tracks.length} 首歌)</span>
@@ -833,10 +854,9 @@
       });
     }
 
-    // WhatsApp 接力分享
     function generateWhatsAppShare() {
       saveToStorage();
-      const codeStr = btoa(unescape(encodeURIComponent(JSON.stringify(appState))));
+      const codeStr = packSyncData();
 
       const rated = OFFICIAL_26_SESSIONS
         .map(s => ({ name: s.name, dateText: s.dateText, score: appState.ratings[s.sessionNo]?.hOverall || 0 }))
@@ -871,45 +891,21 @@
           code = code.split('#data=')[1].trim();
         }
 
-        const parsed = JSON.parse(decodeURIComponent(escape(atob(code))));
-        if (parsed && parsed.ratings) {
-          mergeLoadedRatings(parsed);
-          alert("🎉 成功同步老公的 26 場評分！現在你可以繼續給老婆評分了！");
-        } else {
-          throw new Error();
-        }
+        unpackSyncData(code);
+        document.getElementById('weightSlider').value = appState.wifeWeight;
+        updateWeightDisplay();
+        saveToStorage();
+        renderCards();
+        recalculateScores();
+        alert("🎉 成功同步老公的 26 場評分！現在你可以繼續給老婆評分了！");
       } catch(e) {
         alert("❌ 無法識別代碼，請確認複製了完整的 EASONSYNC 代碼！");
       }
     }
 
-    function mergeLoadedRatings(remoteState) {
-      appState.wifeWeight = remoteState.wifeWeight || appState.wifeWeight;
-      appState.husbandWeight = remoteState.husbandWeight || appState.husbandWeight;
-
-      initRatings();
-
-      OFFICIAL_26_SESSIONS.forEach(s => {
-        if (remoteState.ratings[s.sessionNo]) {
-          appState.ratings[s.sessionNo].hOverall = remoteState.ratings[s.sessionNo].hOverall;
-          s.tracks.forEach(t => {
-            if (remoteState.ratings[s.sessionNo].tracks[t]) {
-              appState.ratings[s.sessionNo].tracks[t].h = remoteState.ratings[s.sessionNo].tracks[t].h;
-            }
-          });
-        }
-      });
-
-      document.getElementById('weightSlider').value = appState.wifeWeight;
-      updateWeightDisplay();
-      saveToStorage();
-      renderCards();
-      recalculateScores();
-    }
-
     function resetData() {
       if (confirm("確定要清空所有已打的分數重來？")) {
-        localStorage.removeItem('eason_recording_sessions_26_v4');
+        localStorage.removeItem('eason_recording_sessions_26_wiki');
         appState.wifeWeight = 70;
         appState.husbandWeight = 30;
         appState.ratings = {};
