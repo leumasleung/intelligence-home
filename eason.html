@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Eason 2026 演唱會選場 - 夫妻打分器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+    body { font-family: 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .star-btn { transition: transform 0.1s ease; }
+    .star-btn:active { transform: scale(1.3); }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #ec4899; cursor: pointer; border: 3px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-24">
+
+  <!-- 頂部導航列 -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 shadow-md">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-white">
+          <i class="fa-solid fa-compact-disc"></i>
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-bold text-white">Eason 2026 選場器</h1>
+          <p class="text-[11px] text-slate-400">夫妻雙打 · 方案A同步</p>
+        </div>
+      </div>
+      
+      <!-- 方案 A 核心同步按鈕組 -->
+      <div class="flex items-center gap-2">
+        <button onclick="importSyncCodeModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1 border border-slate-700 transition">
+          <i class="fa-solid fa-file-import text-amber-400"></i>
+          <span>貼上接力碼</span>
+        </button>
+        <button onclick="generateWhatsAppShare()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white flex items-center gap-1.5 shadow-sm transition">
+          <i class="fa-brands fa-whatsapp text-sm"></i>
+          <span>WhatsApp 接力</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-5 space-y-5">
+
+    <!-- 話事權重調配板 -->
+    <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2 text-sm font-bold text-white">
+          <i class="fa-solid fa-scale-balanced text-amber-400"></i>
+          <span>話事權重調配 (夫妻比例)</span>
+        </div>
+        <div class="flex items-center gap-1 bg-slate-800 p-1 rounded-xl text-xs">
+          <button onclick="setWeightPreset(50)" class="px-2 py-0.5 rounded text-slate-300">平權 50:50</button>
+          <button onclick="setWeightPreset(70)" class="px-2 py-0.5 rounded bg-pink-950 text-pink-300 font-bold border border-pink-700">求生 70:30</button>
+          <button onclick="setWeightPreset(100)" class="px-2 py-0.5 rounded text-slate-300">老婆全權</button>
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <div class="flex justify-between items-center text-xs font-semibold">
+          <span class="text-blue-400">🤵 老公權重: <span id="husbandWeightText">30</span>%</span>
+          <span class="text-pink-400">👰 老婆權重: <span id="wifeWeightText">70</span>%</span>
+        </div>
+        <input id="weightSlider" type="range" min="0" max="100" value="70" oninput="updateWeight(this.value)"
+               class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider">
+      </div>
+    </section>
+
+    <!-- 即時決策 Top 3 推薦卡片 -->
+    <section class="bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-900 border border-indigo-900/40 rounded-2xl p-4 shadow-md">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-xs sm:text-sm font-bold text-indigo-300 flex items-center gap-1.5">
+          <i class="fa-solid fa-trophy text-amber-400"></i> 當前最佳場次推薦 Top 3
+        </h2>
+        <span class="text-[11px] text-slate-400" id="totalRatedCount">已評分 0 / 10 張專輯</span>
+      </div>
+      <div id="topRecommendations" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <!-- 動態渲染 Top 3 -->
+      </div>
+    </section>
+
+    <!-- 專輯列表 -->
+    <div class="flex items-center justify-between pt-1">
+      <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
+        <i class="fa-solid fa-record-vinyl text-rose-400"></i> 專輯場次打分表
+      </h2>
+      <div class="flex items-center gap-2 text-xs">
+        <button onclick="toggleAllTracks(true)" class="text-slate-400 hover:text-slate-200">全部展開</button>
+        <span class="text-slate-700">|</span>
+        <button onclick="toggleAllTracks(false)" class="text-slate-400 hover:text-slate-200">全部收起</button>
+      </div>
+    </div>
+
+    <div id="albumListContainer" class="space-y-3.5">
+      <!-- 渲染 10 張經典專輯 -->
+    </div>
+
+    <!-- 底部重置清空 -->
+    <div class="pt-2 text-center">
+      <button onclick="resetData()" class="text-xs text-slate-500 hover:text-rose-400 transition">
+        <i class="fa-regular fa-trash-can mr-1"></i> 清空當前全部評分重來
+      </button>
+    </div>
+
+  </main>
+
+  <script>
+    const ALBUMS_DATA = [
+      { id: 'u87', name: '《U87》', year: '2005', theme: '黃金盛世 · 史詩經典', tracks: ['浮誇', '葡萄成熟時', '夕陽無限好', '阿牛', '爛', '不良嗜好'] },
+      { id: 'shall-we-dance', name: '《Shall We Dance? Shall We Talk!》', year: '2001', theme: '溫情陪伴 · 時代記憶', tracks: ['Shall We Talk', '單車', '天下無雙', '2001太空漫遊', '失戀太少'] },
+      { id: 'the-line-up', name: '《The Line-Up》', year: '2002', theme: '林夕 x 黃偉文 雙雄對壘', tracks: ['人來人往', '明年今日', '1874', '防不勝防', '我有我愛你'] },
+      { id: 'whats-going-on', name: '《What\'s Going On...?》', year: '2006', theme: '成熟男人的內心獨白', tracks: ['富士山下', '最佳損友', '裙下之臣', '黑擇明', '心深傷透'] },
+      { id: 'h3m', name: '《H3M》', year: '2009', theme: '樂隊搖滾 · 深刻哲理', tracks: ['沙龍', '於心有愧', '七百年後', '今天只做一件事', '陀飛輪(同年代)'] },
+      { id: 'fire', name: '《打得火熱》', year: '2000', theme: '千禧狂熱 · 傳奇初現', tracks: ['K歌之王', '打得火熱', '綿綿', '低等動物', '溫室效應'] },
+      { id: 'happy-era', name: '《我的快樂時代》', year: '1998', theme: '成名奠基 · 靈魂之作', tracks: ['我的快樂時代', '黃金時代', '反高潮', '我什麼都沒有', '新曲+精選'] },
+      { id: 'black-white-gray', name: '《黑·白·灰》', year: '2003', theme: '國語巔峰 · 傳唱神話', tracks: ['十年', '我們都寂寞', '兄妹', '阿怪', '世界'] },
+      { id: 'special-thanks', name: '《Special Thanks to...》', year: '2002', theme: '金曲歌王 · 純粹細膩', tracks: ['你的背包', '想哭', '謝謝儂', '男人的錯', '故事'] },
+      { id: 'live-for-today', name: '《Live For Today》', year: '2003', theme: '都市生活 · 影視傳奇', tracks: ['歲月如歌', '十面埋伏', '謊言', '幸災樂禍', '忘記歌詞'] }
+    ];
+
+    let appState = {
+      wifeWeight: 70,
+      husbandWeight: 30,
+      ratings: {}
+    };
+
+    function initRatingsState() {
+      ALBUMS_DATA.forEach(a => {
+        if (!appState.ratings[a.id]) {
+          appState.ratings[a.id] = { hOverall: 0, wOverall: 0, tracks: {} };
+          a.tracks.forEach(t => { appState.ratings[a.id].tracks[t] = { h: 0, w: 0 }; });
+        }
+      });
+    }
+
+    function loadInitialData() {
+      initRatingsState();
+
+      // 檢查 URL Hash 中是否帶有方案 A 數據
+      if (window.location.hash.startsWith('#data=')) {
+        try {
+          const raw = window.location.hash.replace('#data=', '');
+          const parsed = JSON.parse(decodeURIComponent(escape(atob(raw))));
+          if (parsed && parsed.ratings) {
+            mergeLoadedRatings(parsed);
+            window.location.hash = '';
+            alert('🎉 已成功從分享連結同步夫妻打分數據！');
+          }
+        } catch(e) {
+          console.error("無法解析 Hash", e);
+        }
+      } else {
+        const saved = localStorage.getItem('eason_picker_state_v2');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            appState = { ...appState, ...parsed };
+          } catch(e) {}
+        }
+      }
+
+      document.getElementById('weightSlider').value = appState.wifeWeight;
+      updateWeightDisplay();
+      renderAlbumList();
+      recalculateScores();
+    }
+
+    function saveToStorage() {
+      localStorage.setItem('eason_picker_state_v2', JSON.stringify(appState));
+    }
+
+    function updateWeight(val) {
+      appState.wifeWeight = parseInt(val, 10);
+      appState.husbandWeight = 100 - appState.wifeWeight;
+      updateWeightDisplay();
+      saveToStorage();
+      recalculateScores();
+    }
+
+    function setWeightPreset(wifePercent) {
+      document.getElementById('weightSlider').value = wifePercent;
+      updateWeight(wifePercent);
+    }
+
+    function updateWeightDisplay() {
+      document.getElementById('wifeWeightText').innerText = appState.wifeWeight;
+      document.getElementById('husbandWeightText').innerText = appState.husbandWeight;
+    }
+
+    function setOverallScore(albumId, role, score) {
+      const cur = appState.ratings[albumId][role + 'Overall'];
+      appState.ratings[albumId][role + 'Overall'] = (cur === score) ? 0 : score;
+      saveToStorage();
+      renderStarUI(albumId);
+      recalculateScores();
+    }
+
+    function setTrackScore(albumId, trackName, role, score) {
+      const current = appState.ratings[albumId].tracks[trackName][role];
+      appState.ratings[albumId].tracks[trackName][role] = (current === score) ? 0 : score;
+      
+      // 自動連動整體星級
+      const album = ALBUMS_DATA.find(a => a.id === albumId);
+      const scores = album.tracks.map(t => appState.ratings[albumId].tracks[t][role]).filter(s => s > 0);
+      if (scores.length > 0) {
+        appState.ratings[albumId][role + 'Overall'] = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+      }
+      
+      saveToStorage();
+      renderStarUI(albumId);
+      renderTrackUI(albumId, trackName);
+      recalculateScores();
+    }
+
+    function calculateAlbumFinalMetrics(albumId) {
+      const r = appState.ratings[albumId];
+      const hScore = r.hOverall || 0;
+      const wScore = r.wOverall || 0;
+
+      let thunder = false;
+      let thunderReason = [];
+      if (hScore > 0 && hScore <= 2) { thunder = true; thunderReason.push('老公不太感冒'); }
+      if (wScore > 0 && wScore <= 2) { thunder = true; thunderReason.push('老婆表示踩雷'); }
+
+      const album = ALBUMS_DATA.find(a => a.id === albumId);
+      album.tracks.forEach(t => {
+        const ts = r.tracks[t];
+        if (ts.w === 1 || ts.h === 1) {
+          thunder = true;
+          if (!thunderReason.includes('曲目有雷')) thunderReason.push(`「${t}」被標跳過`);
+        }
+      });
+
+      let weightedBase = (hScore * (appState.husbandWeight / 100)) + (wScore * (appState.wifeWeight / 100));
+      let final100 = weightedBase * 20;
+
+      // 避雷懲罰扣分
+      if (thunder && final100 > 0) {
+        final100 = Math.max(10, final100 - 18);
+      }
+
+      return {
+        hScore,
+        wScore,
+        final100: (hScore > 0 || wScore > 0) ? Math.round(final100) : 0,
+        thunder,
+        thunderReason: thunderReason.join(' · '),
+        isRated: (hScore > 0 || wScore > 0)
+      };
+    }
+
+    function recalculateScores() {
+      const results = ALBUMS_DATA.map(a => ({ ...a, metrics: calculateAlbumFinalMetrics(a.id) }));
+      const ratedList = results.filter(r => r.metrics.isRated).sort((a, b) => b.metrics.final100 - a.metrics.final100);
+      
+      document.getElementById('totalRatedCount').innerText = `已評分 ${ratedList.length} / ${ALBUMS_DATA.length} 張專輯`;
+
+      const topContainer = document.getElementById('topRecommendations');
+      if (ratedList.length === 0) {
+        topContainer.innerHTML = `
+          <div class="col-span-full py-4 text-center text-slate-500 text-xs">
+            二人尚未開始打分，請在下方為喜愛的專輯評分（1 至 5 星）！
+          </div>
+        `;
+      } else {
+        topContainer.innerHTML = ratedList.slice(0, 3).map((item, idx) => {
+          const medal = ['🥇 首選推薦', '🥈 次選推薦', '🥉 備選方案'][idx];
+          const borderStyle = ['border-amber-500/80 bg-amber-950/20', 'border-slate-400/60 bg-slate-800/40', 'border-amber-800/60 bg-amber-950/10'][idx];
+          return `
+            <div class="p-3 rounded-xl border ${borderStyle} flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[11px] font-bold text-amber-400">${medal}</span>
+                  <span class="text-sm font-black text-white">${item.metrics.final100}<span class="text-[10px] font-normal text-slate-400">分</span></span>
+                </div>
+                <h3 class="font-bold text-white text-sm truncate">${item.name}</h3>
+                <p class="text-[11px] text-slate-400">${item.year} · ${item.theme}</p>
+              </div>
+              <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span class="text-blue-400">🤵 ${item.metrics.hScore || '-'}★</span>
+                <span class="text-pink-400">👰 ${item.metrics.wScore || '-'}★</span>
+                ${item.metrics.thunder ? '<span class="text-amber-400 text-[10px]">⚠️有雷</span>' : '<span class="text-emerald-400 text-[10px]">✨合拍</span>'}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      ALBUMS_DATA.forEach(a => renderAlbumHeaderStats(a.id));
+    }
+
+    function renderAlbumList() {
+      const container = document.getElementById('albumListContainer');
+      container.innerHTML = ALBUMS_DATA.map(album => `
+        <div id="card-${album.id}" class="bg-slate-900/70 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+          <div class="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-white text-sm sm:text-base">${album.name}</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300">${album.year}</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">${album.theme}</p>
+            </div>
+
+            <div class="flex items-center gap-3 sm:gap-4 justify-between sm:justify-end">
+              <!-- 老公評分 -->
+              <div class="flex flex-col items-center">
+                <span class="text-[10px] font-bold text-blue-400">🤵 老公</span>
+                <div class="flex items-center gap-0.5" id="stars-h-${album.id}">
+                  ${[1,2,3,4,5].map(s => `
+                    <button onclick="setOverallScore('${album.id}', 'h', ${s})" class="star-btn text-base text-slate-700">
+                      <i class="fa-solid fa-star"></i>
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- 老婆評分 -->
+              <div class="flex flex-col items-center">
+                <span class="text-[10px] font-bold text-pink-400">👰 老婆</span>
+                <div class="flex items-center gap-0.5" id="stars-w-${album.id}">
+                  ${[1,2,3,4,5].map(s => `
+                    <button onclick="setOverallScore('${album.id}', 'w', ${s})" class="star-btn text-base text-slate-700">
+                      <i class="fa-solid fa-star"></i>
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- 分數 -->
+              <div id="badge-score-${album.id}" class="min-w-[54px] text-right font-black"></div>
+            </div>
+          </div>
+
+          <div class="px-3.5 py-1.5 border-t border-slate-800/60 bg-slate-950/40 flex items-center justify-between text-xs">
+            <button onclick="toggleTrackSection('${album.id}')" class="text-slate-400 hover:text-slate-200 flex items-center gap-1 py-0.5">
+              <i id="toggle-icon-${album.id}" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
+              <span>細選曲目 (${album.tracks.length} 首)</span>
+            </button>
+            <span id="thunder-tag-${album.id}" class="text-[11px]"></span>
+          </div>
+
+          <div id="tracks-wrapper-${album.id}" class="hidden border-t border-slate-800 px-3.5 py-2.5 bg-slate-950/60 space-y-1.5">
+            ${album.tracks.map(t => `
+              <div class="flex items-center justify-between py-1 text-xs">
+                <span class="text-slate-300 font-medium truncate pr-2">${t}</span>
+                <div class="flex items-center gap-4">
+                  <div class="flex gap-1" id="track-btn-${album.id}-${encodeURIComponent(t)}-h">${renderSingleTrackPills(album.id, t, 'h')}</div>
+                  <div class="flex gap-1" id="track-btn-${album.id}-${encodeURIComponent(t)}-w">${renderSingleTrackPills(album.id, t, 'w')}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      ALBUMS_DATA.forEach(a => renderStarUI(a.id));
+    }
+
+    function renderSingleTrackPills(albumId, track, role) {
+      const cur = (appState.ratings[albumId] && appState.ratings[albumId].tracks[track]) ? appState.ratings[albumId].tracks[track][role] : 0;
+      return [
+        { v: 5, icon: '🔥', tip: '神曲' },
+        { v: 3, icon: '☕', tip: '普通' },
+        { v: 1, icon: '❌', tip: '跳過' }
+      ].map(opt => {
+        const active = cur === opt.v;
+        const color = role === 'h' ? (active ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400')
+                                   : (active ? 'bg-pink-600 text-white' : 'bg-slate-800 text-slate-400');
+        return `
+          <button onclick="setTrackScore('${albumId}', '${track}', '${role}', ${opt.v})"
+                  title="${opt.tip}" class="w-6 h-5 rounded flex items-center justify-center text-[10px] ${color} transition">
+            ${opt.icon}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderStarUI(albumId) {
+      const r = appState.ratings[albumId];
+      ['h', 'w'].forEach(role => {
+        const val = r[role + 'Overall'] || 0;
+        const container = document.getElementById(`stars-${role}-${albumId}`);
+        if (!container) return;
+        container.querySelectorAll('button').forEach((btn, idx) => {
+          btn.className = `star-btn text-base ${idx < val ? 'text-amber-400' : 'text-slate-700'}`;
+        });
+      });
+    }
+
+    function renderTrackUI(albumId, track) {
+      ['h', 'w'].forEach(role => {
+        const el = document.getElementById(`track-btn-${albumId}-${encodeURIComponent(track)}-${role}`);
+        if (el) el.innerHTML = renderSingleTrackPills(albumId, track, role);
+      });
+    }
+
+    function renderAlbumHeaderStats(albumId) {
+      const metrics = calculateAlbumFinalMetrics(albumId);
+      const badge = document.getElementById(`badge-score-${albumId}`);
+      const thunderTag = document.getElementById(`thunder-tag-${albumId}`);
+      if (!badge) return;
+
+      if (!metrics.isRated) {
+        badge.innerHTML = `<span class="text-xs text-slate-600 font-normal">未打分</span>`;
+        if (thunderTag) thunderTag.innerHTML = '';
+        return;
+      }
+
+      badge.innerHTML = `<span class="${metrics.thunder ? 'text-rose-400' : 'text-emerald-400'}">${metrics.final100}<span class="text-[10px] text-slate-400 font-normal">分</span></span>`;
+      if (thunderTag) {
+        thunderTag.innerHTML = metrics.thunder 
+          ? `<span class="text-rose-400 flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> ${metrics.thunderReason}</span>`
+          : `<span class="text-emerald-400/70 flex items-center gap-1"><i class="fa-solid fa-check"></i> 意見合拍</span>`;
+      }
+    }
+
+    function toggleTrackSection(albumId) {
+      const wrapper = document.getElementById(`tracks-wrapper-${albumId}`);
+      const icon = document.getElementById(`toggle-icon-${albumId}`);
+      wrapper.classList.toggle('hidden');
+      icon.classList.toggle('rotate-180');
+    }
+
+    function toggleAllTracks(show) {
+      ALBUMS_DATA.forEach(a => {
+        const wrapper = document.getElementById(`tracks-wrapper-${a.id}`);
+        const icon = document.getElementById(`toggle-icon-${a.id}`);
+        if (show) { wrapper.classList.remove('hidden'); icon.classList.add('rotate-180'); }
+        else { wrapper.classList.add('hidden'); icon.classList.remove('rotate-180'); }
+      });
+    }
+
+    // 方案 A 核心 1：生成 WhatsApp 分享內容與接力碼
+    function generateWhatsAppShare() {
+      saveToStorage();
+      const codeStr = btoa(unescape(encodeURIComponent(JSON.stringify(appState))));
+      
+      // 計算目前老公最喜歡的場次
+      const topList = ALBUMS_DATA
+        .map(a => ({ name: a.name, score: appState.ratings[a.id].hOverall }))
+        .filter(a => a.score > 0)
+        .sort((a, b) => b.score - a.score);
+
+      const topPreview = topList.length > 0 ? topList.slice(0, 2).map(x => `${x.name}(${x.score}★)`).join('、') : '尚未評分';
+
+      let shareUrl = "";
+      if (window.location.protocol.startsWith('http')) {
+        shareUrl = `\n🔗 直接開啟連結同步:\n${window.location.origin}${window.location.pathname}#data=${codeStr}\n`;
+      }
+
+      const msg = `🎵【Eason 2026 錄音會選場接力】🎵\n🤵 老公已完成打分！心水推薦：${topPreview}。\n輪到老婆打分啦！${shareUrl}\n📋 接力同步代碼（複製整行貼上）：\nEASONSYNC:${codeStr}\n`;
+
+      navigator.clipboard.writeText(msg).then(() => {
+        alert("✅ 接力訊息已成功複製！\n\n直接在 WhatsApp 貼上傳給老婆即可！老婆只需在自己手機打開檔案並點「貼上接力碼」，老公打分自動載入！");
+      }).catch(() => {
+        prompt("請手動複製以下內容發至 WhatsApp：", msg);
+      });
+    }
+
+    // 方案 A 核心 2：老婆貼上接力碼進行合併
+    function importSyncCodeModal() {
+      const input = prompt("請貼上老公從 WhatsApp 發給你的接力訊息或代碼：");
+      if (!input) return;
+
+      try {
+        let code = input.trim();
+        if (code.includes('EASONSYNC:')) {
+          code = code.split('EASONSYNC:')[1].split('\n')[0].trim();
+        } else if (code.includes('#data=')) {
+          code = code.split('#data=')[1].trim();
+        }
+
+        const parsed = JSON.parse(decodeURIComponent(escape(atob(code))));
+        if (parsed && parsed.ratings) {
+          mergeLoadedRatings(parsed);
+          alert("🎉 成功同步老公的評分！現在你可以繼續為老婆部分評分了！");
+        } else {
+          throw new Error();
+        }
+      } catch(e) {
+        alert("❌ 無法識別代碼，請確認複製了完整的 EASONSYNC 代碼！");
+      }
+    }
+
+    function mergeLoadedRatings(remoteState) {
+      appState.wifeWeight = remoteState.wifeWeight || appState.wifeWeight;
+      appState.husbandWeight = remoteState.husbandWeight || appState.husbandWeight;
+      
+      // 合併老公評分（保留當前老婆已填部分，若有的話）
+      ALBUMS_DATA.forEach(a => {
+        if (remoteState.ratings[a.id]) {
+          // 同步老公整體分
+          appState.ratings[a.id].hOverall = remoteState.ratings[a.id].hOverall;
+          // 同步老公各曲目分
+          a.tracks.forEach(t => {
+            if (remoteState.ratings[a.id].tracks[t]) {
+              appState.ratings[a.id].tracks[t].h = remoteState.ratings[a.id].tracks[t].h;
+            }
+          });
+        }
+      });
+
+      document.getElementById('weightSlider').value = appState.wifeWeight;
+      updateWeightDisplay();
+      saveToStorage();
+      renderAlbumList();
+      recalculateScores();
+    }
+
+    function resetData() {
+      if (confirm("確定要重設全部評分？")) {
+        localStorage.removeItem('eason_picker_state_v2');
+        appState.wifeWeight = 70;
+        appState.husbandWeight = 30;
+        appState.ratings = {};
+        initRatingsState();
+        document.getElementById('weightSlider').value = 70;
+        updateWeightDisplay();
+        renderAlbumList();
+        recalculateScores();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadInitialData);
+  </script>
+</body>
+</html>
