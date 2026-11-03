@@ -4,31 +4,157 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Eason 陳奕迅《Recording Sessions》26場全曲庫夫妻選場決策器</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
-    body { font-family: 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
-    .rate-btn { transition: all 0.12s ease; }
-    .rate-btn:active { transform: scale(0.92); }
-    .slider::-webkit-slider-thumb {
-      -webkit-appearance: none; appearance: none;
-      width: 28px; height: 28px; border-radius: 50%;
-      background: #ec4899; cursor: pointer; border: 3px solid #ffffff;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+
+    /* =====================================================================
+       原生 CSS 備援與強制防呆樣式（即使離線或 CDN 載入慢，介面與彈窗亦 100% 正常運作）
+       ===================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
     }
-    .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #020617;
+      color: #f1f5f9;
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      scroll-behavior: smooth;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    /* 強制隱藏 class，避免彈窗或折疊面板遮擋畫面 */
+    .hidden {
+      display: none !important;
+    }
+
+    /* 評分按鈕互動動畫與原生保底外觀 */
+    .rate-btn {
+      transition: all 0.12s ease;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 0.75rem;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.95rem;
+      line-height: 1.25rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      border: 1px solid #334155;
+      background-color: #1e293b;
+      color: #cbd5e1;
+      font-weight: 700;
+    }
+    .rate-btn:hover {
+      border-color: #64748b;
+      background-color: #334155;
+    }
+    .rate-btn:active {
+      transform: scale(0.93);
+    }
+
+    /* 選中狀態顏色（原生 CSS 強固保底） */
+    .rate-active-god {
+      background-color: #f59e0b !important;
+      color: #020617 !important;
+      border-color: #fde68a !important;
+      font-weight: 900 !important;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+    }
+    .rate-active-good-h {
+      background-color: #2563eb !important;
+      color: #ffffff !important;
+      border-color: #93c5fd !important;
+      font-weight: 900 !important;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+    .rate-active-good-w {
+      background-color: #db2777 !important;
+      color: #ffffff !important;
+      border-color: #f9a8d4 !important;
+      font-weight: 900 !important;
+      box-shadow: 0 4px 12px rgba(219, 39, 119, 0.35);
+    }
+    .rate-active-normal-h {
+      background-color: #075985 !important;
+      color: #e0f2fe !important;
+      border-color: #38bdf8 !important;
+      font-weight: 800 !important;
+    }
+    .rate-active-normal-w {
+      background-color: #881337 !important;
+      color: #ffe4e6 !important;
+      border-color: #fb7185 !important;
+      font-weight: 800 !important;
+    }
+    .rate-active-unknown {
+      background-color: #475569 !important;
+      color: #f8fafc !important;
+      border-color: #94a3b8 !important;
+      font-weight: 800 !important;
+    }
+
+    /* 權重滑桿美化 */
+    .slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 14px;
+      background: linear-gradient(90deg, #3b82f6 0%, #ec4899 100%);
+      border-radius: 999px;
+      outline: none;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      border: 4px solid #ec4899;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+    .slider::-moz-range-thumb {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      border: 4px solid #ec4899;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin-disc {
+      display: inline-block;
+      animation: spinSlow 10s linear infinite;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen text-base sm:text-lg pb-32">
 
-  <!-- 頂部導航列 -->
+  <!-- 頂部吸頂導航列 -->
   <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-3.5 shadow-xl">
     <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-white shadow-lg shrink-0">
-          <i class="fa-solid fa-record-vinyl text-2xl animate-spin" style="animation-duration: 10s;"></i>
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-white shadow-lg shrink-0 text-2xl">
+          <span class="spin-disc">💿</span>
         </div>
         <div>
           <h1 class="text-lg sm:text-2xl font-black text-white leading-tight">Eason 2026-2027 錄音會選場器</h1>
@@ -37,18 +163,18 @@
       </div>
       
       <!-- 頂部功能按鈕組 -->
-      <div class="flex items-center gap-2">
-        <button type="button" onclick="toggleScoreConfigPanel()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm text-amber-300 flex items-center gap-1.5 border border-slate-700 font-bold active:scale-95 transition">
-          <i class="fa-solid fa-sliders"></i>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" onclick="toggleScoreConfigPanel()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm text-amber-300 flex items-center gap-1.5 border border-slate-700 font-bold active:scale-95 transition cursor-pointer">
+          <span>⚙️</span>
           <span>分數設定</span>
         </button>
-        <button type="button" onclick="openImportModal()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm text-slate-200 flex items-center gap-1.5 border border-slate-700 font-bold active:scale-95 transition">
-          <i class="fa-solid fa-file-import text-sky-400"></i>
-          <span>貼上代碼</span>
+        <button type="button" onclick="openImportModal()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm text-sky-300 flex items-center gap-1.5 border border-slate-700 font-bold active:scale-95 transition cursor-pointer">
+          <span>📥</span>
+          <span>貼上接力碼</span>
         </button>
-        <button type="button" onclick="openShareModal()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 shadow-md active:scale-95 transition">
-          <i class="fa-brands fa-whatsapp text-base sm:text-lg"></i>
-          <span>WhatsApp 接力</span>
+        <button type="button" onclick="openShareModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs sm:text-sm font-black text-white flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer">
+          <span>📲</span>
+          <span>WhatsApp 接力分享</span>
         </button>
       </div>
     </div>
@@ -57,88 +183,100 @@
   <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
 
     <!-- 可折疊：自訂分數權重面板 (神曲/好聽/普通/唔識) -->
-    <section id="scoreConfigPanel" class="hidden bg-slate-900 border-2 border-amber-500/40 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2 text-base sm:text-lg font-black text-amber-400">
-          <i class="fa-solid fa-Calculator"></i>
+    <section id="scoreConfigPanel" class="hidden bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2 text-base sm:text-xl font-black text-amber-400">
+          <span>⚙️</span>
           <span>自訂各等級分數權重（預設：8 / 6 / 3 / 1）</span>
         </div>
-        <button type="button" onclick="resetScoreConfig()" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-bold border border-slate-700">
-          還原預設 (8/6/3/1)
-        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="resetScoreConfig()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm text-slate-200 font-bold border border-slate-700 cursor-pointer">
+            🔄 還原預設 (8/6/3/1)
+          </button>
+          <button type="button" onclick="toggleScoreConfigPanel()" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs sm:text-sm text-slate-950 font-black cursor-pointer">
+            ✕ 收起
+          </button>
+        </div>
       </div>
+
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div class="bg-slate-950 p-3.5 rounded-2xl border border-amber-500/30">
-          <label class="block text-xs sm:text-sm font-bold text-amber-400 mb-1">🔥 [神曲] 分數</label>
-          <input type="number" id="cfg-god" step="0.5" oninput="updateScoreConfig()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-lg font-black text-white focus:border-amber-400 focus:outline-none">
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-amber-500/40">
+          <label class="block text-sm sm:text-base font-bold text-amber-400 mb-1.5">🔥 [神曲] 分數</label>
+          <input type="number" id="cfg-god" step="0.5" oninput="updateScoreConfig()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xl font-black text-white focus:border-amber-400 focus:outline-none">
         </div>
-        <div class="bg-slate-950 p-3.5 rounded-2xl border border-emerald-500/30">
-          <label class="block text-xs sm:text-sm font-bold text-emerald-400 mb-1">💖 [好聽] 分數</label>
-          <input type="number" id="cfg-good" step="0.5" oninput="updateScoreConfig()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-lg font-black text-white focus:border-emerald-400 focus:outline-none">
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-emerald-500/40">
+          <label class="block text-sm sm:text-base font-bold text-emerald-400 mb-1.5">💖 [好聽] 分數</label>
+          <input type="number" id="cfg-good" step="0.5" oninput="updateScoreConfig()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xl font-black text-white focus:border-emerald-400 focus:outline-none">
         </div>
-        <div class="bg-slate-950 p-3.5 rounded-2xl border border-sky-500/30">
-          <label class="block text-xs sm:text-sm font-bold text-sky-400 mb-1">☕ [普通] 分數</label>
-          <input type="number" id="cfg-normal" step="0.5" oninput="updateScoreConfig()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-lg font-black text-white focus:border-sky-400 focus:outline-none">
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-sky-500/40">
+          <label class="block text-sm sm:text-base font-bold text-sky-400 mb-1.5">☕ [普通] 分數</label>
+          <input type="number" id="cfg-normal" step="0.5" oninput="updateScoreConfig()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xl font-black text-white focus:border-sky-400 focus:outline-none">
         </div>
-        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-600/40">
-          <label class="block text-xs sm:text-sm font-bold text-slate-400 mb-1">❓ [唔識] 分數</label>
-          <input type="number" id="cfg-unknown" step="0.5" oninput="updateScoreConfig()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-lg font-black text-white focus:border-slate-400 focus:outline-none">
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-600/50">
+          <label class="block text-sm sm:text-base font-bold text-slate-300 mb-1.5">❓ [唔識] 分數</label>
+          <input type="number" id="cfg-unknown" step="0.5" oninput="updateScoreConfig()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xl font-black text-white focus:border-slate-400 focus:outline-none">
         </div>
       </div>
       <p class="text-xs sm:text-sm text-slate-400">
-        💡 提示：你亦可在 HTML 檔案頂部 `<script>` 的 `DEFAULT_SCORE_CONFIG` 直接修改預設數值。
+        💡 提示：除在此面板即時改動外，你亦可直接修改 HTML 原始碼 `<script>` 最上方的 `DEFAULT_SCORE_CONFIG` 數值。
       </p>
     </section>
 
     <!-- 夫妻話事權重調配板 -->
     <section class="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-md space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div class="flex items-center gap-2.5 text-base sm:text-lg font-black text-white">
-          <i class="fa-solid fa-scale-balanced text-amber-400 text-xl"></i>
+        <div class="flex items-center gap-2 text-lg sm:text-xl font-black text-white">
+          <span>⚖️</span>
           <span>夫妻話事權重調配</span>
         </div>
         <div class="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1.5 rounded-2xl text-xs sm:text-sm font-bold border border-slate-800">
-          <button type="button" id="preset-50" onclick="setWeightPreset(50)" class="px-3 py-1.5 rounded-xl transition">平權 50:50</button>
-          <button type="button" id="preset-70" onclick="setWeightPreset(70)" class="px-3 py-1.5 rounded-xl transition">求生欲 70:30</button>
-          <button type="button" id="preset-100" onclick="setWeightPreset(100)" class="px-3 py-1.5 rounded-xl transition">老婆全權 100%</button>
-          <button type="button" id="preset-20" onclick="setWeightPreset(20)" class="px-3 py-1.5 rounded-xl transition">老公話事 80%</button>
+          <button type="button" id="preset-50" onclick="setWeightPreset(50)" class="px-3 py-1.5 rounded-xl transition cursor-pointer">平權 50:50</button>
+          <button type="button" id="preset-70" onclick="setWeightPreset(70)" class="px-3 py-1.5 rounded-xl transition cursor-pointer">求生欲 70:30</button>
+          <button type="button" id="preset-100" onclick="setWeightPreset(100)" class="px-3 py-1.5 rounded-xl transition cursor-pointer">老婆全權 100%</button>
+          <button type="button" id="preset-20" onclick="setWeightPreset(20)" class="px-3 py-1.5 rounded-xl transition cursor-pointer">老公 80%</button>
         </div>
       </div>
 
-      <div class="space-y-2.5 pt-1">
-        <div class="flex justify-between items-center text-sm sm:text-base font-bold">
+      <div class="space-y-3 pt-1">
+        <div class="flex justify-between items-center text-base sm:text-lg font-bold">
           <span class="text-blue-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-mars text-lg"></i> 老公佔比: <span id="husbandWeightText" class="text-xl font-black">30</span>%
+            <span>🤵 老公佔比:</span>
+            <span id="husbandWeightText" class="text-2xl font-black">30</span>%
           </span>
           <span class="text-pink-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-venus text-lg"></i> 老婆佔比: <span id="wifeWeightText" class="text-xl font-black">70</span>%
+            <span>👰 老婆佔比:</span>
+            <span id="wifeWeightText" class="text-2xl font-black">70</span>%
           </span>
         </div>
-        <input id="weightSlider" type="range" min="0" max="100" value="70" oninput="updateWeight(this.value)"
-               class="w-full h-3 bg-slate-800 rounded-lg appearance-none cursor-pointer slider">
+        <input id="weightSlider" type="range" min="0" max="100" value="70" oninput="updateWeight(this.value)" class="slider">
         <div class="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm text-slate-400 pt-1">
-          <span id="currentScoreRuleBadge" class="font-semibold text-slate-300">目前計分：🔥神曲=8分 · 💖好聽=6分 · ☕普通=3分 · ❓唔識=1分</span>
-          <span>點擊每首歌按鈕即可打分，再點一次可取消</span>
+          <span id="currentScoreRuleBadge" class="font-bold text-amber-300/90">目前計分：🔥神曲=8分 · 💖好聽=6分 · ☕普通=3分 · ❓唔識=1分</span>
+          <span>點擊歌曲旁按鈕即可打分，再點一次可取消</span>
         </div>
       </div>
     </section>
 
     <!-- Top 10 首選推薦榜 -->
     <section class="bg-gradient-to-br from-indigo-950/70 via-slate-900 to-slate-900 border-2 border-indigo-900/60 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-900/40 pb-3.5">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-trophy text-amber-400 text-xl"></i>
-          <h2 class="text-base sm:text-xl font-black text-indigo-200">當前最佳場次推薦 Top 10</h2>
-          <span class="text-xs sm:text-sm font-bold px-2.5 py-0.5 rounded-full bg-indigo-900/70 text-indigo-300" id="totalRatedCount">已評 0 / 26 場</span>
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-indigo-900/40 pb-3.5">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="text-2xl">🏆</span>
+          <h2 class="text-lg sm:text-2xl font-black text-indigo-200">當前最佳場次推薦 Top 10</h2>
+          <span class="text-xs sm:text-sm font-bold px-3 py-1 rounded-full bg-indigo-900/80 text-indigo-200 border border-indigo-700/50" id="totalRatedCount">已評 0 / 26 場</span>
         </div>
 
-        <!-- 排序方式切換 -->
-        <div class="flex items-center gap-1.5 bg-slate-950/90 p-1 rounded-xl border border-slate-800 text-xs sm:text-sm font-bold self-start sm:self-auto">
-          <button type="button" id="sort-total-btn" onclick="setSortMode('total')" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 transition">
-            按加權總分 (神曲多優先)
-          </button>
-          <button type="button" id="sort-avg-btn" onclick="setSortMode('avg')" class="px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 transition">
-            按單曲均分 (全碟精準度)
+        <!-- 排序方式切換與示範按鈕 -->
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="flex items-center gap-1 bg-slate-950/90 p-1 rounded-xl border border-slate-800 text-xs sm:text-sm font-bold">
+            <button type="button" id="sort-total-btn" onclick="setSortMode('total')" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black transition cursor-pointer">
+              按加權總分 (神曲多優先)
+            </button>
+            <button type="button" id="sort-avg-btn" onclick="setSortMode('avg')" class="px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 font-bold transition cursor-pointer">
+              按單曲均分 (全碟精準度)
+            </button>
+          </div>
+          <button type="button" onclick="loadDemoData()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-black shadow-md active:scale-95 transition cursor-pointer">
+            ✨ 載入示範評分
           </button>
         </div>
       </div>
@@ -151,33 +289,34 @@
     <!-- 搜尋與場次月份過濾 -->
     <section class="space-y-3">
       <div class="relative">
-        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">🔍</span>
         <input type="text" id="songSearchInput" oninput="handleSearch(this.value)"
-               placeholder="🔍 搜尋歌名、專輯或日期（例如：陀飛輪、浮誇、1874、苦瓜、十年、平安夜）..."
-               class="w-full pl-11 pr-12 py-3.5 bg-slate-900 border border-slate-800 rounded-2xl text-base text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition shadow-inner">
-        <button type="button" id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
-          <i class="fa-solid fa-xmark"></i>
+               placeholder="搜尋歌名、專輯或日期（例如：陀飛輪、浮誇、1874、苦瓜、十年、平安夜）..."
+               class="w-full pl-12 pr-12 py-3.5 bg-slate-900 border-2 border-slate-800 rounded-2xl text-base sm:text-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition shadow-inner">
+        <button type="button" id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold flex items-center justify-center cursor-pointer">
+          ✕
         </button>
       </div>
 
       <!-- 月份與狀態分類標籤 -->
       <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scroll text-sm sm:text-base font-bold">
-        <button type="button" onclick="filterMonth('all')" id="tab-all" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 shrink-0 shadow-md">全部 26 場</button>
-        <button type="button" onclick="filterMonth('2026-12')" id="tab-2026-12" class="px-4 py-2 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800">2026年12月 (10場)</button>
-        <button type="button" onclick="filterMonth('2027-01')" id="tab-2027-01" class="px-4 py-2 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800">2027年1月 (10場)</button>
-        <button type="button" onclick="filterMonth('2027-02')" id="tab-2027-02" class="px-4 py-2 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800">2027年2月 (6場)</button>
-        <button type="button" onclick="filterMonth('rated')" id="tab-rated" class="px-4 py-2 rounded-xl bg-slate-900 text-emerald-400 hover:bg-slate-800 shrink-0 border border-slate-800">✨ 已評分場次</button>
+        <button type="button" onclick="filterMonth('all')" id="tab-all" class="px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black shrink-0 shadow-md cursor-pointer">全部 26 場</button>
+        <button type="button" onclick="filterMonth('2026-12')" id="tab-2026-12" class="px-4 py-2.5 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800 cursor-pointer">2026年12月 (10場)</button>
+        <button type="button" onclick="filterMonth('2027-01')" id="tab-2027-01" class="px-4 py-2.5 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800 cursor-pointer">2027年1月 (10場)</button>
+        <button type="button" onclick="filterMonth('2027-02')" id="tab-2027-02" class="px-4 py-2.5 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800 cursor-pointer">2027年2月 (6場)</button>
+        <button type="button" onclick="filterMonth('rated')" id="tab-rated" class="px-4 py-2.5 rounded-xl bg-slate-900 text-emerald-400 hover:bg-slate-800 shrink-0 border border-slate-800 cursor-pointer">✨ 已評分場次</button>
       </div>
     </section>
 
     <!-- 專輯場次列表標題與展開控制 -->
     <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
-      <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-        <i class="fa-solid fa-list-check text-rose-400"></i> 26 場官方專輯與全曲目打分表
+      <h2 class="text-lg sm:text-2xl font-black text-white flex items-center gap-2">
+        <span>🎵</span>
+        <span>26 場官方專輯與全曲目打分表</span>
       </h2>
       <div class="flex items-center gap-2 text-xs sm:text-sm font-bold">
-        <button type="button" onclick="toggleAllTracks(true)" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-400 transition">全部展開歌單</button>
-        <button type="button" onclick="toggleAllTracks(false)" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-400 transition">全部收起歌單</button>
+        <button type="button" onclick="toggleAllTracks(true)" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-amber-300 hover:bg-slate-800 transition cursor-pointer">📂 全部展開歌單</button>
+        <button type="button" onclick="toggleAllTracks(false)" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 transition cursor-pointer">📁 全部收起歌單</button>
       </div>
     </div>
 
@@ -187,62 +326,62 @@
     <!-- 底部存檔與管理工具列 -->
     <section class="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm text-slate-400">
       <div class="flex items-center gap-2">
-        <i class="fa-solid fa-floppy-disk text-emerald-400 text-base"></i>
-        <span>所有打分已自動儲存於本機瀏覽器</span>
+        <span>💾</span>
+        <span id="storageStatusText">所有打分自動儲存於本機瀏覽器，亦可隨時透過 WhatsApp 接力碼跨手機備份</span>
       </div>
       <div class="flex flex-wrap items-center gap-2 font-bold">
-        <button type="button" onclick="loadDemoData()" class="px-3.5 py-2 rounded-xl bg-indigo-950/80 border border-indigo-700/60 text-indigo-300 hover:bg-indigo-900 transition">
-          <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>載入測試數據
+        <button type="button" onclick="loadDemoData()" class="px-4 py-2 rounded-xl bg-indigo-950/90 border border-indigo-700/70 text-indigo-200 hover:bg-indigo-900 transition cursor-pointer">
+          ✨ 載入示範評分
         </button>
-        <button type="button" onclick="exportJSONFile()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
-          <i class="fa-solid fa-download mr-1"></i>下載備份檔
+        <button type="button" onclick="exportJSONFile()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition cursor-pointer">
+          ⬇️ 下載 JSON 備份
         </button>
-        <button type="button" onclick="resetAllData()" class="px-3.5 py-2 rounded-xl bg-rose-950/70 border border-rose-800/70 text-rose-300 hover:bg-rose-900 transition">
-          <i class="fa-regular fa-trash-can mr-1"></i>清空重置
+        <button type="button" onclick="resetAllData()" class="px-4 py-2 rounded-xl bg-rose-950/80 border border-rose-800/70 text-rose-200 hover:bg-rose-900 transition cursor-pointer">
+          🗑️ 清空所有評分
         </button>
       </div>
     </section>
 
   </main>
 
-  <!-- 彈出視窗：WhatsApp 接力分享 & 代碼匯入 -->
+  <!-- 彈出視窗：WhatsApp 接力分享 / 貼上代碼 / 清空確認 -->
   <div id="syncModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border-2 border-slate-700 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 id="modalTitle" class="text-lg sm:text-xl font-black text-white flex items-center gap-2"></h3>
-        <button type="button" onclick="closeModal()" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-lg">
-          <i class="fa-solid fa-xmark"></i>
+        <button type="button" onclick="closeModal()" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-lg cursor-pointer">
+          ✕
         </button>
       </div>
-      <p id="modalDesc" class="text-xs sm:text-sm text-slate-300 leading-relaxed"></p>
+      <p id="modalDesc" class="text-sm sm:text-base text-slate-300 leading-relaxed"></p>
       <textarea id="modalTextarea" rows="5" class="w-full bg-slate-950 border border-slate-700 rounded-2xl p-3.5 text-xs sm:text-sm text-amber-300 font-mono focus:outline-none focus:border-amber-500"></textarea>
       <div id="modalActions" class="flex flex-wrap items-center justify-end gap-2.5 pt-2"></div>
     </div>
   </div>
 
   <!-- 輕量提示 Toast -->
-  <div id="toastBox" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden px-5 py-3 rounded-2xl bg-emerald-600 text-white font-bold text-sm sm:text-base shadow-2xl flex items-center gap-2">
-    <i class="fa-solid fa-circle-check"></i>
+  <div id="toastBox" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden px-5 py-3 rounded-2xl bg-emerald-600 text-white font-black text-sm sm:text-base shadow-2xl flex items-center gap-2 border border-emerald-400">
+    <span>✅</span>
     <span id="toastText">操作成功</span>
   </div>
 
   <script>
     // =========================================================================
-    // 【1. 自訂分數權重設定】可直接在此 HTML Code 修改預設分值，或在網頁「分數設定」修改
+    // 【1. 自訂分數權重設定】可直接在此處修改預設分數，或在網頁「⚙️ 分數設定」即時修改
     // =========================================================================
     const DEFAULT_SCORE_CONFIG = {
-      god: 8,      // [神曲] 預設分數
-      good: 6,     // [好聽] 預設分數
-      normal: 3,   // [普通] 預設分數
-      unknown: 1   // [唔識] 預設分數
+      god: 8,      // [神曲] 預設 8 分
+      good: 6,     // [好聽] 預設 6 分
+      normal: 3,   // [普通] 預設 3 分
+      unknown: 1   // [唔識] 預設 1 分
     };
 
-    // 評分選項定義
+    // 4 級評分選項定義
     const RATING_LEVELS = [
-      { key: 'god',     label: '神曲', icon: '🔥', activeHus: 'bg-amber-500 text-slate-950 border-amber-300 font-black shadow-md', activeWife: 'bg-amber-500 text-slate-950 border-amber-300 font-black shadow-md' },
-      { key: 'good',    label: '好聽', icon: '💖', activeHus: 'bg-blue-600 text-white border-blue-400 font-black shadow-md',      activeWife: 'bg-pink-600 text-white border-pink-400 font-black shadow-md' },
-      { key: 'normal',  label: '普通', icon: '☕', activeHus: 'bg-sky-800 text-sky-100 border-sky-500 font-bold',                 activeWife: 'bg-rose-900 text-rose-100 border-rose-500 font-bold' },
-      { key: 'unknown', label: '唔識', icon: '❓', activeHus: 'bg-slate-700 text-slate-200 border-slate-500 font-bold',           activeWife: 'bg-slate-700 text-slate-200 border-slate-500 font-bold' }
+      { key: 'god',     label: '神曲', icon: '🔥', activeHus: 'rate-active-god',      activeWife: 'rate-active-god' },
+      { key: 'good',    label: '好聽', icon: '💖', activeHus: 'rate-active-good-h',   activeWife: 'rate-active-good-w' },
+      { key: 'normal',  label: '普通', icon: '☕', activeHus: 'rate-active-normal-h', activeWife: 'rate-active-normal-w' },
+      { key: 'unknown', label: '唔識', icon: '❓', activeHus: 'rate-active-unknown',  activeWife: 'rate-active-unknown' }
     ];
 
     // =========================================================================
@@ -610,21 +749,47 @@
     ];
 
     // =========================================================================
-    // 【3. 全局應用程式狀態與初始化】
+    // 【3. 安全儲存與全局狀態 (防止 file:// 或 iOS/WhatsApp 瀏覽器報錯崩潰)】
     // =========================================================================
-    const STORAGE_KEY = 'eason_recording_26_verified_v5';
+    const STORAGE_KEY = 'eason_recording_26_verified_v6';
     let currentMonthFilter = 'all';
     let searchQuery = '';
     let sortMode = 'total'; // 'total' | 'avg'
-    let expandedSessions = new Set();
+    // 預設展開第 1 場及第 26 場，讓用戶一打開立即看到歌曲與評分按鈕
+    let expandedSessions = new Set([1, 26]);
 
     let appState = {
       wifeWeight: 70,
       husbandWeight: 30,
       scoreConfig: { ...DEFAULT_SCORE_CONFIG },
-      // ratings[sessionNo][trackIdx] = { h: 'god'|'good'|'normal'|'unknown'|'', w: ... }
       ratings: {}
     };
+
+    function safeGetStorage(key) {
+      try {
+        return window.localStorage ? window.localStorage.getItem(key) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function safeSetStorage(key, val) {
+      try {
+        if (window.localStorage) {
+          window.localStorage.setItem(key, val);
+        }
+      } catch (e) {
+        // 忽略沙盒或無痕模式下的 Quota / SecurityError
+      }
+    }
+
+    function safeRemoveStorage(key) {
+      try {
+        if (window.localStorage) {
+          window.localStorage.removeItem(key);
+        }
+      } catch (e) {}
+    }
 
     function initRatingsStructure() {
       OFFICIAL_26_SESSIONS.forEach(s => {
@@ -641,7 +806,9 @@
 
     function showToast(msg) {
       const box = document.getElementById('toastBox');
-      document.getElementById('toastText').innerText = msg;
+      const txt = document.getElementById('toastText');
+      if (!box || !txt) return;
+      txt.innerText = msg;
       box.classList.remove('hidden');
       clearTimeout(window._toastTimer);
       window._toastTimer = setTimeout(() => {
@@ -650,15 +817,11 @@
     }
 
     function saveToStorage() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-      } catch (e) {
-        console.error('儲存失敗', e);
-      }
+      safeSetStorage(STORAGE_KEY, JSON.stringify(appState));
     }
 
     // =========================================================================
-    // 【4. 數據壓縮與解壓 (支援 URL Hash 與 WhatsApp 代碼)】
+    // 【4. 數據壓縮與解壓 (支援 URL Hash 與 WhatsApp 接力碼)】
     // =========================================================================
     const LEVEL_TO_CODE = { '': 0, 'god': 4, 'good': 3, 'normal': 2, 'unknown': 1 };
     const CODE_TO_LEVEL = { 0: '', 4: 'god', 3: 'good', 2: 'normal', 1: 'unknown' };
@@ -725,17 +888,17 @@
       }
     }
 
-    function loadInitialData() {
+    function initApp() {
       initRatingsStructure();
 
-      // 1. 先讀取本地存檔
-      const saved = localStorage.getItem(STORAGE_KEY);
+      // 1. 安全讀取本地存檔
+      const saved = safeGetStorage(STORAGE_KEY);
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
           if (parsed.wifeWeight !== undefined) {
-            appState.wifeWeight = parsed.wifeWeight;
-            appState.husbandWeight = 100 - parsed.wifeWeight;
+            appState.wifeWeight = Number(parsed.wifeWeight);
+            appState.husbandWeight = 100 - appState.wifeWeight;
           }
           if (parsed.scoreConfig) {
             appState.scoreConfig = { ...DEFAULT_SCORE_CONFIG, ...parsed.scoreConfig };
@@ -747,17 +910,19 @@
         } catch (e) {}
       }
 
-      // 2. 若網址帶有 #data=，合併載入遠端打分
-      if (window.location.hash.startsWith('#data=')) {
-        try {
+      // 2. 檢查網址是否帶有 #data= 分享參數
+      try {
+        if (window.location.hash && window.location.hash.startsWith('#data=')) {
           const raw = window.location.hash.replace('#data=', '').trim();
           unpackSyncString(raw, true);
           saveToStorage();
-          history.replaceState(null, '', window.location.pathname + window.location.search);
+          try {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+          } catch (err) {}
           setTimeout(() => showToast('🎉 已成功從分享連結同步評分數據！'), 300);
-        } catch (e) {
-          console.error('Hash 解析失敗', e);
         }
+      } catch (e) {
+        console.warn('Hash 解析略過', e);
       }
 
       syncControlsUI();
@@ -769,22 +934,21 @@
     // 【5. 權重與分數設定控制】
     // =========================================================================
     function syncControlsUI() {
-      document.getElementById('weightSlider').value = appState.wifeWeight;
+      const slider = document.getElementById('weightSlider');
+      if (slider) slider.value = appState.wifeWeight;
       document.getElementById('wifeWeightText').innerText = appState.wifeWeight;
       document.getElementById('husbandWeightText').innerText = appState.husbandWeight;
 
-      // 更新預設權重按鈕高亮
       [50, 70, 100, 20].forEach(p => {
         const btn = document.getElementById(`preset-${p}`);
         if (!btn) return;
         if (appState.wifeWeight === p) {
-          btn.className = 'px-3 py-1.5 rounded-xl bg-pink-600 text-white font-black shadow-sm transition';
+          btn.className = 'px-3 py-1.5 rounded-xl bg-pink-600 text-white font-black shadow-sm transition cursor-pointer';
         } else {
-          btn.className = 'px-3 py-1.5 rounded-xl text-slate-300 hover:bg-slate-800 transition';
+          btn.className = 'px-3 py-1.5 rounded-xl text-slate-300 hover:bg-slate-800 transition cursor-pointer';
         }
       });
 
-      // 分數設定輸入框
       document.getElementById('cfg-god').value = appState.scoreConfig.god;
       document.getElementById('cfg-good').value = appState.scoreConfig.good;
       document.getElementById('cfg-normal').value = appState.scoreConfig.normal;
@@ -801,7 +965,7 @@
 
     function toggleScoreConfigPanel() {
       const panel = document.getElementById('scoreConfigPanel');
-      panel.classList.toggle('hidden');
+      if (panel) panel.classList.toggle('hidden');
     }
 
     function updateScoreConfig() {
@@ -848,11 +1012,11 @@
       const totalBtn = document.getElementById('sort-total-btn');
       const avgBtn = document.getElementById('sort-avg-btn');
       if (mode === 'total') {
-        totalBtn.className = 'px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black transition';
-        avgBtn.className = 'px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 font-bold transition';
+        totalBtn.className = 'px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black transition cursor-pointer';
+        avgBtn.className = 'px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 font-bold transition cursor-pointer';
       } else {
-        avgBtn.className = 'px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black transition';
-        totalBtn.className = 'px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 font-bold transition';
+        avgBtn.className = 'px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black transition cursor-pointer';
+        totalBtn.className = 'px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 font-bold transition cursor-pointer';
       }
       recalculateScores();
     }
@@ -884,7 +1048,6 @@
         }
       });
 
-      // 展開該場次讓用戶看到結果
       expandedSessions.add(sessionNo);
       saveToStorage();
       renderCards();
@@ -936,7 +1099,6 @@
       const hWeight = appState.husbandWeight / 100;
       const wWeight = appState.wifeWeight / 100;
 
-      // 加權總分與加權單曲平均分
       let weightedTotal = 0;
       let weightedAvg = 0;
 
@@ -998,8 +1160,13 @@
       const topBox = document.getElementById('topRecommendations');
       if (ratedList.length === 0) {
         topBox.innerHTML = `
-          <div class="col-span-full py-8 text-center text-slate-400 text-sm sm:text-base font-medium bg-slate-950/50 rounded-2xl border border-slate-800/80">
-            夫婦二人尚未開始打分！請在下方展開場次為歌曲點選 <span class="text-amber-400 font-bold">[神曲]</span>、<span class="text-emerald-400 font-bold">[好聽]</span>、<span class="text-sky-400 font-bold">[普通]</span> 或 <span class="text-slate-300 font-bold">[唔識]</span>，系統將自動計算 Top 10！
+          <div class="col-span-full py-7 px-4 text-center text-slate-300 text-base sm:text-lg font-medium bg-slate-950/60 rounded-2xl border border-slate-800 space-y-3">
+            <div>👇 請在下方歌單點選 <span class="text-amber-400 font-black">[🔥神曲]</span>、<span class="text-emerald-400 font-black">[💖好聽]</span>、<span class="text-sky-400 font-black">[☕普通]</span> 或 <span class="text-slate-300 font-black">[❓唔識]</span>，系統將即時排出 Top 10！</div>
+            <div>
+              <button type="button" onclick="loadDemoData()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm sm:text-base shadow-lg cursor-pointer">
+                ✨ 點此一鍵載入示範評分 (預覽 Top 10 效果)
+              </button>
+            </div>
           </div>
         `;
       } else {
@@ -1020,7 +1187,7 @@
             rankBadge = '<span class="text-xs sm:text-sm font-black text-amber-500">🥉 No.3 備選推薦</span>';
             borderClass = 'border-2 border-amber-700/80 bg-amber-950/20 shadow-md';
           } else {
-            rankBadge = `<span class="text-xs font-black px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">No.${rank}</span>`;
+            rankBadge = `<span class="text-xs font-black px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">No.${rank}</span>`;
             borderClass = 'border border-slate-800 bg-slate-900/90 hover:border-slate-700';
           }
 
@@ -1039,17 +1206,17 @@
                   ${rankBadge}
                   <div class="text-right">
                     <div class="text-xl sm:text-2xl font-black text-amber-400 leading-none">${mainScoreText}</div>
-                    <div class="text-[11px] text-slate-400 font-semibold mt-0.5">${subScoreText}</div>
+                    <div class="text-xs text-slate-400 font-semibold mt-0.5">${subScoreText}</div>
                   </div>
                 </div>
-                <h4 class="font-black text-white text-base sm:text-lg truncate mt-1">${item.name}</h4>
-                <div class="text-xs text-slate-300 font-bold mt-0.5">
+                <h4 class="font-black text-white text-lg sm:text-xl truncate mt-1">${item.name}</h4>
+                <div class="text-xs sm:text-sm text-slate-300 font-bold mt-0.5">
                   <span class="text-amber-400">第 ${item.sessionNo < 10 ? '0' + item.sessionNo : item.sessionNo} 場</span> · ${item.dateText.replace(/202[67]年/, '')}
                 </div>
               </div>
-              <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-bold">
-                <span class="text-blue-400">🤵 總${m.hSum}分 (🔥${m.hGodCount})</span>
-                <span class="text-pink-400">👰 總${m.wSum}分 (🔥${m.wGodCount})</span>
+              <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs sm:text-sm font-bold">
+                <span class="text-blue-400">🤵 ${m.hSum}分 (🔥${m.hGodCount})</span>
+                <span class="text-pink-400">👰 ${m.wSum}分 (🔥${m.wGodCount})</span>
               </div>
             </div>
           `;
@@ -1081,9 +1248,9 @@
         const el = document.getElementById(`tab-${m}`);
         if (!el) return;
         if (m === month) {
-          el.className = 'px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black shrink-0 shadow-md';
+          el.className = 'px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black shrink-0 shadow-md cursor-pointer';
         } else {
-          el.className = 'px-4 py-2 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800 font-bold';
+          el.className = 'px-4 py-2.5 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800 font-bold cursor-pointer';
         }
       });
       renderCards();
@@ -1093,17 +1260,20 @@
     function handleSearch(val) {
       searchQuery = val.trim().toLowerCase();
       const clearBtn = document.getElementById('clearSearchBtn');
-      if (searchQuery.length > 0) {
-        clearBtn.classList.remove('hidden');
-      } else {
-        clearBtn.classList.add('hidden');
+      if (clearBtn) {
+        if (searchQuery.length > 0) {
+          clearBtn.classList.remove('hidden');
+        } else {
+          clearBtn.classList.add('hidden');
+        }
       }
       renderCards();
       recalculateScores();
     }
 
     function clearSearch() {
-      document.getElementById('songSearchInput').value = '';
+      const inp = document.getElementById('songSearchInput');
+      if (inp) inp.value = '';
       handleSearch('');
     }
 
@@ -1114,10 +1284,15 @@
         expandedSessions.add(sessionNo);
       }
       const wrapper = document.getElementById(`tracks-wrapper-${sessionNo}`);
-      const icon = document.getElementById(`toggle-icon-${sessionNo}`);
-      if (wrapper && icon) {
-        wrapper.classList.toggle('hidden');
-        icon.classList.toggle('rotate-180');
+      const btnText = document.getElementById(`toggle-text-${sessionNo}`);
+      const s = OFFICIAL_26_SESSIONS.find(x => x.sessionNo === sessionNo);
+      if (wrapper) {
+        const isNowHidden = wrapper.classList.toggle('hidden');
+        if (btnText && s) {
+          btnText.innerText = isNowHidden
+            ? `▼ 點擊展開完整 ${s.tracks.length} 首歌曲評分選單`
+            : `▲ 點擊收起 ${s.tracks.length} 首歌曲評分選單`;
+        }
       }
     }
 
@@ -1136,15 +1311,12 @@
       return RATING_LEVELS.map(lv => {
         const isActive = currentVal === lv.key;
         const pts = appState.scoreConfig[lv.key];
-        let cls = 'bg-slate-800/90 text-slate-300 border-slate-700 hover:bg-slate-700';
-        if (isActive) {
-          cls = role === 'h' ? lv.activeHus : lv.activeWife;
-        }
+        const activeClass = isActive ? (role === 'h' ? lv.activeHus : lv.activeWife) : '';
         return `
           <button type="button"
                   onclick="setTrackRating(${sessionNo}, ${trackIdx}, '${role}', '${lv.key}')"
                   title="${lv.label} (${pts}分)"
-                  class="rate-btn px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border text-xs sm:text-sm flex items-center justify-center gap-1 ${cls}">
+                  class="rate-btn ${activeClass}">
             <span>${lv.icon}</span>
             <span>${lv.label}</span>
           </button>
@@ -1170,24 +1342,24 @@
       if (!m.isRated) {
         scoreBox.innerHTML = `
           <div class="text-right">
-            <span class="px-3 py-1 rounded-xl bg-slate-800 text-slate-400 text-xs sm:text-sm font-bold">尚未評分</span>
+            <span class="px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs sm:text-sm font-bold border border-slate-700">尚未打分</span>
           </div>
         `;
       } else {
         scoreBox.innerHTML = `
-          <div class="flex items-center gap-3 sm:gap-5 bg-slate-950/80 px-4 py-2.5 rounded-2xl border border-slate-800">
+          <div class="flex flex-wrap items-center gap-3 sm:gap-5 bg-slate-950/90 px-4 py-2.5 rounded-2xl border border-slate-800">
             <div class="text-center">
-              <div class="text-[11px] font-bold text-blue-400">🤵 老公 (${m.hRatedCount}/${m.trackCount}首)</div>
-              <div class="text-sm sm:text-base font-black text-white">${m.hSum}分 <span class="text-xs text-slate-400 font-normal">(均${m.hAvg})</span></div>
+              <div class="text-xs font-bold text-blue-400">🤵 老公 (${m.hRatedCount}/${m.trackCount}首)</div>
+              <div class="text-base sm:text-lg font-black text-white">${m.hSum}分 <span class="text-xs text-slate-400 font-normal">(均${m.hAvg})</span></div>
             </div>
             <div class="text-center">
-              <div class="text-[11px] font-bold text-pink-400">👰 老婆 (${m.wRatedCount}/${m.trackCount}首)</div>
-              <div class="text-sm sm:text-base font-black text-white">${m.wSum}分 <span class="text-xs text-slate-400 font-normal">(均${m.wAvg})</span></div>
+              <div class="text-xs font-bold text-pink-400">👰 老婆 (${m.wRatedCount}/${m.trackCount}首)</div>
+              <div class="text-base sm:text-lg font-black text-white">${m.wSum}分 <span class="text-xs text-slate-400 font-normal">(均${m.wAvg})</span></div>
             </div>
-            <div class="pl-2 border-l border-slate-800 text-right">
-              <div class="text-[11px] font-bold text-amber-400">加權總分</div>
-              <div class="text-xl sm:text-2xl font-black text-amber-400 leading-none">${m.weightedTotal}<span class="text-xs text-slate-400 font-normal ml-0.5">分</span></div>
-              <div class="text-[11px] text-emerald-400 font-bold mt-0.5">均分 ${m.weightedAvg}</div>
+            <div class="pl-3 border-l border-slate-800 text-right">
+              <div class="text-xs font-bold text-amber-400">加權總分</div>
+              <div class="text-2xl sm:text-3xl font-black text-amber-400 leading-none">${m.weightedTotal}<span class="text-xs text-slate-400 font-normal ml-0.5">分</span></div>
+              <div class="text-xs text-emerald-400 font-bold mt-0.5">單曲均分 ${m.weightedAvg}</div>
             </div>
           </div>
         `;
@@ -1195,11 +1367,11 @@
 
       if (progressBox) {
         if (!m.isRated) {
-          progressBox.innerHTML = `<span class="text-slate-500">點擊展開為 ${m.trackCount} 首歌曲評分</span>`;
+          progressBox.innerHTML = `<span class="text-slate-400 font-medium">共 ${m.trackCount} 首完整曲目</span>`;
         } else {
           progressBox.innerHTML = `
             <span class="text-emerald-400 font-bold">
-              🔥神曲: 老公${m.hGodCount}首 / 老婆${m.wGodCount}首 · 💖好聽: 老公${m.hGoodCount}首 / 老婆${m.wGoodCount}首
+              🔥神曲: 老公${m.hGodCount} / 老婆${m.wGodCount} · 💖好聽: 老公${m.hGoodCount} / 老婆${m.wGoodCount}
             </span>
           `;
         }
@@ -1226,8 +1398,8 @@
 
       if (filtered.length === 0) {
         container.innerHTML = `
-          <div class="p-10 text-center text-slate-400 text-base font-bold bg-slate-900 rounded-3xl border border-slate-800">
-            找不到符合條件的場次或歌曲，請嘗試其他關鍵字或切換月份標籤。
+          <div class="p-10 text-center text-slate-300 text-lg font-bold bg-slate-900 rounded-3xl border border-slate-800">
+            找不到符合條件的場次或歌曲，請嘗試其他關鍵字或切換上方月份標籤。
           </div>
         `;
         return;
@@ -1235,21 +1407,25 @@
 
       container.innerHTML = filtered.map(s => {
         const isExpanded = expandedSessions.has(s.sessionNo) || searchQuery.length > 0;
+        const toggleLabel = isExpanded
+          ? `▲ 點擊收起 ${s.tracks.length} 首歌曲評分選單`
+          : `▼ 點擊展開完整 ${s.tracks.length} 首歌曲評分選單`;
+
         return `
-          <div id="card-${s.sessionNo}" class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-lg transition">
+          <div id="card-${s.sessionNo}" class="bg-slate-900 border-2 border-slate-800 rounded-3xl overflow-hidden shadow-lg transition">
             
             <!-- 場次頂部資訊列 -->
-            <div class="p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div class="cursor-pointer" onclick="toggleTracks(${s.sessionNo})">
-                <div class="flex flex-wrap items-center gap-2 mb-1">
-                  <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs sm:text-sm font-black">
+                <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                  <span class="px-3 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs sm:text-sm font-black">
                     第 ${s.sessionNo < 10 ? '0' + s.sessionNo : s.sessionNo} 場
                   </span>
-                  <span class="text-xs sm:text-sm font-bold text-slate-300">${s.dateText}</span>
-                  <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 text-xs font-bold">共 ${s.tracks.length} 首</span>
+                  <span class="text-sm sm:text-base font-bold text-slate-200">${s.dateText}</span>
+                  <span class="px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 text-xs sm:text-sm font-bold">全 ${s.tracks.length} 首</span>
                 </div>
                 <h3 class="text-xl sm:text-2xl font-black text-white leading-snug hover:text-amber-300 transition">${s.name}</h3>
-                <p class="text-xs sm:text-sm text-slate-400 mt-1 font-medium">${s.year} · ${s.desc}</p>
+                <p class="text-xs sm:text-base text-slate-400 mt-1 font-medium">${s.year} · ${s.desc}</p>
               </div>
 
               <!-- 總分與均分顯示區 -->
@@ -1257,61 +1433,60 @@
             </div>
 
             <!-- 展開/收起控制列 -->
-            <div class="px-4 sm:px-5 py-2.5 border-t border-slate-800/80 bg-slate-950/50 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
-              <button type="button" onclick="toggleTracks(${s.sessionNo})" class="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-2 py-1">
-                <i id="toggle-icon-${s.sessionNo}" class="fa-solid fa-chevron-down transition-transform ${isExpanded ? 'rotate-180' : ''}"></i>
-                <span>展開 / 收起完整 ${s.tracks.length} 首歌曲評分選單</span>
+            <div class="px-5 sm:px-6 py-3 border-t border-slate-800 bg-slate-950/60 flex flex-wrap items-center justify-between gap-2 text-sm sm:text-base">
+              <button type="button" onclick="toggleTracks(${s.sessionNo})" class="text-amber-400 hover:text-amber-300 font-black flex items-center gap-2 py-1 cursor-pointer">
+                <span id="toggle-text-${s.sessionNo}">${toggleLabel}</span>
               </button>
               <div id="progress-tag-${s.sessionNo}" class="text-xs sm:text-sm"></div>
             </div>
 
             <!-- 曲目評分清單 -->
-            <div id="tracks-wrapper-${s.sessionNo}" class="${isExpanded ? '' : 'hidden'} border-t border-slate-800 bg-slate-950/80 px-4 sm:px-6 py-4 space-y-3">
+            <div id="tracks-wrapper-${s.sessionNo}" class="${isExpanded ? '' : 'hidden'} border-t border-slate-800 bg-slate-950/90 px-4 sm:px-6 py-4 space-y-3.5">
               
               <!-- 整張專輯快速填分工具列 -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-900 border border-slate-800 text-xs sm:text-sm">
                 <div class="flex flex-wrap items-center gap-1.5">
                   <span class="font-black text-blue-400 mr-1">🤵 老公快填：</span>
-                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'h', 'rest_unknown')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold">未評設為[唔識]</button>
-                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'h', 'good')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-blue-300 border border-slate-700 font-bold">全碟[好聽]</button>
-                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'h', 'normal')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 font-bold">全碟[普通]</button>
-                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'h', 'clear')" class="px-2 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50">清空</button>
+                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'h', 'rest_unknown')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold cursor-pointer">未評設為[唔識]</button>
+                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'h', 'good')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-blue-300 border border-slate-700 font-bold cursor-pointer">全碟[好聽]</button>
+                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'h', 'normal')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 font-bold cursor-pointer">全碟[普通]</button>
+                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'h', 'clear')" class="px-2.5 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900 text-rose-200 border border-rose-800/60 font-bold cursor-pointer">清空</button>
                 </div>
                 <div class="flex flex-wrap items-center gap-1.5">
                   <span class="font-black text-pink-400 mr-1">👰 老婆快填：</span>
-                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'w', 'rest_unknown')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold">未評設為[唔識]</button>
-                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'w', 'good')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-pink-300 border border-slate-700 font-bold">全碟[好聽]</button>
-                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'w', 'normal')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-300 border border-slate-700 font-bold">全碟[普通]</button>
-                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'w', 'clear')" class="px-2 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50">清空</button>
+                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'w', 'rest_unknown')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold cursor-pointer">未評設為[唔識]</button>
+                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'w', 'good')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-pink-300 border border-slate-700 font-bold cursor-pointer">全碟[好聽]</button>
+                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'w', 'normal')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-300 border border-slate-700 font-bold cursor-pointer">全碟[普通]</button>
+                  <button type="button" onclick="quickFillSession(${s.sessionNo}, 'w', 'clear')" class="px-2.5 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900 text-rose-200 border border-rose-800/60 font-bold cursor-pointer">清空</button>
                 </div>
               </div>
 
               <!-- 歌曲逐首列表 -->
-              <div class="divide-y divide-slate-800/70">
+              <div class="divide-y divide-slate-800/80">
                 ${s.tracks.map((trackName, tIdx) => {
                   const isMatch = searchQuery && trackName.toLowerCase().includes(searchQuery);
                   return `
-                    <div class="py-3 px-2 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 hover:bg-slate-900/50 rounded-xl transition ${isMatch ? 'bg-amber-950/30 border border-amber-500/40' : ''}">
-                      <div class="flex items-center gap-2.5 min-w-0">
-                        <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 text-xs font-bold flex items-center justify-center shrink-0">${tIdx + 1}</span>
-                        <span class="text-base sm:text-lg font-bold text-slate-100 break-words ${isMatch ? 'text-amber-300 underline font-black' : ''}">
+                    <div class="py-3.5 px-2 flex flex-col xl:flex-row xl:items-center justify-between gap-3 hover:bg-slate-900/60 rounded-xl transition ${isMatch ? 'bg-amber-950/40 border border-amber-500/50' : ''}">
+                      <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-7 h-7 rounded-full bg-slate-800 text-slate-300 text-xs sm:text-sm font-black flex items-center justify-center shrink-0">${tIdx + 1}</span>
+                        <span class="text-base sm:text-xl font-bold text-white break-words ${isMatch ? 'text-amber-300 underline font-black' : ''}">
                           ${trackName}
                         </span>
                       </div>
 
-                      <div class="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-5 shrink-0 pl-8 lg:pl-0">
+                      <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 shrink-0 pl-2 xl:pl-0">
                         <!-- 老公 4 選 1 -->
-                        <div class="flex items-center gap-1.5">
-                          <span class="text-xs font-black text-blue-400 w-12 shrink-0">🤵 老公</span>
-                          <div class="flex flex-wrap gap-1" id="trk-${s.sessionNo}-${tIdx}-h">
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs sm:text-sm font-black text-blue-400 w-14 shrink-0">🤵 老公</span>
+                          <div class="flex flex-wrap gap-1.5" id="trk-${s.sessionNo}-${tIdx}-h">
                             ${renderTrackButtonsHTML(s.sessionNo, tIdx, 'h')}
                           </div>
                         </div>
 
                         <!-- 老婆 4 選 1 -->
-                        <div class="flex items-center gap-1.5">
-                          <span class="text-xs font-black text-pink-400 w-12 shrink-0">👰 老婆</span>
-                          <div class="flex flex-wrap gap-1" id="trk-${s.sessionNo}-${tIdx}-w">
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs sm:text-sm font-black text-pink-400 w-14 shrink-0">👰 老婆</span>
+                          <div class="flex flex-wrap gap-1.5" id="trk-${s.sessionNo}-${tIdx}-w">
                             ${renderTrackButtonsHTML(s.sessionNo, tIdx, 'w')}
                           </div>
                         </div>
@@ -1350,24 +1525,25 @@
       if (baseUrl) {
         fullMsg += `\n🔗 點擊連結直接載入打分：\n${baseUrl}\n`;
       }
-      fullMsg += `\n📋 接力同步代碼（複製整段貼入「貼上代碼」）：\nEASONSYNC:${codeStr}`;
+      fullMsg += `\n📋 接力同步代碼（複製整段貼入「貼上接力碼」）：\nEASONSYNC:${codeStr}`;
 
-      document.getElementById('modalTitle').innerHTML = `<i class="fa-brands fa-whatsapp text-emerald-400 text-2xl"></i> 產生 WhatsApp 接力分享`;
+      document.getElementById('modalTitle').innerText = '📲 產生 WhatsApp 接力分享';
       document.getElementById('modalDesc').innerText = baseUrl
         ? '已為你產生專屬同步連結與接力碼！複製後傳給另一半，對方點開連結或貼上代碼即可同步所有歌曲評分：'
-        : '目前已產生接力同步代碼！複製下方文字透過 WhatsApp 傳給另一半，對方點選頂部「貼上代碼」即可同步所有歌曲評分：';
+        : '目前已產生接力同步代碼！複製下方文字透過 WhatsApp 傳給另一半，對方點選頂部「📥 貼上接力碼」即可同步所有歌曲評分：';
       
       const textarea = document.getElementById('modalTextarea');
+      textarea.classList.remove('hidden');
       textarea.value = fullMsg;
       textarea.readOnly = true;
 
       const waUrl = `https://wa.me/?text=${encodeURIComponent(fullMsg)}`;
       document.getElementById('modalActions').innerHTML = `
-        <button type="button" onclick="copyModalText()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-1.5">
-          <i class="fa-regular fa-copy"></i> 一鍵複製文字與代碼
+        <button type="button" onclick="copyModalText()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm cursor-pointer">
+          📋 一鍵複製文字與代碼
         </button>
-        <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm flex items-center gap-1.5">
-          <i class="fa-brands fa-whatsapp"></i> 直接開啟 WhatsApp 傳送
+        <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm no-underline">
+          📲 開啟 WhatsApp 傳送
         </a>
       `;
 
@@ -1377,29 +1553,39 @@
     function copyModalText() {
       const textarea = document.getElementById('modalTextarea');
       textarea.select();
-      navigator.clipboard.writeText(textarea.value).then(() => {
-        showToast('✅ 已複製到剪貼簿！可貼上至 WhatsApp');
-      }).catch(() => {
-        document.execCommand('copy');
-        showToast('✅ 已複製到剪貼簿！');
-      });
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(textarea.value).then(() => {
+            showToast('已複製到剪貼簿！可貼上至 WhatsApp');
+          }).catch(() => {
+            document.execCommand('copy');
+            showToast('已複製到剪貼簿！');
+          });
+        } else {
+          document.execCommand('copy');
+          showToast('已複製到剪貼簿！');
+        }
+      } catch (e) {
+        showToast('請長按文字框手動全選複製');
+      }
     }
 
     function openImportModal() {
-      document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-file-import text-sky-400 text-xl"></i> 貼上另一半的接力代碼`;
+      document.getElementById('modalTitle').innerText = '📥 貼上另一半的接力代碼';
       document.getElementById('modalDesc').innerText = '請將另一半從 WhatsApp 傳給你的整段訊息或 EASONSYNC 代碼貼在下方空格，然後按「確認同步」：';
       
       const textarea = document.getElementById('modalTextarea');
+      textarea.classList.remove('hidden');
       textarea.value = '';
       textarea.readOnly = false;
       textarea.placeholder = '在此貼上包含 EASONSYNC:... 或 #data=... 的訊息';
 
       document.getElementById('modalActions').innerHTML = `
-        <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs sm:text-sm">
+        <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs sm:text-sm cursor-pointer">
           取消
         </button>
-        <button type="button" onclick="confirmImportCode()" class="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-1.5">
-          <i class="fa-solid fa-check"></i> 確認同步評分
+        <button type="button" onclick="confirmImportCode()" class="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs sm:text-sm cursor-pointer">
+          ✅ 確認同步評分
         </button>
       `;
 
@@ -1409,7 +1595,7 @@
     function confirmImportCode() {
       const rawInput = document.getElementById('modalTextarea').value.trim();
       if (!rawInput) {
-        alert('請先貼上代碼！');
+        showToast('請先在輸入框貼上代碼！');
         return;
       }
       try {
@@ -1427,7 +1613,7 @@
         closeModal();
         showToast('🎉 成功同步另一半的評分數據！');
       } catch (e) {
-        alert('❌ 代碼格式不正確，請確認複製了完整的 EASONSYNC 訊息！');
+        showToast('❌ 代碼格式不正確，請確認複製了完整的 EASONSYNC 訊息');
       }
     }
 
@@ -1456,7 +1642,7 @@
       saveToStorage();
       renderCards();
       recalculateScores();
-      showToast('✨ 已載入 12 場熱門測試評分！可查看 Top 10 效果');
+      showToast('✨ 已載入 12 場熱門示範評分！可查看上方 Top 10 排行榜');
     }
 
     function exportJSONFile() {
@@ -1472,24 +1658,43 @@
     }
 
     function resetAllData() {
-      if (confirm('確定要清空所有已打的分數並還原初始狀態嗎？')) {
-        localStorage.removeItem(STORAGE_KEY);
-        appState = {
-          wifeWeight: 70,
-          husbandWeight: 30,
-          scoreConfig: { ...DEFAULT_SCORE_CONFIG },
-          ratings: {}
-        };
-        expandedSessions.clear();
-        initRatingsStructure();
-        syncControlsUI();
-        renderCards();
-        recalculateScores();
-        showToast('已清空所有評分記錄');
-      }
+      document.getElementById('modalTitle').innerText = '🗑️ 確認清空所有評分';
+      document.getElementById('modalDesc').innerText = '確定要清空所有已打的分數並還原初始狀態嗎？此操作無法復原。';
+      document.getElementById('modalTextarea').classList.add('hidden');
+      document.getElementById('modalActions').innerHTML = `
+        <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs sm:text-sm cursor-pointer">
+          取消
+        </button>
+        <button type="button" onclick="confirmResetAllData()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm cursor-pointer">
+          確定清空全部
+        </button>
+      `;
+      document.getElementById('syncModal').classList.remove('hidden');
     }
 
-    window.addEventListener('DOMContentLoaded', loadInitialData);
+    function confirmResetAllData() {
+      safeRemoveStorage(STORAGE_KEY);
+      appState = {
+        wifeWeight: 70,
+        husbandWeight: 30,
+        scoreConfig: { ...DEFAULT_SCORE_CONFIG },
+        ratings: {}
+      };
+      expandedSessions = new Set([1, 26]);
+      initRatingsStructure();
+      syncControlsUI();
+      renderCards();
+      recalculateScores();
+      closeModal();
+      showToast('已清空所有評分記錄');
+    }
+
+    // 確保在各種載入環境下均能立即啟動初始化
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
   </script>
 </body>
 </html>
