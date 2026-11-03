@@ -3,193 +3,436 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Eason 2026 演唱會選場 - 夫妻打分器 (全場次加強版)</title>
+  <title>Eason 2026-2027 演唱錄音會 26場夫妻選場決策器</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&display=swap');
     body { font-family: 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
-    .star-btn { transition: transform 0.1s ease; }
-    .star-btn:active { transform: scale(1.3); }
+    .star-btn { transition: transform 0.15s ease, color 0.15s ease; }
+    .star-btn:active { transform: scale(1.35); }
     .slider::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
-      width: 22px; height: 22px; border-radius: 50%;
+      width: 28px; height: 28px; border-radius: 50%;
       background: #ec4899; cursor: pointer; border: 3px solid #ffffff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
+    .custom-scroll::-webkit-scrollbar { height: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen pb-24">
+<body class="bg-slate-950 text-slate-100 min-h-screen text-base sm:text-lg pb-32">
 
-  <!-- 頂部導航列 -->
-  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 shadow-md">
-    <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-white">
-          <i class="fa-solid fa-compact-disc"></i>
+  <!-- 頂部吸頂導航 -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-3.5 shadow-xl">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-white shadow-lg shrink-0">
+          <i class="fa-solid fa-compact-disc text-2xl animate-spin" style="animation-duration: 9s;"></i>
         </div>
         <div>
-          <h1 class="text-sm sm:text-base font-bold text-white">Eason 2026 選場器</h1>
-          <p class="text-[11px] text-slate-400">26 張全生涯專輯 · 支援自訂場次</p>
+          <h1 class="text-lg sm:text-2xl font-black text-white leading-tight">Eason 2026-2027 錄音會選場</h1>
+          <p class="text-xs sm:text-sm text-slate-400 font-medium">香港演藝學院 · 官方 26 場專輯重錄全集</p>
         </div>
       </div>
       
       <!-- 方案 A 同步按鈕組 -->
-      <div class="flex items-center gap-1.5 sm:gap-2">
-        <button onclick="openAddCustomModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-indigo-300 flex items-center gap-1 border border-indigo-900/60 transition">
-          <i class="fa-solid fa-plus text-xs"></i>
-          <span>新增場次</span>
+      <div class="flex items-center gap-2">
+        <button onclick="importSyncCodeModal()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm text-slate-200 flex items-center gap-1.5 border border-slate-700 shadow-sm active:scale-95 transition">
+          <i class="fa-solid fa-file-import text-amber-400 text-base"></i>
+          <span class="font-bold">貼上代碼</span>
         </button>
-        <button onclick="importSyncCodeModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1 border border-slate-700 transition">
-          <i class="fa-solid fa-file-import text-amber-400"></i>
-          <span class="hidden sm:inline">貼上代碼</span>
-        </button>
-        <button onclick="generateWhatsAppShare()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white flex items-center gap-1 shadow-sm transition">
-          <i class="fa-brands fa-whatsapp text-sm"></i>
+        <button onclick="generateWhatsAppShare()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs sm:text-sm font-bold text-white flex items-center gap-2 shadow-md active:scale-95 transition">
+          <i class="fa-brands fa-whatsapp text-lg"></i>
           <span>WhatsApp 接力</span>
         </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-4xl mx-auto px-4 py-5 space-y-5">
+  <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- 話事權重調配板 -->
-    <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2 text-sm font-bold text-white">
-          <i class="fa-solid fa-scale-balanced text-amber-400"></i>
+    <!-- 夫妻話事權重調配板 -->
+    <section class="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-md space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5 text-base sm:text-lg font-black text-white">
+          <i class="fa-solid fa-scale-balanced text-amber-400 text-xl"></i>
           <span>話事權重調配 (夫妻比例)</span>
         </div>
-        <div class="flex items-center gap-1 bg-slate-800 p-1 rounded-xl text-xs">
-          <button onclick="setWeightPreset(50)" class="px-2 py-0.5 rounded text-slate-300">平權 50:50</button>
-          <button onclick="setWeightPreset(70)" class="px-2 py-0.5 rounded bg-pink-950 text-pink-300 font-bold border border-pink-700">求生 70:30</button>
-          <button onclick="setWeightPreset(100)" class="px-2 py-0.5 rounded text-slate-300">老婆全權</button>
+        <div class="flex items-center gap-1.5 bg-slate-800/80 p-1.5 rounded-2xl text-xs sm:text-sm font-bold">
+          <button onclick="setWeightPreset(50)" class="px-3 py-1.5 rounded-xl hover:bg-slate-700 text-slate-300 transition">平權 50:50</button>
+          <button onclick="setWeightPreset(70)" class="px-3 py-1.5 rounded-xl bg-pink-900/80 text-pink-200 border border-pink-700/60 transition">求生 70:30</button>
+          <button onclick="setWeightPreset(100)" class="px-3 py-1.5 rounded-xl hover:bg-slate-700 text-slate-300 transition">老婆全權</button>
+          <button onclick="setWeightPreset(20)" class="px-3 py-1.5 rounded-xl hover:bg-slate-700 text-slate-300 transition">老公 80%</button>
         </div>
       </div>
 
-      <div class="space-y-1.5">
-        <div class="flex justify-between items-center text-xs font-semibold">
-          <span class="text-blue-400">🤵 老公權重: <span id="husbandWeightText">30</span>%</span>
-          <span class="text-pink-400">👰 老婆權重: <span id="wifeWeightText">70</span>%</span>
+      <div class="space-y-3 pt-1">
+        <div class="flex justify-between items-center text-sm sm:text-base font-bold">
+          <span class="text-blue-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-mars text-lg"></i> 老公權重: <span id="husbandWeightText" class="text-xl font-black">30</span>%
+          </span>
+          <span class="text-pink-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-venus text-lg"></i> 老婆權重: <span id="wifeWeightText" class="text-xl font-black">70</span>%
+          </span>
         </div>
         <input id="weightSlider" type="range" min="0" max="100" value="70" oninput="updateWeight(this.value)"
-               class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider">
+               class="w-full h-3 bg-slate-800 rounded-lg appearance-none cursor-pointer slider">
+        <p class="text-xs sm:text-sm text-slate-400 text-center font-medium">
+          💡 避雷保護：若任一方打出 1~2 分或標註「跳過」，系統將扣除 18 分避雷罰分，防止抽到悶場！
+        </p>
       </div>
     </section>
 
-    <!-- 即時決策 Top 3 推薦卡片 -->
-    <section class="bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-900 border border-indigo-900/40 rounded-2xl p-4 shadow-md">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xs sm:text-sm font-bold text-indigo-300 flex items-center gap-1.5">
-          <i class="fa-solid fa-trophy text-amber-400"></i> 當前最佳場次推薦 Top 3
+    <!-- Top 3 首選推薦榜 -->
+    <section class="bg-gradient-to-br from-indigo-950/70 via-slate-900 to-slate-900 border-2 border-indigo-900/60 rounded-3xl p-5 sm:p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base sm:text-xl font-black text-indigo-300 flex items-center gap-2">
+          <i class="fa-solid fa-trophy text-amber-400 text-xl"></i> 當前最佳場次推薦 Top 3
         </h2>
-        <span class="text-[11px] text-slate-400" id="totalRatedCount">已評分 0 / 26 張</span>
+        <span class="text-xs sm:text-sm font-semibold text-slate-400" id="totalRatedCount">已評分 0 / 26 場</span>
       </div>
-      <div id="topRecommendations" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div id="topRecommendations" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         <!-- 動態渲染 Top 3 -->
       </div>
     </section>
 
-    <!-- 年代分類篩選 Tab -->
-    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-      <button onclick="filterEra('all')" id="tab-all" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold shrink-0">全部 (26+)</button>
-      <button onclick="filterEra('gold')" id="tab-gold" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">新藝寶環球盛世 (2005-2013)</button>
-      <button onclick="filterEra('eeg')" id="tab-eeg" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">英皇千禧年代 (2000-2004)</button>
-      <button onclick="filterEra('mandarin')" id="tab-mandarin" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">國語神碟</button>
-      <button onclick="filterEra('capital')" id="tab-capital" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">華星起步期 (1996-2000)</button>
-      <button onclick="filterEra('recent')" id="tab-recent" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0">近年佳作 (2014-2023)</button>
-    </div>
+    <!-- 搜尋與場次月份過濾 -->
+    <section class="space-y-3">
+      <!-- 歌名即時搜尋 -->
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
+        <input type="text" id="songSearchInput" oninput="handleSearch(this.value)"
+               placeholder="🔍 搜尋想聽的歌或專輯（如：陀飛輪、浮誇、1874、苦瓜、十年）..."
+               class="w-full pl-11 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-base text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition shadow-inner">
+      </div>
 
-    <!-- 專輯列表 -->
-    <div class="flex items-center justify-between pt-1">
-      <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
-        <i class="fa-solid fa-record-vinyl text-rose-400"></i> 專輯場次打分表
+      <!-- 月份分類標籤 -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scroll text-sm sm:text-base font-bold">
+        <button onclick="filterMonth('all')" id="tab-all" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 shrink-0 shadow-md">全部 26 場</button>
+        <button onclick="filterMonth('2026-12')" id="tab-2026-12" class="px-4 py-2 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800">2026年12月 (10場)</button>
+        <button onclick="filterMonth('2027-01')" id="tab-2027-01" class="px-4 py-2 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800">2027年1月 (10場)</button>
+        <button onclick="filterMonth('2027-02')" id="tab-2027-02" class="px-4 py-2 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800">2027年2月 (6場尾場)</button>
+      </div>
+    </section>
+
+    <!-- 專輯場次列表區 -->
+    <div class="flex items-center justify-between pt-2">
+      <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+        <i class="fa-solid fa-music text-rose-400"></i> 26 場完整打分表
       </h2>
-      <div class="flex items-center gap-2 text-xs">
-        <button onclick="toggleAllTracks(true)" class="text-slate-400 hover:text-slate-200">全部展開</button>
+      <div class="flex items-center gap-3 text-sm font-semibold">
+        <button onclick="toggleAllTracks(true)" class="text-slate-400 hover:text-amber-400 transition">全部展開</button>
         <span class="text-slate-700">|</span>
-        <button onclick="toggleAllTracks(false)" class="text-slate-400 hover:text-slate-200">全部收起</button>
+        <button onclick="toggleAllTracks(false)" class="text-slate-400 hover:text-amber-400 transition">全部收起</button>
       </div>
     </div>
 
-    <div id="albumListContainer" class="space-y-3.5">
-      <!-- 渲染完整專輯庫 -->
+    <div id="albumListContainer" class="space-y-4">
+      <!-- 渲染 26 場完整卡片 -->
     </div>
 
-    <!-- 底部清空與操作 -->
-    <div class="pt-2 flex justify-between items-center text-xs text-slate-500">
-      <button onclick="openAddCustomModal()" class="text-indigo-400 hover:underline">
-        <i class="fa-solid fa-plus mr-1"></i> 新增更多特定場次/EP
-      </button>
-      <button onclick="resetData()" class="hover:text-rose-400 transition">
-        <i class="fa-regular fa-trash-can mr-1"></i> 清空全部評分
+    <!-- 底部操作區 -->
+    <div class="pt-6 flex justify-between items-center text-sm text-slate-500">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-shield-halved text-emerald-500"></i>
+        <span>數據自動保存在此手機，換手機時請用 WhatsApp 連結同步</span>
+      </div>
+      <button onclick="resetData()" class="hover:text-rose-400 transition font-medium">
+        <i class="fa-regular fa-trash-can mr-1"></i> 清空重置
       </button>
     </div>
 
   </main>
 
   <script>
-    // 完整的 26 張經典錄音會專輯與代表曲庫
-    const DEFAULT_ALBUMS = [
-      // --- 新藝寶 / 環球巔峰期 ---
-      { id: 'u87', era: 'gold', name: '《U87》', year: '2005', theme: '四台大滿貫 · 世紀大碟', tracks: ['浮誇', '葡萄成熟時', '夕陽無限好', '阿牛', '爛', '不良嗜好', '怕死'] },
-      { id: 'whats-going-on', era: 'gold', name: '《What\'s Going On...?》', year: '2006', theme: '都會熟男內心獨白', tracks: ['富士山下', '最佳損友', '裙下之臣', '黑擇明', '心深傷透', '粵語殘片'] },
-      { id: 'life-continues', era: 'gold', name: '《Life Continues...》', year: '2006', theme: '生活感悟經典 EP', tracks: ['最佳損友', '落花流水', '大個女', '人車誌', '想聽'] },
-      { id: 'listen-to-eason', era: 'gold', name: '《Listen to Eason Chan》', year: '2007', theme: '極速跳舞概念盤', tracks: ['演唱會', 'Crying in the Party', '瑪利奧派對', '熱島小夜曲', '變色龍'] },
-      { id: 'h3m', era: 'gold', name: '《H3M》', year: '2009', theme: '樂隊巡演兄弟情 · 深刻哲思', tracks: ['沙龍', '於心有愧', '七百年後', '今天只做一件事', '太陽照常升起', '一個旅人'] },
-      { id: 'time-flies', era: 'gold', name: '《Time Flies》', year: '2010', theme: '黃金熟男六部曲 EP', tracks: ['陀飛輪', '一絲不掛', '無人之境', '大人', '心腹', '味之素'] },
-      { id: 'stranger-under-my-skin', era: 'gold', name: '《Stranger Under My Skin》', year: '2011', theme: '暗黑哲理與人性冷暖', tracks: ['苦瓜', '六月飛霜', '最後派對', '沼氣', 'My Private Christmas Song'] },
-      { id: 'three-mm', era: 'gold', name: '《...3mm》', year: '2012', theme: 'Swing 操刀 · 復古電子玩味', tracks: ['重口味', '完', '碌卡', '非禮', '信任', '習慣說'] },
-      { id: 'the-key', era: 'gold', name: '《The Key》', year: '2013', theme: '人文關懷神作 · 歌詞巔峰', tracks: ['任我行', '主旋律', '遠在咫尺', '同舟之情', '斯德哥爾摩情人', '告別娑婆'] },
-
-      // --- 英皇時期 ---
-      { id: 'fire', era: 'eeg', name: '《打得火熱》', year: '2000', theme: '千禧狂熱狂想曲', tracks: ['K歌之王', '打得火熱', '綿綿', '低等動物', '吹微風', '溫室效應'] },
-      { id: 'shall-we-dance', era: 'eeg', name: '《Shall We Dance? Shall We Talk!》', year: '2001', theme: '細緻動人家庭與時代記憶', tracks: ['Shall We Talk', '單車', '天下無雙', '2001太空漫遊', '失戀太少', '天使的禮物'] },
-      { id: 'the-easy-ride', era: 'eeg', name: '《The Easy Ride》', year: '2001', theme: '前衛概念 · 港樂狂瀾', tracks: ['衝口而出', '打回原形 (大開眼戒)', '熱帶雨林', '人工智能', '結束開始'] },
-      { id: 'the-line-up', era: 'eeg', name: '《The Line-Up》', year: '2002', theme: '林夕 vs 黃偉文 雙雄對壘', tracks: ['人來人往', '明年今日', '1874', '防不勝防', '我有我愛你', '兩名男子街頭相遇'] },
-      { id: 'live-for-today', era: 'eeg', name: '《Live For Today》', year: '2003', theme: '時代共鳴 · 經典影視', tracks: ['歲月如歌', '十面埋伏', '忘記歌詞', '幸災樂禍', '謊言'] },
-
-      // --- 國語神碟 ---
-      { id: 'special-thanks', era: 'mandarin', name: '《Special Thanks to...》', year: '2002', theme: '金曲獎歌王 · 細膩抒情', tracks: ['你的背包', '想哭', '謝謝儂', '男人的錯', '你會不會', '故事'] },
-      { id: 'black-white-gray', era: 'mandarin', name: '《黑·白·灰》', year: '2003', theme: '傳唱神話 · 國語里程碑', tracks: ['十年', '我們都寂寞', '兄妹', '阿怪', '世界', '寂寞讓你更快樂'] },
-      { id: 'admit-it', era: 'mandarin', name: '《認了吧》', year: '2007', theme: '經典國語改編', tracks: ['愛情轉移', '紅玫瑰', '好久不見', '快樂男生', '月黑風高'] },
-      { id: 'dont-let-go', era: 'mandarin', name: '《不想放手》', year: '2008', theme: '插畫概念 · 記憶沉澱', tracks: ['不要說話', '倒帶人生', '路...一直都在', '獨居動物', '然後怎樣'] },
-      { id: 'rice-shine', era: 'mandarin', name: '《Rice & Shine》', year: '2014', theme: '火星電台 x 林俊傑', tracks: ['你給我聽好', '陰天快樂', '可以了', '四季圈', '愚人快樂'] },
-
-      // --- 華星時期 ---
-      { id: 'eason-1996', era: 'capital', name: '《陳奕迅》同名大碟', year: '1996', theme: '出道初聲 · 時代首部曲', tracks: ['時代曲', '傷信', '遊離份子', '安守本份'] },
-      { id: 'with-me', era: 'capital', name: '《與我常在》', year: '1997', theme: '初露鋒芒 · 陪伴之聲', tracks: ['與我常在', '抱擁這分鐘', '我的世界末日', '今天等我來'] },
-      { id: 'happy-era', era: 'capital', name: '《我的快樂時代》', year: '1998', theme: '樂壇封神奠基之作', tracks: ['我的快樂時代', '黃金時代', '天下無雙', '反高潮', '我什麼都沒有', '新曲+精選'] },
-      { id: 'god-bless', era: 'capital', name: '《天佑愛人》', year: '1999', theme: '世紀末的溫暖暖流', tracks: ['今日', '每一個明天', '快高長大', '如果這一秒鐘你跟我講你不愛我'] },
-      { id: 'happiness', era: 'capital', name: '《幸福》EP', year: '1999', theme: '浪漫永恆名作', tracks: ['幸福摩天輪', '時光倒流二十年', '超人的主題曲', '飄飄飄飄'] },
-      { id: 'nothing-really-matters', era: 'capital', name: '《Nothing Really Matters》', year: '2000', theme: '千禧轉折大膽突破', tracks: ['黑夜不再來', '當這地球沒有花', '愛上你是我眼睛的錯', '美麗有罪'] },
-
-      // --- 近年佳作 ---
-      { id: 'getting-ready', era: 'recent', name: '《準備中》', year: '2015', theme: '重拾初心 · 流行純粹', tracks: ['無條件', '人生馬拉松', '起點·終點', '心燒', '喜歡一個人'] },
-      { id: 'duo-love', era: 'recent', name: '《L.O.V.E.》', year: '2018', theme: 'The DUO Band 巡迴紀念', tracks: ['可一不可再', '與你常在', '瘋狂的朋友', '漸漸', '破壞王', '海膽'] },
-      { id: 'chin-up', era: 'recent', name: '《CHIN UP!》', year: '2023', theme: '林家謙全碟作曲 · 當代心境', tracks: ['塵大師', '人啊人', '盲婚啞嫁', '焦急鬼', '社交恐懼癌', '空城記'] }
+    // 官方 26 場完整對應資料庫（經官方新聞與報導核對整理）
+    const OFFICIAL_26_SESSIONS = [
+      {
+        sessionNo: 1,
+        date: '2026-12-12',
+        dateText: '2026年12月12日 (星期六)',
+        monthGroup: '2026-12',
+        name: '《陳奕迅》',
+        year: '1996 華星出道專輯',
+        desc: '首場開鑼 · 出道初心代表作',
+        tracks: ['時代曲', '傷信', '游離分子', '我怕你不肯', '有意無意', '安守本分', '愛情，幼稚！', '從未癡心', '其實我記得', '當心中有戀愛感覺']
+      },
+      {
+        sessionNo: 2,
+        date: '2026-12-13',
+        dateText: '2026年12月13日 (星期日)',
+        monthGroup: '2026-12',
+        name: '《與我常在》',
+        year: '1997 華星代表作',
+        desc: '經典常在 · 初露鋒芒溫情大碟',
+        tracks: ['與我常在', '抱擁這分鐘', '今天等我來', '現場直播', '愛沒有左右', '生命有幾好', '伴遊', '跟我走好嗎', '敵人', '那一夜有沒有說?']
+      },
+      {
+        sessionNo: 3,
+        date: '2026-12-16',
+        dateText: '2026年12月16日 (星期三)',
+        monthGroup: '2026-12',
+        name: '《I Had A Great Time!》',
+        year: '2004 英皇經典',
+        desc: '感觸至深 · 溫暖療癒之作',
+        tracks: ['一切還好', '最後今晚', '不求人', '八里公路', '24', '萬佛朝宗', '放下來', '愛你入骨', '冤氣', '開不了心']
+      },
+      {
+        sessionNo: 4,
+        date: '2026-12-17',
+        dateText: '2026年12月17日 (星期四)',
+        monthGroup: '2026-12',
+        name: '《The Easy Ride》',
+        year: '2001 英皇經典大碟',
+        desc: '前衛狂瀾 · 黃偉文聯手巔峰',
+        tracks: ['大開眼戒 (打回原形)', '衝口而出', '阿士匹靈', '熱帶雨林', '活著多好', '陽性反應', '我不好愛', '人工智能', '結束開始', '他一個人', '不知所謂']
+      },
+      {
+        sessionNo: 5,
+        date: '2026-12-19',
+        dateText: '2026年12月19日 (星期六)',
+        monthGroup: '2026-12',
+        name: '《H³M》',
+        year: '2009 新藝寶大碟',
+        desc: '太極與兄弟樂隊巡演哲理神碟',
+        tracks: ['沙龍', '於心有愧', '七百年後', '今天只做一件事', '太陽照常升起', '不來也不去', 'Allegro, Opus 3.3 a.m.', '還有什麼可以送給你', '一個旅人', 'Life Goes On']
+      },
+      {
+        sessionNo: 6,
+        date: '2026-12-20',
+        dateText: '2026年12月20日 (星期日)',
+        monthGroup: '2026-12',
+        name: '《Taste the Atmosphere》+《Stranger Under My Skin》',
+        year: '2010-2011 雙EP專場',
+        desc: '暗黑哲思、苦瓜與因為愛情神合璧',
+        tracks: ['苦瓜', '六月飛霜', '最後派對', '講男講女', '超錯', '因為愛情', 'Stranger Under My Skin', '沼氣', 'My Private Christmas Song', 'Welcome To The Future', '花花世界', '我杯茶']
+      },
+      {
+        sessionNo: 7,
+        date: '2026-12-23',
+        dateText: '2026年12月23日 (星期三)',
+        monthGroup: '2026-12',
+        name: '《不想放手》',
+        year: '2008 國語大碟',
+        desc: '插畫概念 · 記憶與人生長途',
+        tracks: ['不要說話', '路...一直都在', '倒帶人生', '獨居動物', '漂亮小姐', '臭美', '土星環', 'Aren\'t You Glad', '7', '然後怎樣']
+      },
+      {
+        sessionNo: 8,
+        date: '2026-12-24',
+        dateText: '2026年12月24日 (星期四 平安夜)',
+        monthGroup: '2026-12',
+        name: '《4 A Change》+《幸福》+《新生活》',
+        year: '1998-2002 聖誕平安夜專場',
+        desc: '平安夜必聽 · 幸福摩天輪與孤獨聖誕',
+        tracks: ['幸福摩天輪', 'Lonely Christmas', '時光倒流二十年', '飄飄飄飄', 'King Kong', '第一類接觸', '少見不怪', '忽然難過', '專家話', '新生活']
+      },
+      {
+        sessionNo: 9,
+        date: '2026-12-26',
+        dateText: '2026年12月26日 (星期六 節禮日)',
+        monthGroup: '2026-12',
+        name: '《黑·白·灰》',
+        year: '2003 國語里程碑',
+        desc: '街知巷聞 · 華語傳唱神話',
+        tracks: ['十年', '兄妹', '我們都寂寞', '阿怪', '世界', '謝謝', '像一句廣告', '寂寞奏鳴曲', '要你的', 'Last Order']
+      },
+      {
+        sessionNo: 10,
+        date: '2026-12-27',
+        dateText: '2026年12月27日 (星期日)',
+        monthGroup: '2026-12',
+        name: '《Special Thanks to...》',
+        year: '2002 金曲獎最佳國語專輯',
+        desc: '金曲歌王 · 極致細膩抒情',
+        tracks: ['你的背包', '想哭', '謝謝儂', '男人的錯', '故事', '你會不會', '狂人日記', '人造衛星', '沒有手機的日子', '跳蚤市場', '給愛麗斯']
+      },
+      {
+        sessionNo: 11,
+        date: '2027-01-06',
+        dateText: '2027年1月6日 (星期三)',
+        monthGroup: '2027-01',
+        name: '《What\'s Going On...?》',
+        year: '2006 新藝寶巔峰',
+        desc: '富士山下白玫瑰 · 熟男成熟獨白',
+        tracks: ['富士山下', '最佳損友', '裙下之臣', '黑擇明', '不如不見', '白玫瑰', '心深傷透', '粵語殘片', '最後的嬉皮士', '解藥', '天公地道']
+      },
+      {
+        sessionNo: 12,
+        date: '2027-01-07',
+        dateText: '2027年1月7日 (星期四)',
+        monthGroup: '2027-01',
+        name: '《認了吧》',
+        year: '2007 國語大碟',
+        desc: '周杰倫作曲淘汰 · 愛情轉移',
+        tracks: ['愛情轉移', '好久不見', '淘汰', '紅玫瑰', '月球上的人', '煙味', '快樂男生', '月黑風高', '愛是一本書', '第一個雅皮士', '白色球鞋']
+      },
+      {
+        sessionNo: 13,
+        date: '2027-01-09',
+        dateText: '2027年1月9日 (星期六)',
+        monthGroup: '2027-01',
+        name: '《Life Continues...》+《Time Flies》',
+        year: '2006-2010 雙EP神合體',
+        desc: '陀飛輪一絲不掛落花流水黃金六部曲',
+        tracks: ['陀飛輪', '一絲不掛', '落花流水', '最佳損友', '無人之境', '人車誌', '大人', '低調', '暴殄天物', '想聽', '大得太快', '心腹', '味之素']
+      },
+      {
+        sessionNo: 14,
+        date: '2027-01-10',
+        dateText: '2027年1月10日 (星期日)',
+        monthGroup: '2027-01',
+        name: '《Other Solidays / ？》',
+        year: '2008-2011 新曲與遺珠專場',
+        desc: '向幕後致敬的歌頌與孤獨患者',
+        tracks: ['歌·頌', '後台', '孤獨患者', '張氏情歌', '內疚', '看穿', 'Baby Song', '哎呀咿呀', '吟遊詩人', '聽一千遍後', '盲婚啞嫁 (Bonus)']
+      },
+      {
+        sessionNo: 15,
+        date: '2027-01-23',
+        dateText: '2027年1月23日 (星期六)',
+        monthGroup: '2027-01',
+        name: '《天佑愛人》',
+        year: '1999 華星經典',
+        desc: '世紀末溫暖暖流 · 今日與每一個明天',
+        tracks: ['今日', '每一個明天', '昨日', '快高長大', '我的世界末日', '貝多芬與我', '如果這一秒鐘你跟我講你不愛我', '眼眉調', '一', '第五個現代化']
+      },
+      {
+        sessionNo: 16,
+        date: '2027-01-24',
+        dateText: '2027年1月24日 (星期日)',
+        monthGroup: '2027-01',
+        name: '《Listen To Eason Chan》',
+        year: '2007 概念跳舞盤',
+        desc: '極速跳舞節奏 · Crying in the Party',
+        tracks: ['Crying in the Party', '演唱會', '瑪利奧派對', '熱島小夜曲', '時代巨輪', '變色龍', '狂熱革命', '閃', '滑鐵盧車站', '乜嘢啫']
+      },
+      {
+        sessionNo: 17,
+        date: '2027-01-27',
+        dateText: '2027年1月27日 (星期三)',
+        monthGroup: '2027-01',
+        name: '《Nothing Really Matters》',
+        year: '2000 華星前衛突破',
+        desc: '世紀交替之作 · 黑夜不再來與地球沒有花',
+        tracks: ['黑夜不再來', '當這地球沒有花', '美麗有罪', '愛上你是我眼睛的錯', '送院途中', '和平飯店', '戲迷情人', '到此一遊', '我感激', 'Made in Hong Kong']
+      },
+      {
+        sessionNo: 18,
+        date: '2027-01-28',
+        dateText: '2027年1月28日 (星期四)',
+        monthGroup: '2027-01',
+        name: '《怎麼樣》',
+        year: '2005 國語大碟',
+        desc: '對不起謝謝 · 城市漂泊男人的自白',
+        tracks: ['對不起 謝謝', '不睡', '不能再等待', '一夜銷魂', '浮城', '早開的長途班', '聽聽', '人神鬥', 'Hippie', '不然你要我怎麼樣']
+      },
+      {
+        sessionNo: 19,
+        date: '2027-01-30',
+        dateText: '2027年1月30日 (星期六)',
+        monthGroup: '2027-01',
+        name: '《The Line-Up》',
+        year: '2002 雙碟世紀神專',
+        desc: '林夕與黃偉文各包辦五首的傳世對壘',
+        tracks: ['人來人往', '明年今日', '1874', '防不勝防', '我有我愛你', '隨意門', '心裡有鬼', '兩名男子街頭相遇', '黑面', '季軍']
+      },
+      {
+        sessionNo: 20,
+        date: '2027-01-31',
+        dateText: '2027年1月31日 (星期日)',
+        monthGroup: '2027-01',
+        name: '《Live For Today》',
+        year: '2003 英皇大碟',
+        desc: '歲月如歌與衝上雲霄的集體青春記憶',
+        tracks: ['歲月如歌', '十面埋伏', '忘記歌詞', '幸災樂禍', '猜情尋', 'Katrina', '謊言', '真相', 'New Order', '呀邊個邊個', '小孩不懂怕']
+      },
+      {
+        sessionNo: 21,
+        date: '2027-02-12',
+        dateText: '2027年2月12日 (星期五 年初一前夕)',
+        monthGroup: '2027-02',
+        name: '《打得火熱》',
+        year: '2000 英皇千禧狂熱',
+        desc: 'K歌之王封神 · 綿綿與低等動物',
+        tracks: ['K歌之王', '綿綿', '打得火熱', '低等動物', '溫室效應', '吹微風', '美麗謊言', '新廣告歌', '活躍症', '下週同樣時間(再見!)']
+      },
+      {
+        sessionNo: 22,
+        date: '2027-02-13',
+        dateText: '2027年2月13日 (星期六 年初二)',
+        monthGroup: '2027-02',
+        name: '《It\'s me 反正是我》',
+        year: '2001 國語大碟',
+        desc: '愛是懷疑與全世界失眠 · 節奏律動感',
+        tracks: ['愛是懷疑', '全世界失眠', '不如這樣', 'K歌之王 (國語版)', '低等動物 (國語版)', 'Because You\'re Good to Me', '沒有你', '冤家', '我也不會那麼做', 'Good Times']
+      },
+      {
+        sessionNo: 23,
+        date: '2027-02-16',
+        dateText: '2027年2月16日 (星期二 年初五)',
+        monthGroup: '2027-02',
+        name: '《上五樓的快活》',
+        year: '2009 國語大碟',
+        desc: '蔡健雅青峰聯手 · 多少與床頭燈',
+        tracks: ['多少', '床頭燈', '給你', '在你身邊', '心的距離', '這樣的一個麻煩', 'Nothing Ever Happened', '你為什麼哭了呢', '謀財害命', '我甲你', '從何說起']
+      },
+      {
+        sessionNo: 24,
+        date: '2027-02-17',
+        dateText: '2027年2月17日 (星期三)',
+        monthGroup: '2027-02',
+        name: '《我的快樂時代》',
+        year: '1998 華星樂壇封神作',
+        desc: '天下無雙黃金時代 · 香港樂壇里程碑',
+        tracks: ['我的快樂時代', '天下無雙', '黃金時代', '我甚麼都沒有', '反高潮', '新曲+精選', '相信相依', '愈想愈無謂', '兩種講法', '請相信我']
+      },
+      {
+        sessionNo: 25,
+        date: '2027-02-19',
+        dateText: '2027年2月19日 (星期五)',
+        monthGroup: '2027-02',
+        name: '《Shall We Dance? Shall We Talk!》',
+        year: '2001 英皇神級大碟',
+        desc: '單車與天使的禮物 · 細膩溫情動人',
+        tracks: ['Shall We Talk', '單車', '2001太空漫遊', '天使的禮物', '失戀太少', '孤獨探戈', '黑暗中漫舞', '信心花舍', 'Shall We Dance', '怪物']
+      },
+      {
+        sessionNo: 26,
+        date: '2027-02-20',
+        dateText: '2027年2月20日 (星期六 終極尾場)',
+        monthGroup: '2027-02',
+        name: '《U87》',
+        year: '2005 世紀經典大碟',
+        desc: '四台大滿貫 · 浮誇葡萄成熟時夕陽無限好',
+        tracks: ['浮誇', '葡萄成熟時', '夕陽無限好', '阿牛', '爛', '大個女', '16月6日晴', '不良嗜好', '怕死', '三個人的探戈', '新美人主義']
+      }
     ];
 
-    let currentEraFilter = 'all';
+    let currentMonthFilter = 'all';
+    let searchQuery = '';
     let appState = {
       wifeWeight: 70,
       husbandWeight: 30,
-      albums: JSON.parse(JSON.stringify(DEFAULT_ALBUMS)),
-      ratings: {}
+      ratings: {} // [sessionNo]: { hOverall, wOverall, tracks: { [t]: {h, w} } }
     };
 
-    function initRatingsState() {
-      appState.albums.forEach(a => {
-        if (!appState.ratings[a.id]) {
-          appState.ratings[a.id] = { hOverall: 0, wOverall: 0, tracks: {} };
-          a.tracks.forEach(t => { appState.ratings[a.id].tracks[t] = { h: 0, w: 0 }; });
+    function initRatings() {
+      OFFICIAL_26_SESSIONS.forEach(s => {
+        if (!appState.ratings[s.sessionNo]) {
+          appState.ratings[s.sessionNo] = { hOverall: 0, wOverall: 0, tracks: {} };
+          s.tracks.forEach(t => {
+            appState.ratings[s.sessionNo].tracks[t] = { h: 0, w: 0 };
+          });
         }
       });
     }
 
     function loadInitialData() {
-      // 1. 檢查 URL Hash (方案 A)
+      initRatings();
+
+      // 檢查 URL Hash (方案 A)
       if (window.location.hash.startsWith('#data=')) {
         try {
           const raw = window.location.hash.replace('#data=', '');
@@ -197,17 +440,16 @@
           if (parsed && parsed.ratings) {
             mergeLoadedRatings(parsed);
             window.location.hash = '';
-            alert('🎉 已成功從分享連結同步夫妻打分與自訂場次！');
+            alert('🎉 成功從分享連結同步夫妻打分數據！');
           }
         } catch(e) {
-          console.error("無法解析 Hash", e);
+          console.error("無法解析 URL Hash", e);
         }
       } else {
-        const saved = localStorage.getItem('eason_picker_state_v3');
+        const saved = localStorage.getItem('eason_recording_sessions_26_v4');
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            if (parsed.albums) appState.albums = parsed.albums;
             appState.wifeWeight = parsed.wifeWeight ?? 70;
             appState.husbandWeight = parsed.husbandWeight ?? 30;
             appState.ratings = parsed.ratings ?? {};
@@ -215,15 +457,15 @@
         }
       }
 
-      initRatingsState();
+      initRatings();
       document.getElementById('weightSlider').value = appState.wifeWeight;
       updateWeightDisplay();
-      renderAlbumList();
+      renderCards();
       recalculateScores();
     }
 
     function saveToStorage() {
-      localStorage.setItem('eason_picker_state_v3', JSON.stringify(appState));
+      localStorage.setItem('eason_recording_sessions_26_v4', JSON.stringify(appState));
     }
 
     function updateWeight(val) {
@@ -234,9 +476,9 @@
       recalculateScores();
     }
 
-    function setWeightPreset(wifePercent) {
-      document.getElementById('weightSlider').value = wifePercent;
-      updateWeight(wifePercent);
+    function setWeightPreset(wifeVal) {
+      document.getElementById('weightSlider').value = wifeVal;
+      updateWeight(wifeVal);
     }
 
     function updateWeightDisplay() {
@@ -244,69 +486,74 @@
       document.getElementById('husbandWeightText').innerText = appState.husbandWeight;
     }
 
-    function filterEra(era) {
-      currentEraFilter = era;
-      const tabs = ['all', 'gold', 'eeg', 'mandarin', 'capital', 'recent'];
-      tabs.forEach(t => {
-        const el = document.getElementById(`tab-${t}`);
+    function filterMonth(month) {
+      currentMonthFilter = month;
+      ['all', '2026-12', '2027-01', '2027-02'].forEach(m => {
+        const el = document.getElementById(`tab-${m}`);
         if (!el) return;
-        if (t === era) {
-          el.className = "px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold shrink-0";
+        if (m === month) {
+          el.className = "px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black shrink-0 shadow-md";
         } else {
-          el.className = "px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 shrink-0";
+          el.className = "px-4 py-2 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 shrink-0 border border-slate-800 font-bold";
         }
       });
-      renderAlbumList();
+      renderCards();
     }
 
-    function setOverallScore(albumId, role, score) {
-      const cur = appState.ratings[albumId][role + 'Overall'];
-      appState.ratings[albumId][role + 'Overall'] = (cur === score) ? 0 : score;
+    function handleSearch(val) {
+      searchQuery = val.trim().toLowerCase();
+      renderCards();
+    }
+
+    function setOverallScore(sessionNo, role, score) {
+      const cur = appState.ratings[sessionNo][role + 'Overall'];
+      appState.ratings[sessionNo][role + 'Overall'] = (cur === score) ? 0 : score;
       saveToStorage();
-      renderStarUI(albumId);
+      renderStarUI(sessionNo);
       recalculateScores();
     }
 
-    function setTrackScore(albumId, trackName, role, score) {
-      const current = appState.ratings[albumId].tracks[trackName][role];
-      appState.ratings[albumId].tracks[trackName][role] = (current === score) ? 0 : score;
-      
-      const album = appState.albums.find(a => a.id === albumId);
-      const scores = album.tracks.map(t => appState.ratings[albumId].tracks[t][role]).filter(s => s > 0);
+    function setTrackScore(sessionNo, trackName, role, score) {
+      const cur = appState.ratings[sessionNo].tracks[trackName][role];
+      appState.ratings[sessionNo].tracks[trackName][role] = (cur === score) ? 0 : score;
+
+      // 自動連動整體星級
+      const s = OFFICIAL_26_SESSIONS.find(x => x.sessionNo === sessionNo);
+      const scores = s.tracks.map(t => appState.ratings[sessionNo].tracks[t][role]).filter(v => v > 0);
       if (scores.length > 0) {
-        appState.ratings[albumId][role + 'Overall'] = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+        appState.ratings[sessionNo][role + 'Overall'] = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
       }
-      
+
       saveToStorage();
-      renderStarUI(albumId);
-      renderTrackUI(albumId, trackName);
+      renderStarUI(sessionNo);
+      renderTrackUI(sessionNo, trackName);
       recalculateScores();
     }
 
-    function calculateAlbumFinalMetrics(albumId) {
-      const r = appState.ratings[albumId];
+    function calculateMetrics(sessionNo) {
+      const r = appState.ratings[sessionNo];
       if (!r) return { isRated: false, final100: 0, thunder: false };
 
-      const hScore = r.hOverall || 0;
-      const wScore = r.wOverall || 0;
+      const h = r.hOverall || 0;
+      const w = r.wOverall || 0;
 
       let thunder = false;
       let thunderReason = [];
-      if (hScore > 0 && hScore <= 2) { thunder = true; thunderReason.push('老公不太感冒'); }
-      if (wScore > 0 && wScore <= 2) { thunder = true; thunderReason.push('老婆表示踩雷'); }
+      if (h > 0 && h <= 2) { thunder = true; thunderReason.push('老公踩雷'); }
+      if (w > 0 && w <= 2) { thunder = true; thunderReason.push('老婆踩雷'); }
 
-      const album = appState.albums.find(a => a.id === albumId);
-      if (album && album.tracks) {
-        album.tracks.forEach(t => {
+      const s = OFFICIAL_26_SESSIONS.find(x => x.sessionNo === sessionNo);
+      if (s) {
+        s.tracks.forEach(t => {
           const ts = r.tracks[t];
-          if (ts && (ts.w === 1 || ts.h === 1)) {
+          if (ts && (ts.h === 1 || ts.w === 1)) {
             thunder = true;
             if (!thunderReason.includes('曲目有雷')) thunderReason.push(`「${t}」被標跳過`);
           }
         });
       }
 
-      let weightedBase = (hScore * (appState.husbandWeight / 100)) + (wScore * (appState.wifeWeight / 100));
+      let weightedBase = (h * (appState.husbandWeight / 100)) + (w * (appState.wifeWeight / 100));
       let final100 = weightedBase * 20;
 
       if (thunder && final100 > 0) {
@@ -314,201 +561,244 @@
       }
 
       return {
-        hScore,
-        wScore,
-        final100: (hScore > 0 || wScore > 0) ? Math.round(final100) : 0,
+        h, w,
+        final100: (h > 0 || w > 0) ? Math.round(final100) : 0,
         thunder,
         thunderReason: thunderReason.join(' · '),
-        isRated: (hScore > 0 || wScore > 0)
+        isRated: (h > 0 || w > 0)
       };
     }
 
     function recalculateScores() {
-      const results = appState.albums.map(a => ({ ...a, metrics: calculateAlbumFinalMetrics(a.id) }));
-      const ratedList = results.filter(r => r.metrics.isRated).sort((a, b) => b.metrics.final100 - a.metrics.final100);
-      
-      document.getElementById('totalRatedCount').innerText = `已評分 ${ratedList.length} / ${appState.albums.length} 張`;
+      const results = OFFICIAL_26_SESSIONS.map(s => ({
+        ...s,
+        metrics: calculateMetrics(s.sessionNo)
+      }));
 
-      const topContainer = document.getElementById('topRecommendations');
+      const ratedList = results.filter(r => r.metrics.isRated).sort((a, b) => b.metrics.final100 - a.metrics.final100);
+      document.getElementById('totalRatedCount').innerText = `已評分 ${ratedList.length} / 26 場`;
+
+      const topBox = document.getElementById('topRecommendations');
       if (ratedList.length === 0) {
-        topContainer.innerHTML = `
-          <div class="col-span-full py-4 text-center text-slate-500 text-xs">
-            尚未打分，請在下方為心水專輯或特定場次評分（1 至 5 星）！
+        topBox.innerHTML = `
+          <div class="col-span-full py-6 text-center text-slate-400 text-sm sm:text-base font-medium">
+            夫婦二人尚未開始打分！請在下方為心水場次評定星級（1 至 5 星）。
           </div>
         `;
       } else {
-        topContainer.innerHTML = ratedList.slice(0, 3).map((item, idx) => {
-          const medal = ['🥇 首選推薦', '🥈 次選推薦', '🥉 備選方案'][idx];
-          const borderStyle = ['border-amber-500/80 bg-amber-950/20', 'border-slate-400/60 bg-slate-800/40', 'border-amber-800/60 bg-amber-950/10'][idx];
+        topBox.innerHTML = ratedList.slice(0, 3).map((item, idx) => {
+          const rankBadges = ['🥇 首選推薦', '🥈 次選推薦', '🥉 備選方案'][idx];
+          const borders = ['border-amber-500/80 bg-amber-950/30', 'border-slate-300/60 bg-slate-800/50', 'border-amber-700/60 bg-amber-950/20'][idx];
           return `
-            <div class="p-3 rounded-xl border ${borderStyle} flex flex-col justify-between">
+            <div class="p-4 rounded-2xl border-2 ${borders} flex flex-col justify-between shadow-lg">
               <div>
-                <div class="flex items-center justify-between mb-1">
-                  <span class="text-[11px] font-bold text-amber-400">${medal}</span>
-                  <span class="text-sm font-black text-white">${item.metrics.final100}<span class="text-[10px] font-normal text-slate-400">分</span></span>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs sm:text-sm font-black text-amber-400">${rankBadges}</span>
+                  <span class="text-2xl font-black text-white">${item.metrics.final100}<span class="text-xs text-slate-400 font-normal ml-0.5">分</span></span>
                 </div>
-                <h3 class="font-bold text-white text-sm truncate">${item.name}</h3>
-                <p class="text-[11px] text-slate-400 truncate">${item.year} · ${item.theme}</p>
+                <h3 class="font-black text-white text-base sm:text-lg truncate">${item.name}</h3>
+                <p class="text-xs text-slate-300 font-bold mt-0.5">${item.dateText}</p>
               </div>
-              <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <span class="text-blue-400">🤵 ${item.metrics.hScore || '-'}★</span>
-                <span class="text-pink-400">👰 ${item.metrics.wScore || '-'}★</span>
-                ${item.metrics.thunder ? '<span class="text-amber-400 text-[10px]">⚠️有雷</span>' : '<span class="text-emerald-400 text-[10px]">✨合拍</span>'}
+              <div class="mt-3 pt-2.5 border-t border-slate-700/70 flex items-center justify-between text-xs sm:text-sm font-bold">
+                <span class="text-blue-400">🤵 ${item.metrics.h || '-'}★</span>
+                <span class="text-pink-400">👰 ${item.metrics.w || '-'}★</span>
+                ${item.metrics.thunder ? '<span class="text-rose-400">⚠️ 有雷</span>' : '<span class="text-emerald-400">✨ 合拍</span>'}
               </div>
             </div>
           `;
         }).join('');
       }
 
-      appState.albums.forEach(a => renderAlbumHeaderStats(a.id));
+      OFFICIAL_26_SESSIONS.forEach(s => renderHeaderStats(s.sessionNo));
     }
 
-    function renderAlbumList() {
+    function renderCards() {
       const container = document.getElementById('albumListContainer');
-      const filtered = appState.albums.filter(a => {
-        if (currentEraFilter === 'all') return true;
-        return a.era === currentEraFilter;
+      const filtered = OFFICIAL_26_SESSIONS.filter(s => {
+        // 月份過濾
+        if (currentMonthFilter !== 'all' && s.monthGroup !== currentMonthFilter) return false;
+        // 搜尋過濾 (歌曲或專輯名)
+        if (searchQuery) {
+          const matchAlbum = s.name.toLowerCase().includes(searchQuery);
+          const matchDate = s.dateText.toLowerCase().includes(searchQuery);
+          const matchSong = s.tracks.some(t => t.toLowerCase().includes(searchQuery));
+          if (!matchAlbum && !matchDate && !matchSong) return false;
+        }
+        return true;
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">此分類下暫無場次。</div>`;
+        container.innerHTML = `<div class="p-10 text-center text-slate-400 text-base font-bold bg-slate-900 rounded-3xl border border-slate-800">未找到符合條件的場次或歌曲，請嘗試其他關鍵字。</div>`;
         return;
       }
 
-      container.innerHTML = filtered.map(album => `
-        <div id="card-${album.id}" class="bg-slate-900/70 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-          <div class="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      container.innerHTML = filtered.map(s => `
+        <div id="card-${s.sessionNo}" class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-md transition">
+          
+          <!-- 卡片頂部資訊列 -->
+          <div class="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div class="flex items-center gap-1.5">
-                <span class="font-bold text-white text-sm sm:text-base">${album.name}</span>
-                <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300">${album.year}</span>
-                ${album.custom ? '<span class="px-1 py-0.2 rounded text-[9px] bg-indigo-900/80 text-indigo-300">自訂場次</span>' : ''}
+              <div class="flex flex-wrap items-center gap-2 mb-1">
+                <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs sm:text-sm font-black">第 ${s.sessionNo < 10 ? '0' + s.sessionNo : s.sessionNo} 場</span>
+                <span class="text-xs sm:text-sm font-bold text-slate-300">${s.dateText}</span>
               </div>
-              <p class="text-xs text-slate-400 mt-0.5">${album.theme}</p>
+              <h3 class="text-xl sm:text-2xl font-black text-white leading-snug">${s.name}</h3>
+              <p class="text-xs sm:text-sm text-slate-400 mt-1 font-medium">${s.year} · ${s.desc}</p>
             </div>
 
-            <div class="flex items-center gap-3 sm:gap-4 justify-between sm:justify-end">
+            <!-- 星星評分操作大按鈕區 -->
+            <div class="flex items-center gap-4 sm:gap-6 justify-between md:justify-end bg-slate-950/60 p-3 sm:p-4 rounded-2xl border border-slate-800 shrink-0">
+              
+              <!-- 老公星級 -->
               <div class="flex flex-col items-center">
-                <span class="text-[10px] font-bold text-blue-400">🤵 老公</span>
-                <div class="flex items-center gap-0.5" id="stars-h-${album.id}">
-                  ${[1,2,3,4,5].map(s => `
-                    <button onclick="setOverallScore('${album.id}', 'h', ${s})" class="star-btn text-base text-slate-700">
+                <span class="text-xs sm:text-sm font-black text-blue-400 mb-1">🤵 老公打分</span>
+                <div class="flex items-center gap-1" id="stars-h-${s.sessionNo}">
+                  ${[1,2,3,4,5].map(star => `
+                    <button onclick="setOverallScore(${s.sessionNo}, 'h', ${star})" class="star-btn text-2xl sm:text-3xl text-slate-700 hover:text-amber-400 p-0.5">
                       <i class="fa-solid fa-star"></i>
                     </button>
                   `).join('')}
                 </div>
               </div>
 
+              <!-- 老婆星級 -->
               <div class="flex flex-col items-center">
-                <span class="text-[10px] font-bold text-pink-400">👰 老婆</span>
-                <div class="flex items-center gap-0.5" id="stars-w-${album.id}">
-                  ${[1,2,3,4,5].map(s => `
-                    <button onclick="setOverallScore('${album.id}', 'w', ${s})" class="star-btn text-base text-slate-700">
+                <span class="text-xs sm:text-sm font-black text-pink-400 mb-1">👰 老婆打分</span>
+                <div class="flex items-center gap-1" id="stars-w-${s.sessionNo}">
+                  ${[1,2,3,4,5].map(star => `
+                    <button onclick="setOverallScore(${s.sessionNo}, 'w', ${star})" class="star-btn text-2xl sm:text-3xl text-slate-700 hover:text-amber-400 p-0.5">
                       <i class="fa-solid fa-star"></i>
                     </button>
                   `).join('')}
                 </div>
               </div>
 
-              <div id="badge-score-${album.id}" class="min-w-[54px] text-right font-black"></div>
+              <!-- 總分 Badge -->
+              <div id="badge-score-${s.sessionNo}" class="min-w-[64px] text-right"></div>
+
             </div>
           </div>
 
-          <div class="px-3.5 py-1.5 border-t border-slate-800/60 bg-slate-950/40 flex items-center justify-between text-xs">
-            <button onclick="toggleTrackSection('${album.id}')" class="text-slate-400 hover:text-slate-200 flex items-center gap-1 py-0.5">
-              <i id="toggle-icon-${album.id}" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
-              <span>細選曲目 (${album.tracks.length} 首)</span>
+          <!-- 折疊欄 -->
+          <div class="px-5 py-2.5 border-t border-slate-800/80 bg-slate-950/40 flex items-center justify-between text-xs sm:text-sm">
+            <button onclick="toggleTracks(${s.sessionNo})" class="text-slate-300 hover:text-amber-400 font-bold flex items-center gap-2 py-1">
+              <i id="toggle-icon-${s.sessionNo}" class="fa-solid fa-chevron-down text-xs transition-transform"></i>
+              <span>查看此場次完整 ${s.tracks.length} 首收錄曲目打分</span>
             </button>
-            <span id="thunder-tag-${album.id}" class="text-[11px]"></span>
+            <span id="thunder-tag-${s.sessionNo}"></span>
           </div>
 
-          <div id="tracks-wrapper-${album.id}" class="hidden border-t border-slate-800 px-3.5 py-2.5 bg-slate-950/60 space-y-1.5">
-            ${album.tracks.map(t => `
-              <div class="flex items-center justify-between py-1 text-xs">
-                <span class="text-slate-300 font-medium truncate pr-2">${t}</span>
-                <div class="flex items-center gap-4">
-                  <div class="flex gap-1" id="track-btn-${album.id}-${encodeURIComponent(t)}-h">${renderSingleTrackPills(album.id, t, 'h')}</div>
-                  <div class="flex gap-1" id="track-btn-${album.id}-${encodeURIComponent(t)}-w">${renderSingleTrackPills(album.id, t, 'w')}</div>
+          <!-- 曲目展開評分細項 -->
+          <div id="tracks-wrapper-${s.sessionNo}" class="${searchQuery ? '' : 'hidden'} border-t border-slate-800 px-4 sm:px-6 py-4 bg-slate-950/70 space-y-2.5">
+            <div class="text-xs sm:text-sm font-bold text-slate-400 flex justify-between px-3 pb-2 border-b border-slate-800/60">
+              <span>曲目名 (${s.tracks.length} 首歌)</span>
+              <span class="flex gap-16 sm:gap-24 pr-2">
+                <span class="text-blue-400">🤵 老公評分</span>
+                <span class="text-pink-400">👰 老婆評分</span>
+              </span>
+            </div>
+            ${s.tracks.map(t => {
+              const isHighlight = searchQuery && t.toLowerCase().includes(searchQuery);
+              return `
+                <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-900/60 transition ${isHighlight ? 'bg-amber-950/40 border border-amber-600/40' : ''}">
+                  <span class="text-sm sm:text-base font-semibold text-slate-100 truncate pr-2">
+                    ${isHighlight ? `<span class="text-amber-300 underline font-black">★ ${t}</span>` : t}
+                  </span>
+                  <div class="flex items-center gap-6 sm:gap-12 shrink-0">
+                    <div class="flex gap-1.5" id="track-btn-${s.sessionNo}-${encodeURIComponent(t)}-h">${renderPills(s.sessionNo, t, 'h')}</div>
+                    <div class="flex gap-1.5" id="track-btn-${s.sessionNo}-${encodeURIComponent(t)}-w">${renderPills(s.sessionNo, t, 'w')}</div>
+                  </div>
                 </div>
-              </div>
-            `).join('')}
+              `;
+            }).join('')}
           </div>
+
         </div>
       `).join('');
 
-      filtered.forEach(a => renderStarUI(a.id));
+      filtered.forEach(s => renderStarUI(s.sessionNo));
     }
 
-    function renderSingleTrackPills(albumId, track, role) {
-      const cur = (appState.ratings[albumId] && appState.ratings[albumId].tracks[track]) ? appState.ratings[albumId].tracks[track][role] : 0;
+    function renderPills(sessionNo, track, role) {
+      const cur = (appState.ratings[sessionNo] && appState.ratings[sessionNo].tracks[track]) ? appState.ratings[sessionNo].tracks[track][role] : 0;
       return [
-        { v: 5, icon: '🔥', tip: '神曲' },
-        { v: 3, icon: '☕', tip: '普通' },
-        { v: 1, icon: '❌', tip: '跳過' }
+        { v: 5, icon: '🔥', label: '神曲' },
+        { v: 3, icon: '☕', label: '普通' },
+        { v: 1, icon: '❌', label: '跳過' }
       ].map(opt => {
         const active = cur === opt.v;
-        const color = role === 'h' ? (active ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400')
-                                   : (active ? 'bg-pink-600 text-white' : 'bg-slate-800 text-slate-400');
+        let btnCls = 'bg-slate-800 text-slate-400 border border-slate-700/70';
+        if (active) {
+          btnCls = role === 'h' ? 'bg-blue-600 text-white font-black shadow-md border-blue-400' : 'bg-pink-600 text-white font-black shadow-md border-pink-400';
+        }
         return `
-          <button onclick="setTrackScore('${albumId}', '${track}', '${role}', ${opt.v})"
-                  title="${opt.tip}" class="w-6 h-5 rounded flex items-center justify-center text-[10px] ${color} transition">
+          <button onclick="setTrackScore(${sessionNo}, '${track}', '${role}', ${opt.v})"
+                  title="${opt.label}"
+                  class="w-10 h-8 sm:w-12 sm:h-9 rounded-xl flex items-center justify-center text-xs sm:text-sm transition active:scale-90 ${btnCls}">
             ${opt.icon}
           </button>
         `;
       }).join('');
     }
 
-    function renderStarUI(albumId) {
-      const r = appState.ratings[albumId];
+    function renderStarUI(sessionNo) {
+      const r = appState.ratings[sessionNo];
       if (!r) return;
       ['h', 'w'].forEach(role => {
         const val = r[role + 'Overall'] || 0;
-        const container = document.getElementById(`stars-${role}-${albumId}`);
-        if (!container) return;
-        container.querySelectorAll('button').forEach((btn, idx) => {
-          btn.className = `star-btn text-base ${idx < val ? 'text-amber-400' : 'text-slate-700'}`;
+        const box = document.getElementById(`stars-${role}-${sessionNo}`);
+        if (!box) return;
+        box.querySelectorAll('button').forEach((btn, idx) => {
+          btn.className = `star-btn text-2xl sm:text-3xl p-0.5 ${idx < val ? 'text-amber-400' : 'text-slate-700'}`;
         });
       });
     }
 
-    function renderTrackUI(albumId, track) {
+    function renderTrackUI(sessionNo, track) {
       ['h', 'w'].forEach(role => {
-        const el = document.getElementById(`track-btn-${albumId}-${encodeURIComponent(track)}-${role}`);
-        if (el) el.innerHTML = renderSingleTrackPills(albumId, track, role);
+        const el = document.getElementById(`track-btn-${sessionNo}-${encodeURIComponent(track)}-${role}`);
+        if (el) el.innerHTML = renderPills(sessionNo, track, role);
       });
     }
 
-    function renderAlbumHeaderStats(albumId) {
-      const metrics = calculateAlbumFinalMetrics(albumId);
-      const badge = document.getElementById(`badge-score-${albumId}`);
-      const thunderTag = document.getElementById(`thunder-tag-${albumId}`);
+    function renderHeaderStats(sessionNo) {
+      const metrics = calculateMetrics(sessionNo);
+      const badge = document.getElementById(`badge-score-${sessionNo}`);
+      const thunderTag = document.getElementById(`thunder-tag-${sessionNo}`);
       if (!badge) return;
 
       if (!metrics.isRated) {
-        badge.innerHTML = `<span class="text-xs text-slate-600 font-normal">未打分</span>`;
+        badge.innerHTML = `<span class="text-xs sm:text-sm text-slate-500 font-bold">未打分</span>`;
         if (thunderTag) thunderTag.innerHTML = '';
         return;
       }
 
-      badge.innerHTML = `<span class="${metrics.thunder ? 'text-rose-400' : 'text-emerald-400'}">${metrics.final100}<span class="text-[10px] text-slate-400 font-normal">分</span></span>`;
+      badge.innerHTML = `
+        <div class="text-xl sm:text-2xl font-black ${metrics.thunder ? 'text-rose-400' : 'text-emerald-400'}">
+          ${metrics.final100}<span class="text-xs text-slate-400 font-normal">分</span>
+        </div>
+      `;
+
       if (thunderTag) {
-        thunderTag.innerHTML = metrics.thunder 
-          ? `<span class="text-rose-400 flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> ${metrics.thunderReason}</span>`
-          : `<span class="text-emerald-400/70 flex items-center gap-1"><i class="fa-solid fa-check"></i> 意見合拍</span>`;
+        thunderTag.innerHTML = metrics.thunder
+          ? `<span class="text-rose-400 font-bold flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> ${metrics.thunderReason}</span>`
+          : `<span class="text-emerald-400 font-bold flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> 意見合拍</span>`;
       }
     }
 
-    function toggleTrackSection(albumId) {
-      const wrapper = document.getElementById(`tracks-wrapper-${albumId}`);
-      const icon = document.getElementById(`toggle-icon-${albumId}`);
-      wrapper.classList.toggle('hidden');
-      icon.classList.toggle('rotate-180');
+    function toggleTracks(sessionNo) {
+      const wrapper = document.getElementById(`tracks-wrapper-${sessionNo}`);
+      const icon = document.getElementById(`toggle-icon-${sessionNo}`);
+      if (wrapper && icon) {
+        wrapper.classList.toggle('hidden');
+        icon.classList.toggle('rotate-180');
+      }
     }
 
     function toggleAllTracks(show) {
-      appState.albums.forEach(a => {
-        const wrapper = document.getElementById(`tracks-wrapper-${a.id}`);
-        const icon = document.getElementById(`toggle-icon-${a.id}`);
+      OFFICIAL_26_SESSIONS.forEach(s => {
+        const wrapper = document.getElementById(`tracks-wrapper-${s.sessionNo}`);
+        const icon = document.getElementById(`toggle-icon-${s.sessionNo}`);
         if (wrapper && icon) {
           if (show) { wrapper.classList.remove('hidden'); icon.classList.add('rotate-180'); }
           else { wrapper.classList.add('hidden'); icon.classList.remove('rotate-180'); }
@@ -516,61 +806,35 @@
       });
     }
 
-    // ➕ 新增自訂場次/專輯
-    function openAddCustomModal() {
-      const name = prompt("請輸入新增場次或專輯名稱（例：《DUO 復刻場》或《首場 12/25》）：");
-      if (!name) return;
-      const songsInput = prompt("請輸入代表曲目（用逗號或空格分隔，例：防不勝防, 苦瓜, 陀飛輪）：", "代表曲1, 代表曲2, 代表曲3");
-      const tracks = songsInput ? songsInput.split(/[,，\s]+/).filter(x => x.trim().length > 0) : ['核心主打曲'];
-
-      const newId = 'custom_' + Date.now();
-      const newAlbum = {
-        id: newId,
-        era: currentEraFilter === 'all' ? 'gold' : currentEraFilter,
-        name: name.startsWith('《') ? name : `《${name}》`,
-        year: '自訂場次',
-        theme: '自訂指定曲目場次',
-        tracks: tracks,
-        custom: true
-      };
-
-      appState.albums.unshift(newAlbum);
-      initRatingsState();
-      saveToStorage();
-      renderAlbumList();
-      recalculateScores();
-      alert(`✅ 已成功加入「${newAlbum.name}」！你可以立刻為它打分。`);
-    }
-
-    // 方案 A 核心 1：WhatsApp 帶 Hash 分享
+    // 方案 A 核心 1：產生 WhatsApp 接力碼與長網址
     function generateWhatsAppShare() {
       saveToStorage();
       const codeStr = btoa(unescape(encodeURIComponent(JSON.stringify(appState))));
-      
-      const topList = appState.albums
-        .map(a => ({ name: a.name, score: appState.ratings[a.id]?.hOverall || 0 }))
-        .filter(a => a.score > 0)
+
+      const rated = OFFICIAL_26_SESSIONS
+        .map(s => ({ name: s.name, dateText: s.dateText, score: appState.ratings[s.sessionNo]?.hOverall || 0 }))
+        .filter(s => s.score > 0)
         .sort((a, b) => b.score - a.score);
 
-      const topPreview = topList.length > 0 ? topList.slice(0, 2).map(x => `${x.name}(${x.score}★)`).join('、') : '尚未打分';
+      const topText = rated.length > 0 ? rated.slice(0, 2).map(x => `${x.name}(${x.score}★)`).join('、') : '尚未評分';
 
       let shareUrl = "";
       if (window.location.protocol.startsWith('http')) {
-        shareUrl = `\n🔗 點擊專屬連結直接載入:\n${window.location.origin}${window.location.pathname}#data=${codeStr}\n`;
+        shareUrl = `\n🔗 點擊專屬連結直達接力打分:\n${window.location.origin}${window.location.pathname}#data=${codeStr}\n`;
       }
 
-      const msg = `🎵【Eason 2026 錄音會選場接力】🎵\n🤵 老公已完成打分！目前心水：${topPreview}。\n輪到老婆打分啦！${shareUrl}\n📋 接力同步代碼（若為本機檔案請複製整行貼上）：\nEASONSYNC:${codeStr}\n`;
+      const msg = `🎵【Eason 2026-2027 錄音會 26場選場接力】🎵\n🤵 老公已完成打分！目前心水推薦：${topText}。\n輪到老婆打分啦！${shareUrl}\n📋 接力同步代碼（若使用本機檔案請全選複製此代碼）：\nEASONSYNC:${codeStr}\n`;
 
       navigator.clipboard.writeText(msg).then(() => {
-        alert("✅ 接力訊息已成功複製！\n\n直接在 WhatsApp 貼上傳給老婆即可！老婆點開連結或貼上代碼，老公打分與自訂場次立刻全數同步！");
+        alert("✅ 接力代碼已成功複製！\n\n直接在 WhatsApp 貼上傳給老婆！老婆直接點開連結或按「貼上代碼」，即可無縫載入你的全部打分並接力評分！");
       }).catch(() => {
-        prompt("請手動複製以下內容發至 WhatsApp：", msg);
+        prompt("請手動複製以下內容發送給老婆：", msg);
       });
     }
 
-    // 方案 A 核心 2：老婆貼上代碼合併
+    // 方案 A 核心 2：老婆貼上代碼同步
     function importSyncCodeModal() {
-      const input = prompt("請貼上老公從 WhatsApp 發給你的接力訊息或代碼：");
+      const input = prompt("請貼上老公從 WhatsApp 發給你的接力代碼或文字：");
       if (!input) return;
 
       try {
@@ -584,7 +848,7 @@
         const parsed = JSON.parse(decodeURIComponent(escape(atob(code))));
         if (parsed && parsed.ratings) {
           mergeLoadedRatings(parsed);
-          alert("🎉 成功同步老公的評分與全部場次！現在可以繼續打老婆分數了！");
+          alert("🎉 成功同步老公的 26 場評分！現在你可以繼續給老婆評分了！");
         } else {
           throw new Error();
         }
@@ -594,21 +858,18 @@
     }
 
     function mergeLoadedRatings(remoteState) {
-      if (remoteState.albums && remoteState.albums.length > 0) {
-        appState.albums = remoteState.albums;
-      }
       appState.wifeWeight = remoteState.wifeWeight || appState.wifeWeight;
       appState.husbandWeight = remoteState.husbandWeight || appState.husbandWeight;
-      
-      initRatingsState();
 
-      // 合併老公評分
-      appState.albums.forEach(a => {
-        if (remoteState.ratings[a.id]) {
-          appState.ratings[a.id].hOverall = remoteState.ratings[a.id].hOverall;
-          a.tracks.forEach(t => {
-            if (remoteState.ratings[a.id].tracks[t]) {
-              appState.ratings[a.id].tracks[t].h = remoteState.ratings[a.id].tracks[t].h;
+      initRatings();
+
+      // 合併老公打分
+      OFFICIAL_26_SESSIONS.forEach(s => {
+        if (remoteState.ratings[s.sessionNo]) {
+          appState.ratings[s.sessionNo].hOverall = remoteState.ratings[s.sessionNo].hOverall;
+          s.tracks.forEach(t => {
+            if (remoteState.ratings[s.sessionNo].tracks[t]) {
+              appState.ratings[s.sessionNo].tracks[t].h = remoteState.ratings[s.sessionNo].tracks[t].h;
             }
           });
         }
@@ -617,23 +878,20 @@
       document.getElementById('weightSlider').value = appState.wifeWeight;
       updateWeightDisplay();
       saveToStorage();
-      renderAlbumList();
+      renderCards();
       recalculateScores();
     }
 
     function resetData() {
-      if (confirm("確定要重設全部評分並還原預設場次？")) {
-        localStorage.removeItem('eason_picker_state_v3');
-        appState = {
-          wifeWeight: 70,
-          husbandWeight: 30,
-          albums: JSON.parse(JSON.stringify(DEFAULT_ALBUMS)),
-          ratings: {}
-        };
-        initRatingsState();
+      if (confirm("確定要清空所有已打的分數重來？")) {
+        localStorage.removeItem('eason_recording_sessions_26_v4');
+        appState.wifeWeight = 70;
+        appState.husbandWeight = 30;
+        appState.ratings = {};
+        initRatings();
         document.getElementById('weightSlider').value = 70;
         updateWeightDisplay();
-        renderAlbumList();
+        renderCards();
         recalculateScores();
       }
     }
