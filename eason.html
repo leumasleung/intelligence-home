@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Eason 2026-2027 演唱錄音會 26場夫妻選場決策器</title>
+  <title>Eason 2026-2027 演唱錄音會 26場夫妻選場決策器 (Top 10加強版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -84,16 +84,18 @@
       </div>
     </section>
 
-    <!-- Top 3 首選推薦榜 -->
-    <section class="bg-gradient-to-br from-indigo-950/70 via-slate-900 to-slate-900 border-2 border-indigo-900/60 rounded-3xl p-5 sm:p-6 shadow-xl">
-      <div class="flex items-center justify-between mb-4">
+    <!-- Top 10 首選推薦榜 -->
+    <section class="bg-gradient-to-br from-indigo-950/70 via-slate-900 to-slate-900 border-2 border-indigo-900/60 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+      <div class="flex items-center justify-between border-b border-indigo-900/40 pb-3">
         <h2 class="text-base sm:text-xl font-black text-indigo-300 flex items-center gap-2">
-          <i class="fa-solid fa-trophy text-amber-400 text-xl"></i> 當前最佳場次推薦 Top 3
+          <i class="fa-solid fa-trophy text-amber-400 text-xl"></i> 當前最佳場次推薦 Top 10
         </h2>
         <span class="text-xs sm:text-sm font-semibold text-slate-400" id="totalRatedCount">已評分 0 / 26 場</span>
       </div>
-      <div id="topRecommendations" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-        <!-- 動態渲染 Top 3 -->
+      
+      <!-- 動態渲染 Top 10 容器 -->
+      <div id="topRecommendations" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <!-- 動態注入 -->
       </div>
     </section>
 
@@ -146,7 +148,7 @@
   </main>
 
   <script>
-    // 官方 26 場完整對應資料庫（經官方新聞與報導核對整理）
+    // 官方 26 場完整資料庫
     const OFFICIAL_26_SESSIONS = [
       {
         sessionNo: 1,
@@ -415,7 +417,7 @@
     let appState = {
       wifeWeight: 70,
       husbandWeight: 30,
-      ratings: {} // [sessionNo]: { hOverall, wOverall, tracks: { [t]: {h, w} } }
+      ratings: {}
     };
 
     function initRatings() {
@@ -432,7 +434,7 @@
     function loadInitialData() {
       initRatings();
 
-      // 檢查 URL Hash (方案 A)
+      // 檢查 URL Hash
       if (window.location.hash.startsWith('#data=')) {
         try {
           const raw = window.location.hash.replace('#data=', '');
@@ -517,7 +519,6 @@
       const cur = appState.ratings[sessionNo].tracks[trackName][role];
       appState.ratings[sessionNo].tracks[trackName][role] = (cur === score) ? 0 : score;
 
-      // 自動連動整體星級
       const s = OFFICIAL_26_SESSIONS.find(x => x.sessionNo === sessionNo);
       const scores = s.tracks.map(t => appState.ratings[sessionNo].tracks[t][role]).filter(v => v > 0);
       if (scores.length > 0) {
@@ -569,6 +570,7 @@
       };
     }
 
+    // 重算並渲染 TOP 10
     function recalculateScores() {
       const results = OFFICIAL_26_SESSIONS.map(s => ({
         ...s,
@@ -581,28 +583,55 @@
       const topBox = document.getElementById('topRecommendations');
       if (ratedList.length === 0) {
         topBox.innerHTML = `
-          <div class="col-span-full py-6 text-center text-slate-400 text-sm sm:text-base font-medium">
-            夫婦二人尚未開始打分！請在下方為心水場次評定星級（1 至 5 星）。
+          <div class="col-span-full py-8 text-center text-slate-400 text-sm sm:text-base font-medium">
+            夫婦二人尚未開始打分！請在下方為心水場次評定星級（1 至 5 星），即時計算 Top 10！
           </div>
         `;
       } else {
-        topBox.innerHTML = ratedList.slice(0, 3).map((item, idx) => {
-          const rankBadges = ['🥇 首選推薦', '🥈 次選推薦', '🥉 備選方案'][idx];
-          const borders = ['border-amber-500/80 bg-amber-950/30', 'border-slate-300/60 bg-slate-800/50', 'border-amber-700/60 bg-amber-950/20'][idx];
+        // 取前 10 名
+        const top10 = ratedList.slice(0, 10);
+        topBox.innerHTML = top10.map((item, idx) => {
+          const rank = idx + 1;
+          
+          // 前 3 名採用搶眼徽章與金銀銅邊框，4-10 名採用精準數值徽章
+          let rankBadge = '';
+          let borderClass = '';
+          let bgClass = 'bg-slate-900/90';
+
+          if (rank === 1) {
+            rankBadge = '<span class="text-xs sm:text-sm font-black text-amber-300 flex items-center gap-1">🥇 No.1 終極首選</span>';
+            borderClass = 'border-2 border-amber-500/90 bg-amber-950/40 shadow-amber-900/20 shadow-lg';
+          } else if (rank === 2) {
+            rankBadge = '<span class="text-xs sm:text-sm font-black text-slate-200 flex items-center gap-1">🥈 No.2 次選推薦</span>';
+            borderClass = 'border-2 border-slate-300/80 bg-slate-800/60 shadow-md';
+          } else if (rank === 3) {
+            rankBadge = '<span class="text-xs sm:text-sm font-black text-amber-500 flex items-center gap-1">🥉 No.3 備選推薦</span>';
+            borderClass = 'border-2 border-amber-700/80 bg-amber-950/20 shadow-md';
+          } else {
+            rankBadge = `<span class="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">No.${rank}</span>`;
+            borderClass = 'border border-slate-800 hover:border-slate-700';
+          }
+
           return `
-            <div class="p-4 rounded-2xl border-2 ${borders} flex flex-col justify-between shadow-lg">
+            <div class="p-3.5 sm:p-4 rounded-2xl ${borderClass} ${bgClass} flex flex-col justify-between transition hover:-translate-y-0.5">
               <div>
                 <div class="flex items-center justify-between mb-1.5">
-                  <span class="text-xs sm:text-sm font-black text-amber-400">${rankBadges}</span>
-                  <span class="text-2xl font-black text-white">${item.metrics.final100}<span class="text-xs text-slate-400 font-normal ml-0.5">分</span></span>
+                  ${rankBadge}
+                  <span class="text-xl sm:text-2xl font-black ${item.metrics.final100 >= 80 ? 'text-amber-400' : 'text-white'}">
+                    ${item.metrics.final100}<span class="text-xs text-slate-400 font-normal ml-0.5">分</span>
+                  </span>
                 </div>
-                <h3 class="font-black text-white text-base sm:text-lg truncate">${item.name}</h3>
-                <p class="text-xs text-slate-300 font-bold mt-0.5">${item.dateText}</p>
+                <h4 class="font-black text-white text-base sm:text-lg truncate leading-snug">${item.name}</h4>
+                <div class="flex items-center gap-2 mt-1 text-xs text-slate-300 font-semibold">
+                  <span class="text-amber-400/90">第 ${item.sessionNo < 10 ? '0' + item.sessionNo : item.sessionNo} 場</span>
+                  <span>·</span>
+                  <span class="truncate">${item.dateText.replace(/202[67]年/, '')}</span>
+                </div>
               </div>
-              <div class="mt-3 pt-2.5 border-t border-slate-700/70 flex items-center justify-between text-xs sm:text-sm font-bold">
+              <div class="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs sm:text-sm font-bold">
                 <span class="text-blue-400">🤵 ${item.metrics.h || '-'}★</span>
                 <span class="text-pink-400">👰 ${item.metrics.w || '-'}★</span>
-                ${item.metrics.thunder ? '<span class="text-rose-400">⚠️ 有雷</span>' : '<span class="text-emerald-400">✨ 合拍</span>'}
+                ${item.metrics.thunder ? '<span class="text-rose-400 text-xs">⚠️ 有雷</span>' : '<span class="text-emerald-400 text-xs">✨ 合拍</span>'}
               </div>
             </div>
           `;
@@ -615,9 +644,7 @@
     function renderCards() {
       const container = document.getElementById('albumListContainer');
       const filtered = OFFICIAL_26_SESSIONS.filter(s => {
-        // 月份過濾
         if (currentMonthFilter !== 'all' && s.monthGroup !== currentMonthFilter) return false;
-        // 搜尋過濾 (歌曲或專輯名)
         if (searchQuery) {
           const matchAlbum = s.name.toLowerCase().includes(searchQuery);
           const matchDate = s.dateText.toLowerCase().includes(searchQuery);
@@ -806,7 +833,7 @@
       });
     }
 
-    // 方案 A 核心 1：產生 WhatsApp 接力碼與長網址
+    // WhatsApp 接力分享
     function generateWhatsAppShare() {
       saveToStorage();
       const codeStr = btoa(unescape(encodeURIComponent(JSON.stringify(appState))));
@@ -816,23 +843,22 @@
         .filter(s => s.score > 0)
         .sort((a, b) => b.score - a.score);
 
-      const topText = rated.length > 0 ? rated.slice(0, 2).map(x => `${x.name}(${x.score}★)`).join('、') : '尚未評分';
+      const topText = rated.length > 0 ? rated.slice(0, 3).map(x => `${x.name}(${x.score}★)`).join('、') : '尚未評分';
 
       let shareUrl = "";
       if (window.location.protocol.startsWith('http')) {
         shareUrl = `\n🔗 點擊專屬連結直達接力打分:\n${window.location.origin}${window.location.pathname}#data=${codeStr}\n`;
       }
 
-      const msg = `🎵【Eason 2026-2027 錄音會 26場選場接力】🎵\n🤵 老公已完成打分！目前心水推薦：${topText}。\n輪到老婆打分啦！${shareUrl}\n📋 接力同步代碼（若使用本機檔案請全選複製此代碼）：\nEASONSYNC:${codeStr}\n`;
+      const msg = `🎵【Eason 2026-2027 錄音會 26場選場接力】🎵\n🤵 老公已完成打分！目前心水推薦：${topText}。\n輪到老婆打分啦！查看即時 Top 10！${shareUrl}\n📋 接力同步代碼（若使用本機檔案請全選複製此代碼）：\nEASONSYNC:${codeStr}\n`;
 
       navigator.clipboard.writeText(msg).then(() => {
-        alert("✅ 接力代碼已成功複製！\n\n直接在 WhatsApp 貼上傳給老婆！老婆直接點開連結或按「貼上代碼」，即可無縫載入你的全部打分並接力評分！");
+        alert("✅ 接力代碼已成功複製！\n\n直接在 WhatsApp 貼上傳給老婆！老婆直接點開連結或按「貼上代碼」，即可無縫載入你的全部打分並即時計算夫妻 Top 10！");
       }).catch(() => {
         prompt("請手動複製以下內容發送給老婆：", msg);
       });
     }
 
-    // 方案 A 核心 2：老婆貼上代碼同步
     function importSyncCodeModal() {
       const input = prompt("請貼上老公從 WhatsApp 發給你的接力代碼或文字：");
       if (!input) return;
@@ -863,7 +889,6 @@
 
       initRatings();
 
-      // 合併老公打分
       OFFICIAL_26_SESSIONS.forEach(s => {
         if (remoteState.ratings[s.sessionNo]) {
           appState.ratings[s.sessionNo].hOverall = remoteState.ratings[s.sessionNo].hOverall;
