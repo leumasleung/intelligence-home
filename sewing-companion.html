@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>裁縫小助手 - 褲裙版型與布料試算工具</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Noto Serif TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+TC:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            linen: {
+              50: '#FAF8F5',
+              100: '#F4EFEA',
+              200: '#E8DFD8',
+              300: '#D6C7BC',
+              400: '#B8A394',
+              700: '#6B5749',
+              800: '#4A3B31',
+              900: '#2E241E',
+            },
+            terracotta: {
+              500: '#C86D51',
+              600: '#B25A3F',
+              700: '#94452E',
+            },
+            sage: {
+              100: '#EBF1ED',
+              500: '#6B8E78',
+              600: '#53725F'
+            }
+          },
+          fontFamily: {
+            serif: ['"Noto Serif TC"', 'serif'],
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Sewing dashed stitch effect */
+    .stitch-border {
+      border: 1.5px dashed #B8A394;
+    }
+    .stitch-border-terracotta {
+      border: 1.5px dashed #C86D51;
+    }
+    /* Subtle linen pattern background */
+    body {
+      background-color: #FAF8F5;
+      background-image: radial-gradient(#E8DFD8 0.75px, transparent 0.75px);
+      background-size: 16px 16px;
+    }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body class="text-linen-900 font-sans min-h-screen flex flex-col antialiased selection:bg-terracotta-500 selection:text-white">
+
+  <!-- Header -->
+  <header class="bg-linen-100/90 backdrop-blur-md border-b border-linen-200 sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-full bg-terracotta-500 text-white flex items-center justify-center shadow-sm">
+          <i data-lucide="scissors" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="font-serif text-lg sm:text-xl font-bold tracking-tight text-linen-900 flex items-center gap-2">
+            裁縫小助手 <span class="text-xs px-2 py-0.5 rounded-full bg-terracotta-500/10 text-terracotta-600 font-sans font-medium">裙褲裁切版</span>
+          </h1>
+          <p class="text-xs text-linen-700 hidden sm:block">專為手作衣裁縫打造的版型弧度、用布量與鬆緊帶試算儀</p>
+        </div>
+      </div>
+
+      <!-- Global Controls: Unit Switcher & Quick Save -->
+      <div class="flex items-center space-x-2">
+        <div class="inline-flex p-1 bg-linen-200/80 rounded-xl text-xs font-semibold">
+          <button id="unitBtnCm" onclick="switchUnit('cm')" class="px-3 py-1.5 rounded-lg transition-all bg-white text-terracotta-700 shadow-xs">
+            公分 (cm)
+          </button>
+          <button id="unitBtnInch" onclick="switchUnit('inch')" class="px-3 py-1.5 rounded-lg transition-all text-linen-700 hover:text-linen-900">
+            英吋 (inch)
+          </button>
+        </div>
+        <button onclick="toggleModal('measurementModal')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-linen-300 bg-white hover:bg-linen-50 text-xs font-medium text-linen-800 transition shadow-xs">
+          <i data-lucide="book-user" class="w-4 h-4 text-terracotta-600"></i>
+          <span>量身卡</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="max-w-6xl mx-auto w-full px-4 sm:px-6 pt-5">
+    <div class="flex border-b border-linen-200 gap-2 sm:gap-6 overflow-x-auto no-scrollbar">
+      <button onclick="switchTab('skirt')" id="tabBtnSkirt" class="pb-3 px-2 sm:px-4 font-serif font-semibold text-sm sm:text-base border-b-2 border-terracotta-600 text-terracotta-600 flex items-center gap-2 transition">
+        <i data-lucide="disc" class="w-4 h-4"></i> 裙裝試算器 (圓裙 / 褶裙)
+      </button>
+      <button onclick="switchTab('pants')" id="tabBtnPants" class="pb-3 px-2 sm:px-4 font-serif font-semibold text-sm sm:text-base border-b-2 border-transparent text-linen-700 hover:text-linen-900 flex items-center gap-2 transition">
+        <i data-lucide="columns-2" class="w-4 h-4"></i> 褲裝試算器 (鬆緊帶休閒/闊腳褲)
+      </button>
+      <button onclick="switchTab('tips')" id="tabBtnTips" class="pb-3 px-2 sm:px-4 font-serif font-semibold text-sm sm:text-base border-b-2 border-transparent text-linen-700 hover:text-linen-900 flex items-center gap-2 transition">
+        <i data-lucide="ruler" class="w-4 h-4"></i> 裁縫速查備忘
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 flex-1">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: SKIRT CALCULATOR                     -->
+    <!-- ========================================== -->
+    <div id="skirtSection" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Input Form -->
+        <div class="lg:col-span-5 space-y-5">
+          <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xs border border-linen-200">
+            <h2 class="font-serif font-bold text-base sm:text-lg text-linen-900 mb-4 flex items-center justify-between">
+              <span>裙款參數設定</span>
+              <button onclick="applyProfileToSkirt()" class="text-xs text-terracotta-600 hover:text-terracotta-700 font-sans font-medium flex items-center gap-1">
+                <i data-lucide="import" class="w-3.5 h-3.5"></i> 填入量身腰圍
+              </button>
+            </h2>
+
+            <!-- Skirt Type Selection -->
+            <div class="space-y-3 mb-5">
+              <label class="block text-xs font-semibold text-linen-700">選擇款式與弧度</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button type="button" onclick="selectSkirtType('full')" id="skirtFull" class="skirt-pill p-2.5 rounded-xl border border-terracotta-500 bg-terracotta-50 text-terracotta-700 font-semibold text-left transition">
+                  <div class="font-bold">全圓裙 (360°)</div>
+                  <div class="text-[10px] text-terracotta-600/80">飄逸大擺，下垂感最豐滿</div>
+                </button>
+                <button type="button" onclick="selectSkirtType('threeQuarter')" id="skirtThreeQuarter" class="skirt-pill p-2.5 rounded-xl border border-linen-200 hover:border-linen-300 bg-linen-50 text-linen-700 text-left transition">
+                  <div class="font-bold">3/4 圓裙 (270°)</div>
+                  <div class="text-[10px] text-linen-400">適中波浪，節省側縫用布</div>
+                </button>
+                <button type="button" onclick="selectSkirtType('half')" id="skirtHalf" class="skirt-pill p-2.5 rounded-xl border border-linen-200 hover:border-linen-300 bg-linen-50 text-linen-700 text-left transition">
+                  <div class="font-bold">半圓裙 (180°)</div>
+                  <div class="text-[10px] text-linen-400">優雅日常 A 字垂順感</div>
+                </button>
+                <button type="button" onclick="selectSkirtType('quarter')" id="skirtQuarter" class="skirt-pill p-2.5 rounded-xl border border-linen-200 hover:border-linen-300 bg-linen-50 text-linen-700 text-left transition">
+                  <div class="font-bold">1/4 圓裙 (90°)</div>
+                  <div class="text-[10px] text-linen-400">合身微展 A 字裙擺</div>
+                </button>
+              </div>
+              <div class="mt-2">
+                <button type="button" onclick="selectSkirtType('pleated')" id="skirtPleated" class="w-full skirt-pill p-2.5 rounded-xl border border-linen-200 hover:border-linen-300 bg-linen-50 text-linen-700 text-xs text-left transition flex justify-between items-center">
+                  <div>
+                    <span class="font-bold">經典百褶 / 碎褶裙 (矩形直筒裁切)</span>
+                    <span class="text-[10px] block text-linen-400">以腰圍倍數褶裥直裁，最省布且無需畫大半徑</span>
+                  </div>
+                  <i data-lucide="unfold-horizontal" class="w-4 h-4 text-linen-400"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Dimension Inputs -->
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-linen-700 mb-1">
+                  淨腰圍 (<span class="unit-label">cm</span>)
+                </label>
+                <div class="relative">
+                  <input type="number" id="skirtWaist" value="68" step="0.5" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-terracotta-500 focus:bg-white transition" oninput="calculateSkirt()">
+                  <span class="absolute right-3 top-2.5 text-xs text-linen-400 unit-label">cm</span>
+                </div>
+              </div>
+
+              <div id="pleatRatioBox" class="hidden">
+                <label class="block text-xs font-semibold text-terracotta-700 mb-1">
+                  褶裥豐滿度倍率 (褶量)
+                </label>
+                <select id="pleatMultiplier" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-terracotta-500" onchange="calculateSkirt()">
+                  <option value="1.8">1.8 倍 (微褶自然休閒)</option>
+                  <option value="2.0" selected>2.0 倍 (經典百褶標準)</option>
+                  <option value="2.5">2.5 倍 (密集細碎褶/澎度)</option>
+                  <option value="3.0">3.0 倍 (華麗澎澎裙/洛麗塔)</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-linen-700 mb-1">
+                    完成裙長 (<span class="unit-label">cm</span>)
+                  </label>
+                  <div class="relative">
+                    <input type="number" id="skirtLength" value="70" step="1" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-terracotta-500 focus:bg-white transition" oninput="calculateSkirt()">
+                    <span class="absolute right-3 top-2.5 text-xs text-linen-400 unit-label">cm</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-linen-700 mb-1">
+                    上腰縫份 (<span class="unit-label">cm</span>)
+                  </label>
+                  <div class="relative">
+                    <input type="number" id="skirtWaistSeam" value="1.2" step="0.1" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-terracotta-500 focus:bg-white transition" oninput="calculateSkirt()">
+                    <span class="absolute right-3 top-2.5 text-xs text-linen-400 unit-label">cm</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-linen-700 mb-1">
+                    裙擺底邊縫份 (<span class="unit-label">cm</span>)
+                  </label>
+                  <div class="relative">
+                    <input type="number" id="skirtHemSeam" value="2.0" step="0.5" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-terracotta-500 focus:bg-white transition" oninput="calculateSkirt()">
+                    <span class="absolute right-3 top-2.5 text-xs text-linen-400 unit-label">cm</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-linen-700 mb-1">
+                    布料幅寬 (門幅)
+                  </label>
+                  <select id="skirtFabricWidth" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3 py-2.5 text-xs font-medium focus:outline-none focus:border-terracotta-500" onchange="calculateSkirt()">
+                    <option value="110">110 cm / 43-44吋 (窄幅麻棉)</option>
+                    <option value="140" selected>140 cm / 55-56吋 (標準雙幅)</option>
+                    <option value="150">150 cm / 58-60吋 (寬幅大呢/西裝布)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Elastic Waist Option -->
+              <div class="pt-2 border-t border-linen-200/80 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-semibold text-linen-800 block">鬆緊帶腰頭 (無拉鍊)</span>
+                  <span class="text-[11px] text-linen-400">自動將腰圍計算改為臀圍，以確保能套進身體</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="skirtElasticWaist" class="sr-only peer" onchange="calculateSkirt()">
+                  <div class="w-9 h-5 bg-linen-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-linen-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-terracotta-600"></div>
+                </label>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual Cutting Guide & Key Math Results -->
+        <div class="lg:col-span-7 space-y-5">
+          <!-- Visual Canvas / SVG Card -->
+          <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xs border border-linen-200 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-serif font-bold text-sm sm:text-base text-linen-900 flex items-center gap-2">
+                  <span>裁片版型圖解 (Pattern Layout)</span>
+                  <span id="skirtFoldBadge" class="text-[11px] font-sans px-2 py-0.5 rounded-md bg-linen-100 text-terracotta-700 font-medium">雙對折四層裁法</span>
+                </h3>
+                <p class="text-[11px] text-linen-400">標示內弧半徑(腰)與外弧總半徑(底擺)，裁布時自折疊角劃弧</p>
+              </div>
+              <button onclick="calculateSkirt()" title="重新繪製" class="p-1.5 hover:bg-linen-100 rounded-lg text-linen-600 transition">
+                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- SVG Container -->
+            <div class="w-full bg-linen-50/70 rounded-xl p-3 border border-linen-200 flex items-center justify-center min-h-[280px] sm:min-h-[320px]">
+              <svg id="skirtSvg" class="w-full max-w-md h-auto" viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg">
+                <!-- Dynamic SVG will be injected here -->
+              </svg>
+            </div>
+
+            <!-- Calculated Metrics Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+              <div class="bg-linen-100/70 p-3 rounded-xl border border-linen-200/80">
+                <span class="text-[11px] text-linen-700 font-medium block">腰弧內半徑 (r)</span>
+                <span id="skirtInnerRadius" class="text-base sm:text-lg font-bold text-terracotta-700 font-serif">10.8 cm</span>
+                <span class="text-[10px] text-linen-400 block mt-0.5">從折角量出</span>
+              </div>
+              <div class="bg-linen-100/70 p-3 rounded-xl border border-linen-200/80">
+                <span class="text-[11px] text-linen-700 font-medium block">總切線外徑 (R)</span>
+                <span id="skirtOuterRadius" class="text-base sm:text-lg font-bold text-terracotta-700 font-serif">82.8 cm</span>
+                <span class="text-[10px] text-linen-400 block mt-0.5">半徑 + 裙長 + 縫份</span>
+              </div>
+              <div class="bg-linen-100/70 p-3 rounded-xl border border-linen-200/80">
+                <span class="text-[11px] text-linen-700 font-medium block">建議購布米數</span>
+                <span id="skirtFabricNeed" class="text-base sm:text-lg font-bold text-linen-900 font-serif">1.8 m</span>
+                <span id="skirtYardNeed" class="text-[10px] text-linen-400 block mt-0.5">約 2.0 碼</span>
+              </div>
+              <div class="bg-linen-100/70 p-3 rounded-xl border border-linen-200/80">
+                <span class="text-[11px] text-linen-700 font-medium block">底擺圍總長</span>
+                <span id="skirtHemCircumference" class="text-base sm:text-lg font-bold text-linen-900 font-serif">520 cm</span>
+                <span class="text-[10px] text-linen-400 block mt-0.5">底邊壓線捲邊長度</span>
+              </div>
+            </div>
+
+            <!-- Warning or Tips message -->
+            <div id="skirtWarningBox" class="mt-3 p-2.5 rounded-xl text-xs flex items-start gap-2 bg-amber-50 text-amber-800 border border-amber-200 hidden">
+              <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0 text-amber-600"></i>
+              <span id="skirtWarningText">注意：總半徑已超過幅寬的一半，可能需要分片拼接或選用 150cm 超寬門幅布料！</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: PANTS CALCULATOR                     -->
+    <!-- ========================================== -->
+    <div id="pantsSection" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Input Form -->
+        <div class="lg:col-span-5 space-y-5">
+          <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xs border border-linen-200">
+            <h2 class="font-serif font-bold text-base sm:text-lg text-linen-900 mb-4 flex items-center justify-between">
+              <span>褲裝尺寸與版型參數</span>
+              <button onclick="applyProfileToPants()" class="text-xs text-terracotta-600 hover:text-terracotta-700 font-sans font-medium flex items-center gap-1">
+                <i data-lucide="import" class="w-3.5 h-3.5"></i> 填入個人量身
+              </button>
+            </h2>
+
+            <div class="space-y-4">
+              <!-- Pants Type Preset -->
+              <div>
+                <label class="block text-xs font-semibold text-linen-700 mb-1.5">褲型預設風格</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <button type="button" onclick="selectPantsPreset('wide')" id="pantsPresetWide" class="p-2 rounded-xl border border-terracotta-500 bg-terracotta-50 text-terracotta-700 font-semibold text-xs text-center transition">
+                    飄逸闊腳褲
+                  </button>
+                  <button type="button" onclick="selectPantsPreset('straight')" id="pantsPresetStraight" class="p-2 rounded-xl border border-linen-200 bg-linen-50 text-linen-700 text-xs text-center transition hover:border-linen-300">
+                    日系直筒褲
+                  </button>
+                  <button type="button" onclick="selectPantsPreset('tapered')" id="pantsPresetTapered" class="p-2 rounded-xl border border-linen-200 bg-linen-50 text-linen-700 text-xs text-center transition hover:border-linen-300">
+                    錐形休閒蘿蔔褲
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-linen-700 mb-1">
+                    淨臀圍 (Hip) (<span class="unit-label">cm</span>)
+                  </label>
+                  <div class="relative">
+                    <input type="number" id="pantsHip" value="94" step="0.5" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-terracotta-500 focus:bg-white transition" oninput="calculatePants()">
+                    <span class="absolute right-3 top-2.5 text-xs text-linen-400 unit-label">cm</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-linen-700 mb-1">
+                    淨腰圍 (Waist) (<span class="unit-label">cm</span>)
+                  </label>
+                  <div class="relative">
+                    <input type="number" id="pantsWaist" value="68" step="0.5" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-terracotta-500 focus:bg-white transition" oninput="calculatePants()">
+                    <span class="absolute right-3 top-2.5 text-xs text-linen-400 unit-label">cm</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-linen-700 mb-1">
+                    坐姿襠深/浪深 (Rise) (<span class="unit-label">cm</span>)
+                  </label>
+                  <div class="relative">
+                    <input type="number" id="pantsRise" value="26" step="0.5" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-terracotta-500 focus:bg-white transition" oninput="calculatePants()">
+                    <span class="absolute right-3 top-2.5 text-xs text-linen-400 unit-label">cm</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-linen-700 mb-1">
+                    總褲長 (Total Length) (<span class="unit-label">cm</span>)
+                  </label>
+                  <div class="relative">
+                    <input type="number" id="pantsLength" value="95" step="1" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-terracotta-500 focus:bg-white transition" oninput="calculatePants()">
+                    <span class="absolute right-3 top-2.5 text-xs text-linen-400 unit-label">cm</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-linen-700 mb-1">
+                    單邊腳口半寬 (Hem Opening)
+                  </label>
+                  <div class="relative">
+                    <input type="number" id="pantsHemWidth" value="27" step="0.5" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-terracotta-500 focus:bg-white transition" oninput="calculatePants()">
+                    <span class="absolute right-3 top-2.5 text-xs text-linen-400 unit-label">cm</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-linen-700 mb-1">
+                    臀部寬鬆量 (Ease)
+                  </label>
+                  <select id="pantsEase" class="w-full bg-linen-50/60 border border-linen-200 rounded-xl px-3 py-2.5 text-xs font-medium focus:outline-none focus:border-terracotta-500" onchange="calculatePants()">
+                    <option value="6">+6 cm (合身微寬)</option>
+                    <option value="10" selected>+10 cm (標準休閒)</option>
+                    <option value="16">+16 cm (寬鬆大闊腿)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Waistband elastic selection -->
+              <div class="p-3 bg-linen-50 rounded-xl border border-linen-200 text-xs space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="font-semibold text-linen-800">鬆緊帶規格 (腰頭橡筋)</span>
+                  <select id="elasticType" class="text-xs bg-white border border-linen-300 rounded-lg px-2 py-1" onchange="calculatePants()">
+                    <option value="tight">較貼合 (腰圍 80%)</option>
+                    <option value="standard" selected>標準舒適 (腰圍 85%)</option>
+                    <option value="loose">高舒適微鬆 (腰圍 90%)</option>
+                  </select>
+                </div>
+                <p class="text-[11px] text-linen-400">休閒褲一般採用全圈或後腰鬆緊帶，預留 2.5cm 重疊接縫份。</p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Pattern Geometry Diagram & Formulas -->
+        <div class="lg:col-span-7 space-y-5">
+          <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xs border border-linen-200 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-serif font-bold text-sm sm:text-base text-linen-900 flex items-center gap-2">
+                  <span>前後褲片裁片草圖 (Pants Drafting Guide)</span>
+                  <span class="text-[11px] font-sans px-2 py-0.5 rounded-md bg-sage-100 text-sage-600 font-medium">前片與後片浪線對比</span>
+                </h3>
+                <p class="text-[11px] text-linen-400">標準前後浪出量公式（小襠 vs 大襠）與側骨垂直線</p>
+              </div>
+              <button onclick="calculatePants()" title="重新計算" class="p-1.5 hover:bg-linen-100 rounded-lg text-linen-600 transition">
+                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- SVG Pants Canvas -->
+            <div class="w-full bg-linen-50/70 rounded-xl p-3 border border-linen-200 flex items-center justify-center min-h-[300px]">
+              <svg id="pantsSvg" class="w-full max-w-lg h-auto" viewBox="0 0 520 340" xmlns="http://www.w3.org/2000/svg">
+                <!-- Pants front & back drafting curves -->
+              </svg>
+            </div>
+
+            <!-- Pants Results Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+              <div class="bg-linen-100/70 p-3 rounded-xl border border-linen-200/80">
+                <span class="text-[11px] text-linen-700 font-medium block">前浪出量 (前小襠)</span>
+                <span id="frontCrotchExt" class="text-base sm:text-lg font-bold text-terracotta-700 font-serif">4.3 cm</span>
+                <span class="text-[10px] text-linen-400 block mt-0.5">約 臀圍 / 24 + 0.5</span>
+              </div>
+              <div class="bg-linen-100/70 p-3 rounded-xl border border-linen-200/80">
+                <span class="text-[11px] text-linen-700 font-medium block">後浪出量 (後大襠)</span>
+                <span id="backCrotchExt" class="text-base sm:text-lg font-bold text-terracotta-700 font-serif">9.9 cm</span>
+                <span class="text-[10px] text-linen-400 block mt-0.5">約 臀圍 / 10 + 0.5</span>
+              </div>
+              <div class="bg-linen-100/70 p-3 rounded-xl border border-linen-200/80">
+                <span class="text-[11px] text-linen-700 font-medium block">裁剪鬆緊帶長</span>
+                <span id="elasticLength" class="text-base sm:text-lg font-bold text-linen-900 font-serif">60.3 cm</span>
+                <span class="text-[10px] text-linen-400 block mt-0.5">含 2.5cm 車縫重疊</span>
+              </div>
+              <div class="bg-linen-100/70 p-3 rounded-xl border border-linen-200/80">
+                <span class="text-[11px] text-linen-700 font-medium block">建議購布米數</span>
+                <span id="pantsFabricMeter" class="text-base sm:text-lg font-bold text-linen-900 font-serif">2.1 m</span>
+                <span class="text-[10px] text-linen-400 block mt-0.5">雙幅140cm約兩褲長</span>
+              </div>
+            </div>
+
+            <!-- Pants Tailoring Note -->
+            <div class="mt-3 p-3 rounded-xl text-xs bg-white border border-dashed border-linen-300 flex items-start gap-3">
+              <i data-lucide="sparkles" class="w-4 h-4 text-terracotta-500 shrink-0 mt-0.5"></i>
+              <div class="text-linen-700 space-y-1">
+                <p class="font-medium text-linen-900">車縫關鍵細節：</p>
+                <p>1. 後襠上口需比前襠<span class="font-bold text-terracotta-700">抬高 3~4 cm (起襠)</span>，防止坐下時後腰露縫或下滑。</p>
+                <p>2. 闊腿褲若想垂墜顯瘦，建議褲腳預留 3~4 cm 寬底邊貼邊縫份，增加下墜重量感。</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: SEWING TIPS & CHEAT SHEET           -->
+    <!-- ========================================== -->
+    <div id="tipsSection" class="hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div class="bg-white p-5 rounded-2xl shadow-xs border border-linen-200 space-y-3">
+          <div class="w-8 h-8 rounded-lg bg-terracotta-500/10 text-terracotta-600 flex items-center justify-center">
+            <i data-lucide="gauge" class="w-4 h-4"></i>
+          </div>
+          <h3 class="font-serif font-bold text-base text-linen-900">標準縫份 (Seam Allowance) 建議</h3>
+          <ul class="text-xs text-linen-700 space-y-2 leading-relaxed">
+            <li>• <strong class="text-linen-900">領口 / 腰頭 / 弧線部位：</strong>留 1.0 cm（弧度容易對齊且不易起包翻翹）。</li>
+            <li>• <strong class="text-linen-900">側縫 / 襠骨 / 內側線：</strong>留 1.2 ~ 1.5 cm（保留試穿修改彈性）。</li>
+            <li>• <strong class="text-linen-900">褲腳直線摺邊：</strong>留 3.0 ~ 4.0 cm（直筒下擺雙折更平整）。</li>
+            <li>• <strong class="text-linen-900">全圓裙圓弧底擺：</strong>留 0.6 ~ 1.0 cm（密拷捲邊或三卷壓腳最適宜）。</li>
+          </ul>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-xs border border-linen-200 space-y-3">
+          <div class="w-8 h-8 rounded-lg bg-sage-100 text-sage-600 flex items-center justify-center">
+            <i data-lucide="needle" class="w-4 h-4"></i>
+          </div>
+          <h3 class="font-serif font-bold text-base text-linen-900">常用車針與線號對照</h3>
+          <ul class="text-xs text-linen-700 space-y-2 leading-relaxed">
+            <li>• <strong class="text-linen-900">9號 / 65號 車針：</strong>超薄絲綢、雪紡、真絲、薄薄紗。</li>
+            <li>• <strong class="text-linen-900">11號 / 75號 車針：</strong>純棉襯衫布、人造絲、天絲洋裝。</li>
+            <li>• <strong class="text-linen-900">14號 / 90號 車針（最萬用）：</strong>亞麻布、棉麻、西裝褲料。</li>
+            <li>• <strong class="text-linen-900">16號 / 100號 車針：</strong>牛仔布、帆布、斜紋重磅厚褲。</li>
+            <li>• <strong class="text-linen-900">車線：</strong>常規裁縫建議使用 50# 或 60# 聚酯滌綸線（不易起毛斷線）。</li>
+          </ul>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-xs border border-linen-200 space-y-3">
+          <div class="w-8 h-8 rounded-lg bg-linen-200 text-linen-800 flex items-center justify-center">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+          </div>
+          <h3 class="font-serif font-bold text-base text-linen-900">布料縮水與斜紗垂吊</h3>
+          <ul class="text-xs text-linen-700 space-y-2 leading-relaxed">
+            <li>• <strong class="text-linen-900">裁布前必下水：</strong>純棉與亞麻縮水率約 5%~10%，務必先過水陰乾整燙後再裁切。</li>
+            <li>• <strong class="text-linen-900">圓裙吊掛釋放斜紗：</strong>全圓裙或半圓裙的 45° 斜紗部位在重力下會拉長。車縫下擺前，最好先吊掛在衣架上 24 小時，修剪垂長後再包邊壓線。</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: PERSONAL MEASUREMENT CARD           -->
+  <!-- ========================================== -->
+  <div id="measurementModal" class="fixed inset-0 bg-linen-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-linen-200 relative animate-in fade-in zoom-in duration-150">
+      <button onclick="toggleModal('measurementModal')" class="absolute top-5 right-5 text-linen-400 hover:text-linen-800 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center space-x-3 mb-4">
+        <div class="w-9 h-9 rounded-full bg-terracotta-500/10 text-terracotta-600 flex items-center justify-center">
+          <i data-lucide="sparkle" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="font-serif font-bold text-lg text-linen-900">個人量身尺寸檔案 (Measurement Vault)</h3>
+          <p class="text-xs text-linen-500">儲存老婆或家人的身材尺寸，隨時一鍵帶入試算</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3.5 my-5 text-xs">
+        <div>
+          <label class="block font-medium text-linen-700 mb-1">量身者暱稱 / 專案</label>
+          <input type="text" id="mName" value="老婆專屬" class="w-full bg-linen-50 border border-linen-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-terracotta-500">
+        </div>
+        <div>
+          <label class="block font-medium text-linen-700 mb-1">淨腰圍 (Waist) cm</label>
+          <input type="number" id="mWaist" value="68" step="0.5" class="w-full bg-linen-50 border border-linen-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-terracotta-500">
+        </div>
+        <div>
+          <label class="block font-medium text-linen-700 mb-1">豐滿臀圍 (Full Hip) cm</label>
+          <input type="number" id="mHip" value="94" step="0.5" class="w-full bg-linen-50 border border-linen-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-terracotta-500">
+        </div>
+        <div>
+          <label class="block font-medium text-linen-700 mb-1">坐姿襠深/浪深 (Rise) cm</label>
+          <input type="number" id="mRise" value="26" step="0.5" class="w-full bg-linen-50 border border-linen-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-terracotta-500">
+        </div>
+        <div>
+          <label class="block font-medium text-linen-700 mb-1">腰到膝蓋長 (To Knee) cm</label>
+          <input type="number" id="mKnee" value="55" step="0.5" class="w-full bg-linen-50 border border-linen-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-terracotta-500">
+        </div>
+        <div>
+          <label class="block font-medium text-linen-700 mb-1">理想長褲總長 (Total) cm</label>
+          <input type="number" id="mLength" value="95" step="1" class="w-full bg-linen-50 border border-linen-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-terracotta-500">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-2 border-t border-linen-200">
+        <button onclick="saveProfile()" class="px-4 py-2 bg-terracotta-600 hover:bg-terracotta-700 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 transition">
+          <i data-lucide="save" class="w-4 h-4"></i> 儲存到瀏覽器
+        </button>
+        <button onclick="applyAllProfile()" class="px-4 py-2 bg-linen-100 hover:bg-linen-200 text-linen-800 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
+          <i data-lucide="check" class="w-4 h-4 text-terracotta-600"></i> 一鍵同步到全站
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-linen-900 text-white text-xs px-4 py-2.5 rounded-xl shadow-lg transform translate-y-16 opacity-0 transition-all duration-300 flex items-center gap-2 z-50 pointer-events-none">
+    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toastMsg">已成功更新！</span>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-auto py-5 border-t border-linen-200/80 bg-white/40 text-center text-xs text-linen-400">
+    <p>縫紉是把愛一針一線編織成日常。Made with Love for Sewing Enthusiasts 🧵</p>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // App State
+    let currentUnit = 'cm'; // 'cm' or 'inch'
+    let currentSkirtType = 'full'; // 'full', 'threeQuarter', 'half', 'quarter', 'pleated'
+    let currentPantsPreset = 'wide';
+
+    // Unit Conversion Helpers
+    function cmToInch(val) { return val / 2.54; }
+    function inchToCm(val) { return val * 2.54; }
+
+    function getUnitMultiplier() {
+      return currentUnit === 'inch' ? 2.54 : 1;
+    }
+
+    // Switch Unit Mode
+    function switchUnit(unit) {
+      if (currentUnit === unit) return;
+      
+      const ratio = unit === 'inch' ? (1 / 2.54) : 2.54;
+      currentUnit = unit;
+
+      // Update unit button styles
+      if (unit === 'cm') {
+        document.getElementById('unitBtnCm').className = "px-3 py-1.5 rounded-lg transition-all bg-white text-terracotta-700 shadow-xs";
+        document.getElementById('unitBtnInch').className = "px-3 py-1.5 rounded-lg transition-all text-linen-700 hover:text-linen-900";
+      } else {
+        document.getElementById('unitBtnInch').className = "px-3 py-1.5 rounded-lg transition-all bg-white text-terracotta-700 shadow-xs";
+        document.getElementById('unitBtnCm').className = "px-3 py-1.5 rounded-lg transition-all text-linen-700 hover:text-linen-900";
+      }
+
+      // Update all unit labels
+      document.querySelectorAll('.unit-label').forEach(el => el.textContent = unit);
+
+      // Convert inputs values
+      const numericIds = ['skirtWaist', 'skirtLength', 'skirtWaistSeam', 'skirtHemSeam', 'pantsHip', 'pantsWaist', 'pantsRise', 'pantsLength', 'pantsHemWidth'];
+      numericIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.value = (parseFloat(el.value) * ratio).toFixed(1);
+        }
+      });
+
+      calculateSkirt();
+      calculatePants();
+      showToast(`已切換為 ${unit === 'cm' ? '公分 (cm)' : '英吋 (inch)'}`);
+    }
+
+    // Navigation Tabs
+    function switchTab(tab) {
+      const tabs = ['skirt', 'pants', 'tips'];
+      tabs.forEach(t => {
+        const sec = document.getElementById(t + 'Section');
+        const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (t === tab) {
+          sec.classList.remove('hidden');
+          btn.className = "pb-3 px-2 sm:px-4 font-serif font-semibold text-sm sm:text-base border-b-2 border-terracotta-600 text-terracotta-600 flex items-center gap-2 transition";
+        } else {
+          sec.classList.add('hidden');
+          btn.className = "pb-3 px-2 sm:px-4 font-serif font-semibold text-sm sm:text-base border-b-2 border-transparent text-linen-700 hover:text-linen-900 flex items-center gap-2 transition";
+        }
+      });
+      lucide.createIcons();
+    }
+
+    // Skirt Selection
+    function selectSkirtType(type) {
+      currentSkirtType = type;
+      const types = ['full', 'threeQuarter', 'half', 'quarter', 'pleated'];
+      
+      types.forEach(t => {
+        const btn = document.getElementById('skirt' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (t === type) {
+          btn.classList.add('border-terracotta-500', 'bg-terracotta-50', 'text-terracotta-700');
+          btn.classList.remove('border-linen-200', 'bg-linen-50', 'text-linen-700');
+        } else {
+          btn.classList.remove('border-terracotta-500', 'bg-terracotta-50', 'text-terracotta-700');
+          btn.classList.add('border-linen-200', 'bg-linen-50', 'text-linen-700');
+        }
+      });
+
+      const pleatBox = document.getElementById('pleatRatioBox');
+      if (type === 'pleated') {
+        pleatBox.classList.remove('hidden');
+      } else {
+        pleatBox.classList.add('hidden');
+      }
+
+      calculateSkirt();
+    }
+
+    // Pants Style Preset
+    function selectPantsPreset(preset) {
+      currentPantsPreset = preset;
+      const presets = ['wide', 'straight', 'tapered'];
+      presets.forEach(p => {
+        const btn = document.getElementById('pantsPreset' + p.charAt(0).toUpperCase() + p.slice(1));
+        if (p === preset) {
+          btn.classList.add('border-terracotta-500', 'bg-terracotta-50', 'text-terracotta-700', 'font-semibold');
+          btn.classList.remove('border-linen-200', 'bg-linen-50', 'text-linen-700');
+        } else {
+          btn.classList.remove('border-terracotta-500', 'bg-terracotta-50', 'text-terracotta-700', 'font-semibold');
+          btn.classList.add('border-linen-200', 'bg-linen-50', 'text-linen-700');
+        }
+      });
+
+      const mult = currentUnit === 'inch' ? (1/2.54) : 1;
+      const hemInput = document.getElementById('pantsHemWidth');
+      const easeSelect = document.getElementById('pantsEase');
+
+      if (preset === 'wide') {
+        hemInput.value = (28 * mult).toFixed(1);
+        easeSelect.value = "16";
+      } else if (preset === 'straight') {
+        hemInput.value = (23 * mult).toFixed(1);
+        easeSelect.value = "10";
+      } else if (preset === 'tapered') {
+        hemInput.value = (18 * mult).toFixed(1);
+        easeSelect.value = "6";
+      }
+      calculatePants();
+    }
+
+    // Modal Control
+    function toggleModal(id) {
+      const modal = document.getElementById(id);
+      modal.classList.toggle('hidden');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.add('translate-y-16', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2500);
+    }
+
+    // LocalStorage for Profile
+    function saveProfile() {
+      const profile = {
+        name: document.getElementById('mName').value,
+        waist: parseFloat(document.getElementById('mWaist').value) || 68,
+        hip: parseFloat(document.getElementById('mHip').value) || 94,
+        rise: parseFloat(document.getElementById('mRise').value) || 26,
+        knee: parseFloat(document.getElementById('mKnee').value) || 55,
+        length: parseFloat(document.getElementById('mLength').value) || 95,
+      };
+      localStorage.setItem('sewing_user_profile', JSON.stringify(profile));
+      showToast('尺寸已成功記錄到瀏覽器！');
+      toggleModal('measurementModal');
+    }
+
+    function loadSavedProfile() {
+      const saved = localStorage.getItem('sewing_user_profile');
+      if (saved) {
+        try {
+          const p = JSON.parse(saved);
+          if (p.name) document.getElementById('mName').value = p.name;
+          if (p.waist) document.getElementById('mWaist').value = p.waist;
+          if (p.hip) document.getElementById('mHip').value = p.hip;
+          if (p.rise) document.getElementById('mRise').value = p.rise;
+          if (p.knee) document.getElementById('mKnee').value = p.knee;
+          if (p.length) document.getElementById('mLength').value = p.length;
+        } catch(e){}
+      }
+    }
+
+    function applyProfileToSkirt() {
+      loadSavedProfile();
+      const mult = currentUnit === 'inch' ? (1/2.54) : 1;
+      const waistCm = parseFloat(document.getElementById('mWaist').value) || 68;
+      document.getElementById('skirtWaist').value = (waistCm * mult).toFixed(1);
+      calculateSkirt();
+      showToast('已代入個人腰圍尺寸！');
+    }
+
+    function applyProfileToPants() {
+      loadSavedProfile();
+      const mult = currentUnit === 'inch' ? (1/2.54) : 1;
+      const waistCm = parseFloat(document.getElementById('mWaist').value) || 68;
+      const hipCm = parseFloat(document.getElementById('mHip').value) || 94;
+      const riseCm = parseFloat(document.getElementById('mRise').value) || 26;
+      const lenCm = parseFloat(document.getElementById('mLength').value) || 95;
+
+      document.getElementById('pantsWaist').value = (waistCm * mult).toFixed(1);
+      document.getElementById('pantsHip').value = (hipCm * mult).toFixed(1);
+      document.getElementById('pantsRise').value = (riseCm * mult).toFixed(1);
+      document.getElementById('pantsLength').value = (lenCm * mult).toFixed(1);
+      calculatePants();
+      showToast('已代入個人褲型量身尺寸！');
+    }
+
+    function applyAllProfile() {
+      applyProfileToSkirt();
+      applyProfileToPants();
+      toggleModal('measurementModal');
+    }
+
+    // ==========================================
+    // SKIRT CALCULATION & SVG RENDER
+    // ==========================================
+    function calculateSkirt() {
+      let waistInput = parseFloat(document.getElementById('skirtWaist').value) || 0;
+      let lengthInput = parseFloat(document.getElementById('skirtLength').value) || 0;
+      let waistSeam = parseFloat(document.getElementById('skirtWaistSeam').value) || 0;
+      let hemSeam = parseFloat(document.getElementById('skirtHemSeam').value) || 0;
+      let fabricWidthCm = parseFloat(document.getElementById('skirtFabricWidth').value) || 140;
+      let isElastic = document.getElementById('skirtElasticWaist').checked;
+
+      // Normalize to CM internally for math
+      let factor = currentUnit === 'inch' ? 2.54 : 1;
+      let waist = waistInput * factor;
+      let length = lengthInput * factor;
+      let wSeam = waistSeam * factor;
+      let hSeam = hemSeam * factor;
+
+      // If elastic waist without zipper, waist circumference must accommodate hip pass-through (+ 18cm minimum or use hip)
+      if (isElastic) {
+        waist = Math.max(waist + 18, 92);
+      }
+
+      let innerRadius = 0;
+      let outerRadius = 0;
+      let foldBadge = '四折裁法 (無側縫)';
+      let requiredFabricM = 0;
+      let totalHemCircumference = 0;
+      let warning = false;
+      let warningMsg = '';
+
+      if (currentSkirtType === 'pleated') {
+        // Pleated rectangular math
+        const pleatMult = parseFloat(document.getElementById('pleatMultiplier').value) || 2.0;
+        const totalSkirtWidth = waist * pleatMult;
+        innerRadius = 0;
+        outerRadius = length + wSeam + hSeam;
+        foldBadge = '矩形布片拼接折裥';
+        
+        // Panels needed across fabric width
+        const panels = Math.ceil(totalSkirtWidth / fabricWidthCm);
+        const panelLength = length + wSeam + hSeam;
+        requiredFabricM = ((panels * panelLength) + 15) / 100;
+        totalHemCircumference = totalSkirtWidth;
+
+        drawPleatedSvg(panels, panelLength, totalSkirtWidth);
+      } else {
+        // Circle skirts
+        // Formula: circumference C = 2 * PI * r * ratio
+        // Full circle (ratio = 1): r = C / (2 * PI) = C / 6.283
+        // 3/4 circle: r = C / (1.5 * PI) = C / 4.712
+        // 1/2 circle: r = C / PI = C / 3.1415
+        // 1/4 circle: r = C / (0.5 * PI) = C / 1.5707
+        let divisor = 2 * Math.PI;
+        let angleRatio = 1.0;
+
+        if (currentSkirtType === 'full') {
+          divisor = 2 * Math.PI;
+          angleRatio = 1.0;
+          foldBadge = '雙向四折裁法 (方塊折疊)';
+        } else if (currentSkirtType === 'threeQuarter') {
+          divisor = 1.5 * Math.PI;
+          angleRatio = 0.75;
+          foldBadge = '折疊雙片裁 (一側縫)';
+        } else if (currentSkirtType === 'half') {
+          divisor = Math.PI;
+          angleRatio = 0.5;
+          foldBadge = '布料對折裁法 (前後兩片或單片)';
+        } else if (currentSkirtType === 'quarter') {
+          divisor = 0.5 * Math.PI;
+          angleRatio = 0.25;
+          foldBadge = '單片斜向裁法';
+        }
+
+        innerRadius = (waist / divisor) - wSeam;
+        if (innerRadius < 1) innerRadius = 2;
+        outerRadius = innerRadius + length + hSeam;
+
+        totalHemCircumference = 2 * Math.PI * (innerRadius + length) * angleRatio;
+
+        // Fabric requirement calculation
+        if (currentSkirtType === 'full') {
+          // Needs a square of 2 * outerRadius
+          if (outerRadius * 2 > fabricWidthCm) {
+            warning = true;
+            warningMsg = `總半徑 (${(outerRadius / factor).toFixed(1)}${currentUnit}) 超過幅寬一半，單片裁不下，建議改為兩片半圓拼接或選用 150cm 門幅！`;
+            requiredFabricM = ((outerRadius * 4) + 20) / 100; // 2 panels
+          } else {
+            requiredFabricM = ((outerRadius * 2) + 20) / 100;
+          }
+        } else if (currentSkirtType === 'half') {
+          if (outerRadius > fabricWidthCm) {
+            warning = true;
+            warningMsg = `外半徑超過幅寬，需在腰部或裙身進行拼接。`;
+            requiredFabricM = ((outerRadius * 2) + 20) / 100;
+          } else {
+            requiredFabricM = (outerRadius + 20) / 100;
+          }
+        } else {
+          requiredFabricM = (outerRadius + 25) / 100;
+        }
+
+        drawCircleSkirtSvg(innerRadius, outerRadius, currentSkirtType);
+      }
+
+      // Display values
+      const dispInner = (innerRadius / factor).toFixed(1);
+      const dispOuter = (outerRadius / factor).toFixed(1);
+      const dispHem = (totalHemCircumference / factor).toFixed(0);
+
+      document.getElementById('skirtInnerRadius').textContent = currentSkirtType === 'pleated' ? '無 (直腰)' : `${dispInner} ${currentUnit}`;
+      document.getElementById('skirtOuterRadius').textContent = `${dispOuter} ${currentUnit}`;
+      document.getElementById('skirtFabricNeed').textContent = `${Math.max(requiredFabricM, 1.0).toFixed(1)} m`;
+      document.getElementById('skirtYardNeed').textContent = `約 ${(Math.max(requiredFabricM, 1.0) * 1.0936).toFixed(1)} 碼`;
+      document.getElementById('skirtHemCircumference').textContent = `${dispHem} ${currentUnit}`;
+      document.getElementById('skirtFoldBadge').textContent = foldBadge;
+
+      const warnBox = document.getElementById('skirtWarningBox');
+      const warnText = document.getElementById('skirtWarningText');
+      if (warning) {
+        warnBox.classList.remove('hidden');
+        warnText.textContent = warningMsg;
+      } else {
+        warnBox.classList.add('hidden');
+      }
+    }
+
+    // Draw Circle Arc in SVG
+    function drawCircleSkirtSvg(r, R, type) {
+      const svg = document.getElementById('skirtSvg');
+      let angle = 90; // degrees represented in fold
+      let foldNote = "折疊角 (0,0)";
+
+      if (type === 'full') {
+        angle = 90; // Quarter quadrant represents 4-fold
+        foldNote = "四折頂點 (Center Fold)";
+      } else if (type === 'half') {
+        angle = 90; // Half circle folded in half = 90 deg quadrant
+        foldNote = "對折線 (Fold Line)";
+      } else if (type === 'threeQuarter') {
+        angle = 135;
+        foldNote = "折邊 (Fold)";
+      } else {
+        angle = 90;
+        foldNote = "直角邊";
+      }
+
+      const cx = 70;
+      const cy = 250;
+      const maxVisualR = 190;
+      const scale = maxVisualR / Math.max(R, 10);
+      const visualR = R * scale;
+      const visualr = Math.max(r * scale, 24);
+
+      // Arc calculation helper
+      const rad = (angle * Math.PI) / 180;
+      const xInnerEnd = cx + visualr * Math.sin(rad);
+      const yInnerEnd = cy - visualr * Math.cos(rad);
+      const xOuterEnd = cx + visualR * Math.sin(rad);
+      const yOuterEnd = cy - visualR * Math.cos(rad);
+
+      svg.innerHTML = `
+        <defs>
+          <pattern id="stitchPattern" width="8" height="8" patternUnits="userSpaceOnUse">
+            <path d="M 0 4 L 4 4" fill="none" stroke="#B8A394" stroke-width="1.2" />
+          </pattern>
+          <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 1 L 9 5 L 0 9 z" fill="#C86D51"/>
+          </marker>
+        </defs>
+
+        <!-- Fabric outline background -->
+        <rect x="30" y="30" width="340" height="250" rx="12" fill="#F4EFEA" stroke="#E8DFD8" stroke-dasharray="4 4" />
+        <text x="45" y="52" fill="#B8A394" font-size="11" font-weight="600">布料折疊平面示意 (Fabric Fold Corner)</text>
+
+        <!-- Fold Axes -->
+        <line x1="${cx}" y1="${cy}" x2="${cx + visualR + 30}" y2="${cy}" stroke="#6B5749" stroke-width="1.8" stroke-dasharray="6 3" />
+        <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - visualR - 25}" stroke="#6B5749" stroke-width="1.8" stroke-dasharray="6 3" />
+
+        <!-- Skirt Pattern Cut Path -->
+        <path d="M ${cx + visualr} ${cy} 
+                 A ${visualr} ${visualr} 0 0 0 ${cx} ${cy - visualr} 
+                 L ${cx} ${cy - visualR} 
+                 A ${visualR} ${visualR} 0 0 1 ${cx + visualR} ${cy} 
+                 Z" 
+              fill="#C86D51" fill-opacity="0.18" stroke="#C86D51" stroke-width="2.5" />
+
+        <!-- Waist stitch allowance line -->
+        <path d="M ${cx + visualr - 5} ${cy} A ${visualr - 5} ${visualr - 5} 0 0 0 ${cx} ${cy - visualr + 5}" 
+              fill="none" stroke="#94452E" stroke-width="1.2" stroke-dasharray="3 3" />
+
+        <!-- Radius Dimension Lines -->
+        <!-- Inner Radius r -->
+        <line x1="${cx}" y1="${cy}" x2="${cx + visualr * 0.707}" y2="${cy - visualr * 0.707}" stroke="#94452E" stroke-width="1.5" marker-end="url(#arrow)" />
+        <circle cx="${cx}" cy="${cy}" r="3.5" fill="#94452E" />
+        <text x="${cx + 10}" y="${cy - visualr * 0.4}" fill="#94452E" font-size="11" font-weight="bold">r (內徑)</text>
+
+        <!-- Outer Radius R -->
+        <line x1="${cx}" y1="${cy}" x2="${cx + visualR * 0.707}" y2="${cy - visualR * 0.707}" stroke="#C86D51" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#arrow)" />
+        <text x="${cx + visualr + 20}" y="${cy - visualR * 0.6}" fill="#C86D51" font-size="12" font-weight="bold">R (總半徑 = r + 裙長)</text>
+
+        <!-- Center Point Label -->
+        <text x="${cx - 8}" y="${cy + 18}" fill="#4A3B31" font-size="11" font-weight="bold">${foldNote}</text>
+        <text x="${cx + visualR - 10}" y="${cy + 16}" fill="#6B5749" font-size="10">布料折邊 1</text>
+        <text x="${cx - 28}" y="${cy - visualR + 15}" fill="#6B5749" font-size="10" transform="rotate(-90 ${cx - 28} ${cy - visualR + 15})">布料折邊 2</text>
+      `;
+    }
+
+    // Draw Rectangular Pleat Skirt SVG
+    function drawPleatedSvg(panels, panelLength, totalWidth) {
+      const svg = document.getElementById('skirtSvg');
+      svg.innerHTML = `
+        <!-- Background -->
+        <rect x="25" y="30" width="350" height="250" rx="12" fill="#F4EFEA" stroke="#E8DFD8" stroke-dasharray="4 4" />
+        <text x="40" y="55" fill="#6B5749" font-size="12" font-weight="bold">直裁矩形百褶片排版 (${panels} 片拼接)</text>
+
+        <!-- Rect Fabric Panel -->
+        <rect x="50" y="80" width="300" height="130" rx="4" fill="#C86D51" fill-opacity="0.18" stroke="#C86D51" stroke-width="2" />
+
+        <!-- Pleat Fold Lines -->
+        ${Array.from({length: 12}).map((_, i) => `
+          <line x1="${65 + i * 22}" y1="80" x2="${65 + i * 22}" y2="210" stroke="#C86D51" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>
+          <path d="M ${60 + i * 22} 80 L ${68 + i * 22} 80 L ${74 + i * 22} 85" fill="none" stroke="#94452E" stroke-width="1.2"/>
+        `).join('')}
+
+        <!-- Dimension Labels -->
+        <line x1="50" y1="225" x2="350" y2="225" stroke="#4A3B31" stroke-width="1.2" />
+        <text x="140" y="242" fill="#4A3B31" font-size="11" font-weight="bold">展開總寬度 = 腰圍 × 倍率</text>
+
+        <line x1="365" y1="80" x2="365" y2="210" stroke="#4A3B31" stroke-width="1.2" />
+        <text x="372" y="150" fill="#4A3B31" font-size="11" font-weight="bold" transform="rotate(90 372 150)">長度 = 裙長 + 縫份</text>
+      `;
+    }
+
+    // ==========================================
+    // PANTS CALCULATION & SVG RENDER
+    // ==========================================
+    function calculatePants() {
+      const hipInput = parseFloat(document.getElementById('pantsHip').value) || 0;
+      const waistInput = parseFloat(document.getElementById('pantsWaist').value) || 0;
+      const riseInput = parseFloat(document.getElementById('pantsRise').value) || 0;
+      const lengthInput = parseFloat(document.getElementById('pantsLength').value) || 0;
+      const hemInput = parseFloat(document.getElementById('pantsHemWidth').value) || 0;
+      const easeVal = parseFloat(document.getElementById('pantsEase').value) || 10;
+      const elasticType = document.getElementById('elasticType').value;
+
+      const factor = currentUnit === 'inch' ? 2.54 : 1;
+      const hip = hipInput * factor;
+      const waist = waistInput * factor;
+      const rise = riseInput * factor;
+      const length = lengthInput * factor;
+      const hem = hemInput * factor;
+
+      // Crotch Extension Formulas (Standard Tailoring Draft)
+      // Front Crotch: Hip / 20 ~ Hip / 24 + Ease (小襠微凸)
+      const frontExt = (hip / 24) + 0.5;
+      // Back Crotch: Hip / 10 + 0.5 (大襠深弧，包裹臀大肌)
+      const backExt = (hip / 10) + 0.8;
+
+      // Elastic Waistband Length
+      let elasticRatio = 0.85;
+      if (elasticType === 'tight') elasticRatio = 0.80;
+      if (elasticType === 'loose') elasticRatio = 0.90;
+      const elasticLen = (waist * elasticRatio) + 2.5; // +2.5cm overlap seam
+
+      // Fabric Requirement for Pants
+      // Typically: 2 * Pants Length + 25cm (for pocket bags, waistband, hems)
+      const fabricNeedM = ((length * 2) + 25) / 100;
+
+      // Update UI elements
+      document.getElementById('frontCrotchExt').textContent = `${(frontExt / factor).toFixed(1)} ${currentUnit}`;
+      document.getElementById('backCrotchExt').textContent = `${(backExt / factor).toFixed(1)} ${currentUnit}`;
+      document.getElementById('elasticLength').textContent = `${(elasticLen / factor).toFixed(1)} ${currentUnit}`;
+      document.getElementById('pantsFabricMeter').textContent = `${Math.max(fabricNeedM, 1.8).toFixed(1)} m`;
+
+      drawPantsSvg(hip, rise, length, frontExt, backExt, hem);
+    }
+
+    // Draw Pants Front & Back Sloper SVG
+    function drawPantsSvg(hip, rise, length, frontExt, backExt, hem) {
+      const svg = document.getElementById('pantsSvg');
+
+      svg.innerHTML = `
+        <defs>
+          <marker id="pantsArrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 1 L 9 5 L 0 9 z" fill="#6B5749"/>
+          </marker>
+        </defs>
+
+        <!-- Background Container -->
+        <rect x="15" y="20" width="490" height="300" rx="14" fill="#FAF8F5" stroke="#E8DFD8" />
+
+        <!-- Divider between Front & Back panels -->
+        <line x1="260" y1="35" x2="260" y2="305" stroke="#E8DFD8" stroke-dasharray="4 4" />
+
+        <!-- ================= FRONT LEG (前片) ================= -->
+        <g transform="translate(30, 40)">
+          <text x="65" y="10" fill="#B25A3F" font-size="13" font-weight="bold">前片 (Front Leg)</text>
+          
+          <!-- Front Sloper Outline -->
+          <!-- Waist: (70, 25) to (160, 25) -->
+          <!-- Crotch curve down to (180, 100) with front extension -->
+          <!-- Inseam down to (150, 250) -->
+          <!-- Hem (90, 250) to (150, 250) -->
+          <!-- Outseam back up to (70, 25) -->
+          <path d="M 60 30 
+                   L 155 30 
+                   L 155 80 
+                   Q 157 105 185 110 
+                   L 150 250 
+                   L 85 250 
+                   L 55 105 
+                   Z" 
+                fill="#C86D51" fill-opacity="0.15" stroke="#C86D51" stroke-width="2.2" />
+
+          <!-- Front Crotch Extension callout -->
+          <line x1="155" y1="110" x2="185" y2="110" stroke="#94452E" stroke-width="1.8" />
+          <circle cx="185" cy="110" r="3" fill="#94452E" />
+          <text x="145" y="125" fill="#94452E" font-size="10" font-weight="bold">小襠出量</text>
+
+          <!-- Rise Height Line -->
+          <line x1="45" y1="30" x2="45" y2="110" stroke="#6B5749" stroke-width="1" stroke-dasharray="2 2" marker-end="url(#pantsArrow)" />
+          <text x="12" y="75" fill="#6B5749" font-size="10">襠深(Rise)</text>
+
+          <!-- Hem Width Label -->
+          <line x1="85" y1="262" x2="150" y2="262" stroke="#4A3B31" stroke-width="1" />
+          <text x="96" y="275" fill="#4A3B31" font-size="10">前腳口寬</text>
+        </g>
+
+        <!-- ================= BACK LEG (後片) ================= -->
+        <g transform="translate(280, 40)">
+          <text x="75" y="10" fill="#53725F" font-size="13" font-weight="bold">後片 (Back Leg)</text>
+
+          <!-- Back Sloper Outline (Features Raised Back Rise + Wider Crotch Extension) -->
+          <!-- Raised back waist by 3.5cm (tilted) -->
+          <path d="M 60 35 
+                   L 155 18 
+                   L 150 80 
+                   Q 153 105 208 112 
+                   L 165 250 
+                   L 80 250 
+                   L 55 105 
+                   Z" 
+                fill="#6B8E78" fill-opacity="0.18" stroke="#53725F" stroke-width="2.2" />
+
+          <!-- Raised Waist highlight -->
+          <line x1="150" y1="35" x2="155" y2="18" stroke="#53725F" stroke-width="1.5" stroke-dasharray="2 2" />
+          <text x="162" y="24" fill="#53725F" font-size="10" font-weight="bold">+3.5cm 抬高後襠</text>
+
+          <!-- Back Crotch Extension callout -->
+          <line x1="150" y1="112" x2="208" y2="112" stroke="#53725F" stroke-width="2" />
+          <circle cx="208" cy="112" r="3" fill="#53725F" />
+          <text x="160" y="128" fill="#53725F" font-size="10" font-weight="bold">大襠深出量</text>
+
+          <!-- Inseam Grainline -->
+          <line x1="120" y1="40" x2="120" y2="245" stroke="#B8A394" stroke-width="1.2" stroke-dasharray="5 3" />
+          <text x="124" y="170" fill="#B8A394" font-size="9" transform="rotate(90 124 170)">經紗絲綹線 (Grainline)</text>
+        </g>
+      `;
+    }
+
+    // Initialize Application
+    window.onload = function() {
+      lucide.createIcons();
+      loadSavedProfile();
+      calculateSkirt();
+      calculatePants();
+    };
+  </script>
+</body>
+</html>
