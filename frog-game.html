@@ -1,0 +1,2197 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>青蛙捕蟲大作戰</title>
+  <!-- 載入 Tailwind CSS 與圓潤繁體中文字型 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0b2934;
+      font-family: 'Noto Sans TC', 'Fredoka', sans-serif;
+      touch-action: none;
+    }
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    /* 遊戲進行時隱藏系統預設游標，改用 Canvas 內的精緻準星 */
+    .playing-cursor {
+      cursor: none;
+    }
+    /* 最後 10 秒倒數跳動警告動畫 */
+    @keyframes urgentPulse {
+      0%, 100% {
+        transform: scale(1);
+        color: #ff4d4f;
+        text-shadow: 0 0 12px rgba(255, 77, 79, 0.8);
+      }
+      50% {
+        transform: scale(1.18);
+        color: #ffccc7;
+        text-shadow: 0 0 20px rgba(255, 77, 79, 1);
+      }
+    }
+    .timer-urgent {
+      animation: urgentPulse 0.65s infinite ease-in-out;
+    }
+    /* 彈出視窗進場動畫 */
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.88) translateY(16px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    .modal-pop {
+      animation: popIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    /* 標題微幅漂浮動畫 */
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .title-float {
+      animation: gentleFloat 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="relative w-full h-full overflow-hidden">
+
+  <!-- 主遊戲畫布 -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- 頂部 HUD 狀態列（遊戲進行中顯示） -->
+  <header id="hudBar" class="hidden fixed top-0 left-0 right-0 z-20 px-3 py-2.5 sm:px-6 sm:py-4 pointer-events-none">
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+      
+      <!-- 左側：分數與連擊 -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- 分數面板 -->
+        <div class="bg-slate-900/75 backdrop-blur-md border border-emerald-400/30 rounded-2xl px-3.5 py-1.5 sm:px-5 sm:py-2 shadow-lg flex items-center gap-2">
+          <span class="text-xs sm:text-sm font-bold text-emerald-300 tracking-wider">得分</span>
+          <span id="scoreDisplay" class="text-xl sm:text-3xl font-black text-white tabular-nums tracking-tight">0</span>
+        </div>
+
+        <!-- 連擊倍率顯示 -->
+        <div id="comboBadge" class="opacity-0 scale-90 transition-all duration-200 bg-gradient-to-r from-amber-500 to-orange-500 border border-amber-200/60 rounded-2xl px-3 py-1.5 sm:px-4 sm:py-2 shadow-lg flex items-center gap-1.5">
+          <span class="text-xs sm:text-sm font-black text-amber-950">連擊</span>
+          <span id="comboDisplay" class="text-base sm:text-xl font-black text-white drop-shadow">x1.0</span>
+        </div>
+      </div>
+
+      <!-- 中央：剩餘時間倒數 -->
+      <div class="bg-slate-900/80 backdrop-blur-md border border-teal-400/30 rounded-2xl px-4 py-1.5 sm:px-6 sm:py-2 shadow-lg flex items-center gap-2">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-teal-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <circle cx="12" cy="13" r="8"></circle>
+          <path stroke-linecap="round" d="M12 9v4l2.5 2.5M9 3h6"></path>
+        </svg>
+        <span id="timerDisplay" class="text-xl sm:text-3xl font-black text-teal-100 tabular-nums">60</span>
+        <span class="text-xs sm:text-sm font-bold text-teal-300/90">秒</span>
+      </div>
+
+      <!-- 右側：音效開關按鈕 -->
+      <div class="pointer-events-auto">
+        <button id="soundToggleBtn" type="button" aria-label="切換音效" title="切換音效"
+          class="bg-slate-900/75 hover:bg-slate-800/90 active:scale-95 backdrop-blur-md border border-emerald-400/30 text-emerald-200 rounded-2xl p-2.5 sm:p-3 shadow-lg transition-all cursor-pointer">
+          <!-- 開啟音效圖示 -->
+          <svg id="soundOnIcon" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"></path>
+          </svg>
+          <!-- 靜音圖示 -->
+          <svg id="soundOffIcon" class="w-5 h-5 sm:w-6 sm:h-6 hidden text-rose-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M23 9l-6 6M17 9l6 6"></path>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- 開始畫面疊加層 -->
+  <div id="startOverlay" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-slate-950/55 backdrop-blur-sm">
+    <div class="modal-pop w-full max-w-lg bg-gradient-to-b from-teal-950/95 to-slate-900/95 border-2 border-emerald-400/40 rounded-3xl p-5 sm:p-8 shadow-2xl text-center">
+      
+      <!-- 遊戲主標題 -->
+      <div class="title-float mb-2">
+        <span class="inline-block px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs sm:text-sm font-bold tracking-widest mb-2">
+          池塘生態反應挑戰
+        </span>
+        <h1 class="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-emerald-300 to-teal-200 drop-shadow-sm tracking-tight">
+          青蛙捕蟲大作戰
+        </h1>
+      </div>
+
+      <p class="text-teal-100/85 text-xs sm:text-sm mb-4 sm:mb-5">
+        移動滑鼠（或觸控螢幕）瞄準目標，點擊發射舌頭捕捉飛蟲！<br class="hidden sm:inline" />
+        單次舌頭可串連多隻昆蟲觸發「多重捕捉」高分獎勵！
+      </p>
+
+      <!-- 昆蟲圖鑑說明卡片 -->
+      <div class="grid grid-cols-2 gap-2.5 sm:gap-3 mb-5 text-left">
+        <!-- 黑色小飛蟲 -->
+        <div class="bg-slate-800/75 border border-slate-700/80 rounded-2xl p-2.5 sm:p-3 flex items-center gap-2.5">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-slate-700/70 flex items-center justify-center shrink-0">
+            <svg class="w-7 h-7" viewBox="0 0 40 40">
+              <ellipse cx="14" cy="14" rx="7" ry="4" transform="rotate(-30 14 14)" fill="#cbd5e1" opacity="0.8"/>
+              <ellipse cx="26" cy="14" rx="7" ry="4" transform="rotate(30 26 14)" fill="#cbd5e1" opacity="0.8"/>
+              <ellipse cx="20" cy="22" rx="6" ry="8" fill="#1e293b"/>
+              <circle cx="17.5" cy="15" r="2.2" fill="#ef4444"/>
+              <circle cx="22.5" cy="15" r="2.2" fill="#ef4444"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs sm:text-sm font-bold text-white">黑色小飛蟲</div>
+            <div class="text-xs font-black text-emerald-400">+10 分</div>
+            <div class="text-[11px] text-slate-400">盤旋飛行</div>
+          </div>
+        </div>
+
+        <!-- 翠綠蜻蜓 -->
+        <div class="bg-slate-800/75 border border-slate-700/80 rounded-2xl p-2.5 sm:p-3 flex items-center gap-2.5">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-950/80 flex items-center justify-center shrink-0">
+            <svg class="w-8 h-8" viewBox="0 0 40 40">
+              <ellipse cx="11" cy="16" rx="9" ry="2.8" transform="rotate(-15 11 16)" fill="#a7f3d0" opacity="0.85"/>
+              <ellipse cx="29" cy="16" rx="9" ry="2.8" transform="rotate(15 29 16)" fill="#a7f3d0" opacity="0.85"/>
+              <ellipse cx="12" cy="21" rx="7" ry="2.2" transform="rotate(10 12 21)" fill="#6ee7b7" opacity="0.75"/>
+              <ellipse cx="28" cy="21" rx="7" ry="2.2" transform="rotate(-10 28 21)" fill="#6ee7b7" opacity="0.75"/>
+              <rect x="18.2" y="12" width="3.6" height="22" rx="1.8" fill="#10b981"/>
+              <circle cx="20" cy="12" r="3.5" fill="#059669"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs sm:text-sm font-bold text-emerald-200">翠綠蜻蜓</div>
+            <div class="text-xs font-black text-emerald-400">+25 分</div>
+            <div class="text-[11px] text-slate-400">高速衝刺懸停</div>
+          </div>
+        </div>
+
+        <!-- 閃耀黃金甲蟲 -->
+        <div class="bg-amber-950/45 border border-amber-400/50 rounded-2xl p-2.5 sm:p-3 flex items-center gap-2.5">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+            <svg class="w-7 h-7" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="14" fill="#fbbf24" opacity="0.25"/>
+              <ellipse cx="20" cy="21" rx="8.5" ry="10.5" fill="#f59e0b"/>
+              <path d="M20 11v20" stroke="#78350f" stroke-width="1.5"/>
+              <ellipse cx="17" cy="18" rx="2.5" ry="4.5" fill="#fef08a" opacity="0.85"/>
+              <circle cx="20" cy="11" r="4" fill="#b45309"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs sm:text-sm font-bold text-amber-200">黃金甲蟲</div>
+            <div class="text-xs font-black text-amber-400">+50 分 &amp; +2秒</div>
+            <div class="text-[11px] text-amber-200/75">稀有波浪飛行</div>
+          </div>
+        </div>
+
+        <!-- 危險虎頭蜂 -->
+        <div class="bg-rose-950/45 border border-rose-500/50 rounded-2xl p-2.5 sm:p-3 flex items-center gap-2.5">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-500/20 flex items-center justify-center shrink-0">
+            <svg class="w-7 h-7" viewBox="0 0 40 40">
+              <ellipse cx="12" cy="15" rx="7" ry="3.5" transform="rotate(-25 12 15)" fill="#fde68a" opacity="0.8"/>
+              <ellipse cx="28" cy="15" rx="7" ry="3.5" transform="rotate(25 28 15)" fill="#fde68a" opacity="0.8"/>
+              <ellipse cx="20" cy="22" rx="6.5" ry="9" fill="#facc15"/>
+              <rect x="14" y="18" width="12" height="2.8" fill="#18181b"/>
+              <rect x="14" y="23" width="12" height="2.8" fill="#18181b"/>
+              <polygon points="20,34 18,30 22,30" fill="#18181b"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs sm:text-sm font-bold text-rose-200">危險虎頭蜂</div>
+            <div class="text-xs font-black text-rose-400">-15 分 &amp; 暈眩</div>
+            <div class="text-[11px] text-rose-200/75">切勿捕捉！</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 最高分紀錄 -->
+      <div class="mb-5 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800/90 border border-amber-400/30">
+        <span class="text-amber-400 text-sm">🏆</span>
+        <span class="text-xs sm:text-sm font-bold text-slate-300">歷史最高紀錄：</span>
+        <span id="startHighScore" class="text-base sm:text-lg font-black text-amber-300 tabular-nums">0</span>
+      </div>
+
+      <!-- 開始遊戲按鈕 -->
+      <div>
+        <button id="startGameBtn" type="button"
+          class="w-full py-3.5 sm:py-4 px-6 rounded-2xl bg-gradient-to-r from-lime-500 via-emerald-500 to-teal-500 hover:from-lime-400 hover:to-teal-400 active:scale-[0.98] text-slate-950 font-black text-lg sm:text-xl tracking-wider shadow-xl shadow-emerald-500/25 border-b-4 border-emerald-700 transition-all cursor-pointer">
+          開始遊戲
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 遊戲結束結算畫面 -->
+  <div id="gameOverOverlay" class="hidden fixed inset-0 z-30 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-sm">
+    <div class="modal-pop w-full max-w-md bg-gradient-to-b from-slate-900/95 to-teal-950/95 border-2 border-emerald-400/40 rounded-3xl p-6 sm:p-8 shadow-2xl text-center">
+      
+      <h2 class="text-3xl sm:text-4xl font-black text-white mb-1 tracking-tight">時間到！</h2>
+      <p class="text-teal-300/85 text-xs sm:text-sm mb-4">池塘捕蟲挑戰結束</p>
+
+      <!-- 新紀錄徽章（打破紀錄時顯示） -->
+      <div id="newRecordBanner" class="hidden mb-4 py-1.5 px-4 rounded-full bg-gradient-to-r from-amber-500/30 via-yellow-400/30 to-amber-500/30 border border-amber-300/60 text-amber-200 text-xs sm:text-sm font-black tracking-wider">
+        🎉 恭喜刷新最高紀錄！ 🎉
+      </div>
+
+      <!-- 最終得分大卡片 -->
+      <div class="bg-slate-800/80 border border-emerald-400/30 rounded-2xl p-4 mb-4">
+        <div class="text-xs sm:text-sm font-bold text-emerald-300 mb-1">最終得分</div>
+        <div id="finalScoreDisplay" class="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-lime-300 to-emerald-300 tabular-nums">
+          0
+        </div>
+      </div>
+
+      <!-- 詳細數據統計 -->
+      <div class="grid grid-cols-3 gap-2.5 mb-6">
+        <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-3">
+          <div class="text-[11px] sm:text-xs font-bold text-slate-400 mb-1">捕捉昆蟲</div>
+          <div id="finalBugsDisplay" class="text-lg sm:text-xl font-black text-white tabular-nums">0</div>
+        </div>
+        <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-3">
+          <div class="text-[11px] sm:text-xs font-bold text-slate-400 mb-1">最高連擊</div>
+          <div id="finalMaxComboDisplay" class="text-lg sm:text-xl font-black text-amber-300 tabular-nums">0</div>
+        </div>
+        <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-3">
+          <div class="text-[11px] sm:text-xs font-bold text-slate-400 mb-1">最高紀錄</div>
+          <div id="finalHighScoreDisplay" class="text-lg sm:text-xl font-black text-emerald-300 tabular-nums">0</div>
+        </div>
+      </div>
+
+      <!-- 再玩一次按鈕 -->
+      <button id="restartGameBtn" type="button"
+        class="w-full py-3.5 sm:py-4 px-6 rounded-2xl bg-gradient-to-r from-lime-500 via-emerald-500 to-teal-500 hover:from-lime-400 hover:to-teal-400 active:scale-[0.98] text-slate-950 font-black text-lg sm:text-xl tracking-wider shadow-xl shadow-emerald-500/25 border-b-4 border-emerald-700 transition-all cursor-pointer">
+        再玩一次
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ============================================================================
+     * 《青蛙捕蟲大作戰》核心遊戲引擎
+     * 整合 Web Audio API 合成音效、池塘生態視覺、昆蟲行為 AI 與流暢 60FPS 動畫迴圈
+     * ============================================================================
+     */
+
+    // ----------------------------------------------------------------------------
+    // 1. Web Audio API 合成音效系統（純程式波形生成，無需外部音檔）
+    // ----------------------------------------------------------------------------
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      // 確保在首次使用者互動時初始化並喚醒 AudioContext
+      init() {
+        if (!this.ctx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            this.ctx = new AudioContextClass();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume().catch(() => {});
+        }
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        return this.muted;
+      }
+
+      // 青蛙舌頭彈射音效（彈性滑音）
+      playShoot() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(240, now);
+        osc.frequency.exponentialRampToValueAtTime(680, now + 0.08);
+        osc.frequency.exponentialRampToValueAtTime(320, now + 0.14);
+
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.16);
+      }
+
+      // 捕捉成功清脆音效（隨連擊數略微提高音高）
+      playCatch(combo = 1) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        const pitchMultiplier = Math.min(1 + (combo - 1) * 0.05, 1.6);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(520 * pitchMultiplier, now);
+        osc.frequency.exponentialRampToValueAtTime(980 * pitchMultiplier, now + 0.11);
+
+        gain.gain.setValueAtTime(0.24, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.17);
+      }
+
+      // 多重捕捉（雙殺/三連抓）清亮和弦
+      playMultiCatch(count = 2) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const baseNotes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        const notesToPlay = baseNotes.slice(0, Math.min(count + 1, 4));
+
+        notesToPlay.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const startTime = now + idx * 0.045;
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, startTime);
+
+          gain.gain.setValueAtTime(0.2, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.28);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start(startTime);
+          osc.stop(startTime + 0.3);
+        });
+      }
+
+      // 黃金甲蟲稀有閃耀音效
+      playGolden() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const notes = [880, 1108.73, 1318.51, 1760]; // A5, C#6, E6, A6
+
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const t = now + i * 0.05;
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, t);
+
+          gain.gain.setValueAtTime(0.22, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start(t);
+          osc.stop(t + 0.36);
+        });
+      }
+
+      // 被虎頭蜂螫到的電流警告聲
+      playSting() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const lfo = this.ctx.createOscillator();
+        const lfoGain = this.ctx.createGain();
+        const mainGain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(145, now);
+        osc.frequency.linearRampToValueAtTime(85, now + 0.35);
+
+        // 快速顫音模擬電流麻痺感
+        lfo.type = 'square';
+        lfo.frequency.setValueAtTime(38, now);
+        lfoGain.gain.setValueAtTime(45, now);
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+
+        mainGain.gain.setValueAtTime(0.25, now);
+        mainGain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+
+        osc.connect(mainGain);
+        mainGain.connect(this.ctx.destination);
+
+        osc.start(now);
+        lfo.start(now);
+        osc.stop(now + 0.4);
+        lfo.stop(now + 0.4);
+      }
+
+      // 最後 5 秒倒數提示音
+      playTick(isFinal = false) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(isFinal ? 980 : 760, now);
+
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.13);
+      }
+
+      // 遊戲開始音效
+      playStart() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const notes = [440, 554.37, 659.25];
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const t = now + i * 0.06;
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.18, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.22);
+        });
+      }
+
+      // 遊戲結束結算音效
+      playGameOver() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const notes = [659.25, 587.33, 523.25, 392.00];
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const t = now + i * 0.11;
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.36);
+        });
+      }
+    }
+
+    // ----------------------------------------------------------------------------
+    // 2. 遊戲全域狀態與 DOM 參照
+    // ----------------------------------------------------------------------------
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const sound = new SoundEngine();
+
+    // UI 元素
+    const hudBar = document.getElementById('hudBar');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const comboBadge = document.getElementById('comboBadge');
+    const comboDisplay = document.getElementById('comboDisplay');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const soundOnIcon = document.getElementById('soundOnIcon');
+    const soundOffIcon = document.getElementById('soundOffIcon');
+
+    const startOverlay = document.getElementById('startOverlay');
+    const startHighScore = document.getElementById('startHighScore');
+    const startGameBtn = document.getElementById('startGameBtn');
+
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const newRecordBanner = document.getElementById('newRecordBanner');
+    const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+    const finalBugsDisplay = document.getElementById('finalBugsDisplay');
+    const finalMaxComboDisplay = document.getElementById('finalMaxComboDisplay');
+    const finalHighScoreDisplay = document.getElementById('finalHighScoreDisplay');
+    const restartGameBtn = document.getElementById('restartGameBtn');
+
+    // 最高分儲存鍵值
+    const STORAGE_KEY = 'frog_bug_catcher_highscore_v1';
+
+    // 遊戲設定常數
+    const INITIAL_TIME = 60;
+    const TARGET_BUG_COUNT = 9;
+
+    // 遊戲動態狀態
+    const gameState = {
+      status: 'MENU', // 'MENU' | 'PLAYING' | 'GAMEOVER'
+      width: window.innerWidth,
+      height: window.innerHeight,
+      dpr: Math.min(window.devicePixelRatio || 1, 2),
+      score: 0,
+      highScore: parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10),
+      combo: 0,
+      maxCombo: 0,
+      bugsCaught: 0,
+      timeLeft: INITIAL_TIME,
+      lastIntegerSecond: INITIAL_TIME,
+      pointer: {
+        x: window.innerWidth * 0.5,
+        y: window.innerHeight * 0.45,
+        active: false
+      },
+      shakeTime: 0,
+      shakeIntensity: 0,
+      globalTime: 0,
+      spawnTimer: 0
+    };
+
+    startHighScore.textContent = gameState.highScore;
+
+    // ----------------------------------------------------------------------------
+    // 3. 池塘生態背景元素（水波紋、浮動荷葉、蘆葦、微光螢火蟲）
+    // ----------------------------------------------------------------------------
+    class WaterRipple {
+      constructor(x, y, maxRadius = 90, speed = 42, alpha = 0.35) {
+        this.x = x;
+        this.y = y;
+        this.radius = 6;
+        this.maxRadius = maxRadius;
+        this.speed = speed;
+        this.alpha = alpha;
+      }
+
+      update(dt) {
+        this.radius += this.speed * dt;
+        return this.radius < this.maxRadius;
+      }
+
+      draw(ctx) {
+        const progress = this.radius / this.maxRadius;
+        const currentAlpha = this.alpha * (1 - progress);
+        ctx.save();
+        ctx.strokeStyle = `rgba(186, 230, 253, ${currentAlpha.toFixed(3)})`;
+        ctx.lineWidth = 2 * (1 - progress * 0.5);
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y, this.radius, this.radius * 0.62, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    class Particle {
+      constructor(x, y, color, speedMin = 40, speedMax = 160, size = 4, life = 0.55, gravity = 0) {
+        this.x = x;
+        this.y = y;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = speedMin + Math.random() * (speedMax - speedMin);
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.color = color;
+        this.size = size * (0.7 + Math.random() * 0.6);
+        this.life = life;
+        this.maxLife = life;
+        this.gravity = gravity;
+      }
+
+      update(dt) {
+        this.vy += this.gravity * dt;
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.life -= dt;
+        return this.life > 0;
+      }
+
+      draw(ctx) {
+        const alpha = Math.max(0, this.life / this.maxLife);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    class FloatingText {
+      constructor(x, y, text, color = '#ffffff', scale = 1) {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.color = color;
+        this.scale = scale;
+        this.life = 0.95;
+        this.maxLife = 0.95;
+        this.vy = -58;
+      }
+
+      update(dt) {
+        this.y += this.vy * dt;
+        this.vy *= 0.96;
+        this.life -= dt;
+        return this.life > 0;
+      }
+
+      draw(ctx) {
+        const progress = 1 - this.life / this.maxLife;
+        const alpha = progress < 0.7 ? 1 : 1 - (progress - 0.7) / 0.3;
+        const popScale = progress < 0.15 ? 0.7 + (progress / 0.15) * 0.45 : 1.15 - (progress - 0.15) * 0.2;
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(this.scale * popScale, this.scale * popScale);
+        ctx.globalAlpha = Math.max(0, alpha);
+
+        ctx.font = '900 22px "Noto Sans TC", "Fredoka", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // 深色外框確保在任何池塘背景都清晰可讀
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = 'rgba(6, 24, 34, 0.88)';
+        ctx.strokeText(this.text, 0, 0);
+
+        ctx.fillStyle = this.color;
+        ctx.fillText(this.text, 0, 0);
+        ctx.restore();
+      }
+    }
+
+    // ----------------------------------------------------------------------------
+    // 4. 昆蟲類別與行為 AI（蒼蠅、翠綠蜻蜓、黃金甲蟲、危險虎頭蜂）
+    // ----------------------------------------------------------------------------
+    const BUG_TYPES = {
+      fly: {
+        name: '黑色小飛蟲',
+        points: 10,
+        bonusTime: 0,
+        radius: 17,
+        isHazard: false
+      },
+      dragonfly: {
+        name: '翠綠蜻蜓',
+        points: 25,
+        bonusTime: 0,
+        radius: 21,
+        isHazard: false
+      },
+      golden: {
+        name: '閃耀黃金甲蟲',
+        points: 50,
+        bonusTime: 2,
+        radius: 20,
+        isHazard: false
+      },
+      hornet: {
+        name: '危險虎頭蜂',
+        points: -15,
+        bonusTime: 0,
+        radius: 18,
+        isHazard: true
+      }
+    };
+
+    class Bug {
+      constructor(type, w, h) {
+        this.type = type;
+        const cfg = BUG_TYPES[type];
+        this.points = cfg.points;
+        this.bonusTime = cfg.bonusTime;
+        this.radius = cfg.radius;
+        this.isHazard = cfg.isHazard;
+
+        this.caught = false;
+        this.wingPhase = Math.random() * Math.PI * 2;
+        this.age = 0;
+        this.trail = [];
+
+        // 從畫面左右兩側或上方進入，避開最下方青蛙區域
+        const side = Math.random();
+        const playableHeight = Math.max(220, h - 190);
+        if (side < 0.45) {
+          this.x = -30;
+          this.dirX = 1;
+        } else if (side < 0.9) {
+          this.x = w + 30;
+          this.dirX = -1;
+        } else {
+          this.x = 60 + Math.random() * (w - 120);
+          this.dirX = Math.random() < 0.5 ? 1 : -1;
+        }
+        this.y = 75 + Math.random() * (playableHeight - 75);
+        this.baseY = this.y;
+
+        // 依昆蟲種類設定飛行速度與AI參數
+        if (type === 'fly') {
+          this.speed = 110 + Math.random() * 65;
+          this.vx = this.dirX * this.speed;
+          this.vy = (Math.random() - 0.5) * 80;
+          this.turnTimer = 0.5 + Math.random() * 1.2;
+        } else if (type === 'dragonfly') {
+          this.speed = 260 + Math.random() * 90;
+          this.vx = this.dirX * this.speed;
+          this.vy = (Math.random() - 0.5) * 40;
+          this.state = 'DASH'; // 'DASH' | 'HOVER'
+          this.stateTimer = 0.7 + Math.random() * 0.8;
+        } else if (type === 'golden') {
+          this.speed = 165 + Math.random() * 45;
+          this.vx = this.dirX * this.speed;
+          this.vy = 0;
+          this.waveAmp = 48 + Math.random() * 35;
+          this.waveFreq = 3.2 + Math.random() * 1.2;
+        } else if (type === 'hornet') {
+          this.speed = 135 + Math.random() * 55;
+          this.vx = this.dirX * this.speed;
+          this.vy = (Math.random() - 0.5) * 90;
+          this.zigzagTimer = 0.35 + Math.random() * 0.4;
+        }
+
+        this.angle = Math.atan2(this.vy, this.vx);
+      }
+
+      update(dt, w, h) {
+        if (this.caught) {
+          this.wingPhase += dt * 45;
+          return true;
+        }
+
+        this.age += dt;
+        const minY = 68;
+        const maxY = Math.max(200, h - 180);
+
+        if (this.type === 'fly') {
+          this.wingPhase += dt * 55;
+          this.turnTimer -= dt;
+          if (this.turnTimer <= 0) {
+            this.turnTimer = 0.4 + Math.random() * 1.0;
+            const randomAngle = Math.random() * Math.PI * 2;
+            const spd = 95 + Math.random() * 85;
+            this.vx = Math.cos(randomAngle) * spd;
+            this.vy = Math.sin(randomAngle) * spd;
+          }
+          // 盤旋微幅抖動
+          this.vx += Math.cos(this.age * 7) * 140 * dt;
+          this.vy += Math.sin(this.age * 8.5) * 140 * dt;
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+
+        } else if (this.type === 'dragonfly') {
+          this.wingPhase += dt * 70;
+          this.stateTimer -= dt;
+          if (this.state === 'DASH') {
+            this.x += this.vx * dt;
+            this.y += this.vy * dt;
+            if (this.stateTimer <= 0) {
+              this.state = 'HOVER';
+              this.stateTimer = 0.45 + Math.random() * 0.45;
+            }
+          } else {
+            // 懸停微幅上下浮動
+            this.y += Math.sin(this.age * 10) * 18 * dt;
+            if (this.stateTimer <= 0) {
+              this.state = 'DASH';
+              this.stateTimer = 0.75 + Math.random() * 0.85;
+              const targetAngle = (Math.random() - 0.5) * 0.9 + (this.dirX > 0 ? 0 : Math.PI);
+              const spd = 270 + Math.random() * 95;
+              this.vx = Math.cos(targetAngle) * spd;
+              this.vy = Math.sin(targetAngle) * spd;
+            }
+          }
+
+        } else if (this.type === 'golden') {
+          this.wingPhase += dt * 42;
+          this.x += this.vx * dt;
+          this.y = this.baseY + Math.sin(this.age * this.waveFreq) * this.waveAmp;
+          this.vy = Math.cos(this.age * this.waveFreq) * this.waveAmp * this.waveFreq;
+
+          // 記錄金色光點拖尾
+          this.trail.push({ x: this.x, y: this.y, life: 0.35 });
+          if (this.trail.length > 14) this.trail.shift();
+
+        } else if (this.type === 'hornet') {
+          this.wingPhase += dt * 65;
+          this.zigzagTimer -= dt;
+          if (this.zigzagTimer <= 0) {
+            this.zigzagTimer = 0.35 + Math.random() * 0.45;
+            this.vy = (Math.random() - 0.5) * 210;
+            this.vx = this.dirX * (120 + Math.random() * 75);
+          }
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+        }
+
+        // 更新拖尾生命週期
+        for (let i = this.trail.length - 1; i >= 0; i--) {
+          this.trail[i].life -= dt;
+          if (this.trail[i].life <= 0) this.trail.splice(i, 1);
+        }
+
+        // 上下邊界柔和反彈，確保昆蟲不會飛出可捕捉區域
+        if (this.y < minY) {
+          this.y = minY;
+          this.vy = Math.abs(this.vy) * 0.8;
+          this.baseY = Math.max(this.baseY, minY + 40);
+        } else if (this.y > maxY) {
+          this.y = maxY;
+          this.vy = -Math.abs(this.vy) * 0.8;
+          this.baseY = Math.min(this.baseY, maxY - 40);
+        }
+
+        // 水平方向若進入畫面後超出另一端邊界則移除（黃金甲蟲飛過整張畫面即離開；其他昆蟲在畫面內巡迴或飛離）
+        if (this.type === 'golden') {
+          if ((this.dirX > 0 && this.x > w + 60) || (this.dirX < 0 && this.x < -60)) {
+            return false;
+          }
+        } else {
+          // 讓一般昆蟲在畫面內多停留一會兒，碰到左右邊緣時有高機率折返
+          if (this.x < 35 && this.vx < 0) {
+            if (this.age < 12) {
+              this.vx = Math.abs(this.vx);
+              this.dirX = 1;
+            } else if (this.x < -50) {
+              return false;
+            }
+          } else if (this.x > w - 35 && this.vx > 0) {
+            if (this.age < 12) {
+              this.vx = -Math.abs(this.vx);
+              this.dirX = -1;
+            } else if (this.x > w + 50) {
+              return false;
+            }
+          }
+        }
+
+        // 平滑更新朝向角度
+        if (Math.hypot(this.vx, this.vy) > 5) {
+          this.angle = Math.atan2(this.vy, this.vx);
+        }
+
+        return true;
+      }
+
+      draw(ctx) {
+        // 先繪製黃金甲蟲的閃耀拖尾
+        if (this.type === 'golden' && this.trail.length > 0) {
+          ctx.save();
+          this.trail.forEach((pt, idx) => {
+            const ratio = pt.life / 0.35;
+            ctx.fillStyle = `rgba(253, 224, 71, ${(ratio * 0.55).toFixed(3)})`;
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 6 * ratio, 0, Math.PI * 2);
+            ctx.fill();
+          });
+          ctx.restore();
+        }
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // 黃金甲蟲與虎頭蜂的外部光暈
+        if (this.type === 'golden') {
+          const glowRadius = 26 + Math.sin(this.age * 10) * 4;
+          const grad = ctx.createRadialGradient(0, 0, 4, 0, 0, glowRadius);
+          grad.addColorStop(0, 'rgba(254, 240, 138, 0.75)');
+          grad.addColorStop(0.6, 'rgba(245, 158, 11, 0.3)');
+          grad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(0, 0, glowRadius, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (this.type === 'hornet') {
+          const warnRadius = 25 + Math.sin(this.age * 14) * 4;
+          const grad = ctx.createRadialGradient(0, 0, 4, 0, 0, warnRadius);
+          grad.addColorStop(0, 'rgba(239, 68, 68, 0.45)');
+          grad.addColorStop(0.7, 'rgba(239, 68, 68, 0.15)');
+          grad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(0, 0, warnRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 依飛行方向翻轉或旋轉
+        const facingLeft = Math.cos(this.angle) < 0;
+        if (facingLeft) {
+          ctx.scale(-1, 1);
+        }
+
+        const wingFlap = Math.sin(this.wingPhase);
+
+        if (this.type === 'fly') {
+          // 翅膀
+          ctx.fillStyle = 'rgba(226, 232, 240, 0.78)';
+          ctx.beginPath();
+          ctx.ellipse(-3, -7, 8, 4 + wingFlap * 2.5, -0.4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.ellipse(-5, -4, 7, 3.5 - wingFlap * 2, -0.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 圓胖黑色身體
+          ctx.fillStyle = '#1e293b';
+          ctx.beginPath();
+          ctx.ellipse(0, 1, 9, 7, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 腹部條紋光澤
+          ctx.fillStyle = '#334155';
+          ctx.beginPath();
+          ctx.ellipse(-2, 0, 5, 4, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 紅色複眼
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(7, -1.5, 3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#fca5a5';
+          ctx.beginPath();
+          ctx.arc(8, -2.5, 1, 0, Math.PI * 2);
+          ctx.fill();
+
+        } else if (this.type === 'dragonfly') {
+          // 細長翠綠尾巴
+          ctx.strokeStyle = '#059669';
+          ctx.lineWidth = 4.5;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(-2, 1);
+          ctx.lineTo(-22, 3);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#34d399';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-4, 0.5);
+          ctx.lineTo(-20, 2.5);
+          ctx.stroke();
+
+          // 兩對半透明薄翼
+          ctx.fillStyle = 'rgba(167, 243, 208, 0.75)';
+          ctx.beginPath();
+          ctx.ellipse(2, -9, 4, 10 + wingFlap * 4, 0.25, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.ellipse(-4, -8, 3.5, 9 - wingFlap * 4, -0.15, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 胸部與大眼睛
+          ctx.fillStyle = '#10b981';
+          ctx.beginPath();
+          ctx.ellipse(3, 0, 6, 4.5, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#064e3b';
+          ctx.beginPath();
+          ctx.arc(9, -1, 3.8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#a7f3d0';
+          ctx.beginPath();
+          ctx.arc(10, -2, 1.3, 0, Math.PI * 2);
+          ctx.fill();
+
+        } else if (this.type === 'golden') {
+          // 振翅
+          ctx.fillStyle = 'rgba(254, 249, 195, 0.8)';
+          ctx.beginPath();
+          ctx.ellipse(-2, -9, 9, 4 + wingFlap * 3, -0.35, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 金色甲殼
+          const shellGrad = ctx.createLinearGradient(-10, -8, 10, 8);
+          shellGrad.addColorStop(0, '#fde047');
+          shellGrad.addColorStop(0.5, '#f59e0b');
+          shellGrad.addColorStop(1, '#b45309');
+          ctx.fillStyle = shellGrad;
+          ctx.beginPath();
+          ctx.ellipse(0, 1, 11, 8.5, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 甲殼高光
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+          ctx.beginPath();
+          ctx.ellipse(-1, -3, 6, 2.5, -0.1, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 頭部與觸角
+          ctx.fillStyle = '#78350f';
+          ctx.beginPath();
+          ctx.arc(10, 1, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#fde047';
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(13, -1);
+          ctx.quadraticCurveTo(17, -6, 19, -4);
+          ctx.stroke();
+
+        } else if (this.type === 'hornet') {
+          // 翅膀
+          ctx.fillStyle = 'rgba(254, 243, 199, 0.8)';
+          ctx.beginPath();
+          ctx.ellipse(-2, -8, 9, 4 + wingFlap * 3, -0.3, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 尾刺
+          ctx.fillStyle = '#18181b';
+          ctx.beginPath();
+          ctx.moveTo(-11, 2);
+          ctx.lineTo(-17, 3);
+          ctx.lineTo(-11, 5);
+          ctx.closePath();
+          ctx.fill();
+
+          // 黃黑相間腹部
+          ctx.fillStyle = '#facc15';
+          ctx.beginPath();
+          ctx.ellipse(-3, 2, 9, 6.5, 0.1, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#18181b';
+          ctx.fillRect(-7, -3.5, 2.5, 11);
+          ctx.fillRect(-2, -4, 2.5, 12);
+
+          // 胸部與兇狠複眼
+          ctx.fillStyle = '#27272a';
+          ctx.beginPath();
+          ctx.arc(6, 0, 5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.ellipse(8.5, -1, 2.5, 3.5, -0.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // ----------------------------------------------------------------------------
+    // 5. 主角青蛙與舌頭捕捉系統
+    // ----------------------------------------------------------------------------
+    class Frog {
+      constructor() {
+        this.x = gameState.width * 0.5;
+        this.y = gameState.height - 78;
+        this.mouthOffsetY = -18;
+
+        // 舌頭狀態：'IDLE' | 'EXTENDING' | 'RETRACTING'
+        this.tongueState = 'IDLE';
+        this.tongueX = this.x;
+        this.tongueY = this.y + this.mouthOffsetY;
+        this.targetX = this.x;
+        this.targetY = this.y - 120;
+        this.extendSpeed = 1650; // 舌頭伸出高速 (px/s)
+        this.retractSpeed = 1450; // 舌頭縮回高速 (px/s)
+        this.caughtBugs = [];
+
+        // 動畫計時器
+        this.chewTimer = 0;
+        this.stunTimer = 0;
+        this.idleBobPhase = 0;
+      }
+
+      resize(w, h) {
+        this.x = w * 0.5;
+        this.y = h - 78;
+        if (this.tongueState === 'IDLE') {
+          this.tongueX = this.x;
+          this.tongueY = this.y + this.mouthOffsetY;
+        }
+      }
+
+      reset() {
+        this.tongueState = 'IDLE';
+        this.caughtBugs = [];
+        this.chewTimer = 0;
+        this.stunTimer = 0;
+        this.resize(gameState.width, gameState.height);
+      }
+
+      getMouthPos() {
+        const bobY = Math.sin(this.idleBobPhase) * 2.5;
+        return {
+          x: this.x,
+          y: this.y + this.mouthOffsetY + bobY
+        };
+      }
+
+      // 發射舌頭至目標點
+      shoot(tx, ty) {
+        if (gameState.status !== 'PLAYING') return;
+        if (this.stunTimer > 0) return;
+        if (this.tongueState !== 'IDLE') return;
+
+        const mouth = this.getMouthPos();
+        // 限制最低點擊高度在青蛙嘴巴上方，避免朝地下射擊
+        const clampedY = Math.min(ty, mouth.y - 25);
+        const clampedX = Math.max(20, Math.min(gameState.width - 20, tx));
+
+        this.targetX = clampedX;
+        this.targetY = clampedY;
+        this.tongueX = mouth.x;
+        this.tongueY = mouth.y;
+        this.tongueState = 'EXTENDING';
+        this.caughtBugs = [];
+
+        sound.playShoot();
+      }
+
+      update(dt, bugs, onResolveCatch, onSting) {
+        this.idleBobPhase += dt * 3.2;
+
+        if (this.chewTimer > 0) {
+          this.chewTimer = Math.max(0, this.chewTimer - dt);
+        }
+        if (this.stunTimer > 0) {
+          this.stunTimer = Math.max(0, this.stunTimer - dt);
+        }
+
+        const mouth = this.getMouthPos();
+
+        if (this.tongueState === 'IDLE') {
+          this.tongueX = mouth.x;
+          this.tongueY = mouth.y;
+          return;
+        }
+
+        if (this.tongueState === 'EXTENDING') {
+          const dx = this.targetX - this.tongueX;
+          const dy = this.targetY - this.tongueY;
+          const dist = Math.hypot(dx, dy);
+          const step = this.extendSpeed * dt;
+
+          const prevX = this.tongueX;
+          const prevY = this.tongueY;
+
+          if (dist <= step) {
+            this.tongueX = this.targetX;
+            this.tongueY = this.targetY;
+            this.tongueState = 'RETRACTING';
+          } else {
+            this.tongueX += (dx / dist) * step;
+            this.tongueY += (dy / dist) * step;
+          }
+
+          // 檢測舌頭前端路徑與昆蟲的碰撞（支援一箭雙鵰多重捕捉！）
+          this.checkCollisions(prevX, prevY, this.tongueX, this.tongueY, bugs, onSting);
+
+        } else if (this.tongueState === 'RETRACTING') {
+          const dx = mouth.x - this.tongueX;
+          const dy = mouth.y - this.tongueY;
+          const dist = Math.hypot(dx, dy);
+          const step = this.retractSpeed * dt;
+
+          const prevX = this.tongueX;
+          const prevY = this.tongueY;
+
+          if (dist <= step) {
+            this.tongueX = mouth.x;
+            this.tongueY = mouth.y;
+            this.tongueState = 'IDLE';
+
+            // 舌頭縮回嘴巴，結算捕捉到的昆蟲
+            if (this.caughtBugs.length > 0) {
+              this.chewTimer = 0.55;
+              onResolveCatch(this.caughtBugs);
+              this.caughtBugs = [];
+            } else {
+              // 完全空發，中斷連擊
+              onResolveCatch([]);
+            }
+          } else {
+            this.tongueX += (dx / dist) * step;
+            this.tongueY += (dy / dist) * step;
+
+            // 縮回途中若碰到其他飛蟲也能順勢黏住！
+            this.checkCollisions(prevX, prevY, this.tongueX, this.tongueY, bugs, onSting);
+          }
+
+          // 讓已黏住的昆蟲跟著舌頭一起拉回嘴巴
+          this.caughtBugs.forEach((bug, idx) => {
+            const offset = idx * 8;
+            const backAngle = Math.atan2(this.tongueY - mouth.y, this.tongueX - mouth.x);
+            bug.x = this.tongueX - Math.cos(backAngle) * offset;
+            bug.y = this.tongueY - Math.sin(backAngle) * offset;
+          });
+        }
+      }
+
+      // 線段到點的最短距離檢測，確保高速舌頭不會穿透昆蟲
+      checkCollisions(x1, y1, x2, y2, bugs, onSting) {
+        for (let i = 0; i < bugs.length; i++) {
+          const bug = bugs[i];
+          if (bug.caught) continue;
+
+          const hitRadius = bug.isHazard ? bug.radius + 14 : bug.radius + 22;
+          const dist = pointToSegmentDistance(bug.x, bug.y, x1, y1, x2, y2);
+
+          if (dist <= hitRadius) {
+            if (bug.isHazard) {
+              // 誤抓虎頭蜂！立刻觸發螫傷暈眩、釋放已抓昆蟲並迅速縮回
+              bug.caught = true;
+              this.caughtBugs.forEach(b => { b.caught = false; });
+              this.caughtBugs = [];
+              this.tongueState = 'RETRACTING';
+              this.stunTimer = 0.8;
+              onSting(bug);
+              return;
+            } else {
+              // 成功黏住益蟲！
+              bug.caught = true;
+              this.caughtBugs.push(bug);
+              spawnBurstParticles(bug.x, bug.y, bug.type === 'golden' ? '#fde047' : '#a7f3d0', 8);
+            }
+          }
+        }
+      }
+
+      draw(ctx, pointer) {
+        const bobY = Math.sin(this.idleBobPhase) * 2.5;
+        const stunShakeX = this.stunTimer > 0 ? Math.sin(gameState.globalTime * 55) * 6 : 0;
+        const fx = this.x + stunShakeX;
+        const fy = this.y + bobY;
+
+        ctx.save();
+
+        // 1. 腳下巨大荷葉
+        drawLilyPad(ctx, this.x, this.y + 34, 118, 48, 0.25);
+
+        // 2. 青蛙後腿
+        ctx.fillStyle = '#15803d';
+        ctx.beginPath();
+        ctx.ellipse(fx - 46, fy + 16, 20, 13, -0.35, 0, Math.PI * 2);
+        ctx.ellipse(fx + 46, fy + 16, 20, 13, 0.35, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3. 青蛙圓潤身體（咀嚼時腮幫子與身體會微微鼓起）
+        const chewScaleX = this.chewTimer > 0 ? 1 + Math.sin(this.chewTimer * 28) * 0.08 : 1;
+        const chewScaleY = this.chewTimer > 0 ? 1 - Math.sin(this.chewTimer * 28) * 0.05 : 1;
+
+        ctx.save();
+        ctx.translate(fx, fy);
+        ctx.scale(chewScaleX, chewScaleY);
+
+        const bodyGrad = ctx.createRadialGradient(0, -10, 10, 0, 5, 62);
+        bodyGrad.addColorStop(0, '#4ade80');
+        bodyGrad.addColorStop(0.65, '#22c55e');
+        bodyGrad.addColorStop(1, '#15803d');
+
+        ctx.fillStyle = bodyGrad;
+        ctx.beginPath();
+        ctx.ellipse(0, 2, 54, 42, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 淺黃綠色肚皮
+        ctx.fillStyle = '#dcfce7';
+        ctx.beginPath();
+        ctx.ellipse(0, 14, 34, 24, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 可愛腮紅（咀嚼時更明顯）
+        ctx.fillStyle = this.chewTimer > 0 ? 'rgba(251, 113, 133, 0.65)' : 'rgba(251, 113, 133, 0.38)';
+        ctx.beginPath();
+        ctx.ellipse(-34, -4, 9, 5.5, 0, 0, Math.PI * 2);
+        ctx.ellipse(34, -4, 9, 5.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. 嘴巴狀態
+        if (this.tongueState !== 'IDLE') {
+          // 張大嘴巴射出舌頭
+          ctx.fillStyle = '#881337';
+          ctx.beginPath();
+          ctx.ellipse(0, -14, 22, 15, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#be123c';
+          ctx.beginPath();
+          ctx.ellipse(0, -10, 15, 8, 0, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (this.stunTimer > 0) {
+          // 暈眩波浪嘴
+          ctx.strokeStyle = '#14532d';
+          ctx.lineWidth = 3.5;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(-14, -12);
+          ctx.quadraticCurveTo(-7, -18, 0, -12);
+          ctx.quadraticCurveTo(7, -6, 14, -12);
+          ctx.stroke();
+        } else {
+          // 微笑閉嘴
+          ctx.strokeStyle = '#14532d';
+          ctx.lineWidth = 3.5;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.arc(0, -18, 22, 0.2 * Math.PI, 0.8 * Math.PI);
+          ctx.stroke();
+        }
+
+        // 5. 前腳掌
+        ctx.fillStyle = '#16a34a';
+        ctx.beginPath();
+        ctx.ellipse(-24, 28, 10, 7, 0.2, 0, Math.PI * 2);
+        ctx.ellipse(24, 28, 10, 7, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+
+        // 6. 頭頂雙眼（眼珠即時追蹤滑鼠指標）
+        const eyeOffsets = [-24, 24];
+        eyeOffsets.forEach((ox) => {
+          const ex = fx + ox;
+          const ey = fy - 38;
+
+          // 綠色眼眶突起
+          ctx.fillStyle = '#22c55e';
+          ctx.beginPath();
+          ctx.arc(ex, ey, 17, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 眼白
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(ex, ey, 13, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (this.stunTimer > 0) {
+            // 暈眩蚊香眼
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            for (let a = 0; a < Math.PI * 3.5; a += 0.3) {
+              const r = a * 0.95;
+              const px = ex + Math.cos(a + gameState.globalTime * 12) * r;
+              const py = ey + Math.sin(a + gameState.globalTime * 12) * r;
+              if (a === 0) ctx.moveTo(px, py);
+              else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+          } else {
+            // 計算眼珠追蹤游標的方向與偏移量
+            const angle = Math.atan2(pointer.y - ey, pointer.x - ex);
+            const dist = Math.min(5.2, Math.hypot(pointer.x - ex, pointer.y - ey) * 0.03);
+            const px = ex + Math.cos(angle) * dist;
+            const py = ey + Math.sin(angle) * dist;
+
+            // 黑色瞳孔
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(px, py, 6.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 眼睛高光亮點
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(px - 2, py - 2.2, 2.3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+
+        // 暈眩時頭頂旋轉小星星
+        if (this.stunTimer > 0) {
+          for (let s = 0; s < 3; s++) {
+            const starAngle = gameState.globalTime * 6 + (s * Math.PI * 2) / 3;
+            const sx = fx + Math.cos(starAngle) * 38;
+            const sy = fy - 62 + Math.sin(starAngle) * 10;
+            drawMiniStar(ctx, sx, sy, 6, '#facc15');
+          }
+        }
+
+        // 7. 繪製伸出的粉紅黏液舌頭
+        if (this.tongueState !== 'IDLE') {
+          const mouth = this.getMouthPos();
+
+          // 舌頭陰影
+          ctx.strokeStyle = 'rgba(136, 19, 55, 0.35)';
+          ctx.lineWidth = 13;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(mouth.x, mouth.y + 4);
+          ctx.lineTo(this.tongueX, this.tongueY + 4);
+          ctx.stroke();
+
+          // 舌頭主體（粉紅色漸層）
+          const tongueGrad = ctx.createLinearGradient(mouth.x, mouth.y, this.tongueX, this.tongueY);
+          tongueGrad.addColorStop(0, '#fb7185');
+          tongueGrad.addColorStop(1, '#f43f5e');
+
+          ctx.strokeStyle = tongueGrad;
+          ctx.lineWidth = 11;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(mouth.x, mouth.y);
+          ctx.lineTo(this.tongueX, this.tongueY);
+          ctx.stroke();
+
+          // 舌頭表面光澤線
+          ctx.strokeStyle = 'rgba(255, 228, 230, 0.65)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(mouth.x, mouth.y - 1.5);
+          ctx.lineTo(this.tongueX, this.tongueY - 1.5);
+          ctx.stroke();
+
+          // 黏液圓頭
+          ctx.fillStyle = '#f43f5e';
+          ctx.beginPath();
+          ctx.arc(this.tongueX, this.tongueY, 9.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffe4e6';
+          ctx.beginPath();
+          ctx.arc(this.tongueX - 2.5, this.tongueY - 2.5, 3.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // ----------------------------------------------------------------------------
+    // 6. 幾何工具與場景繪製函式
+    // ----------------------------------------------------------------------------
+    function pointToSegmentDistance(px, py, x1, y1, x2, y2) {
+      const l2 = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+      if (l2 === 0) return Math.hypot(px - x1, py - y1);
+      let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
+    }
+
+    function drawMiniStar(ctx, cx, cy, radius, color) {
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const outerAngle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+        const innerAngle = outerAngle + Math.PI / 5;
+        const ox = cx + Math.cos(outerAngle) * radius;
+        const oy = cy + Math.sin(outerAngle) * radius;
+        const ix = cx + Math.cos(innerAngle) * (radius * 0.45);
+        const iy = cy + Math.sin(innerAngle) * (radius * 0.45);
+        if (i === 0) ctx.moveTo(ox, oy);
+        else ctx.lineTo(ox, oy);
+        ctx.lineTo(ix, iy);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 繪製帶有缺口與葉脈的荷葉
+    function drawLilyPad(ctx, x, y, rx, ry, notchAngle = 0.3, hasFlower = false) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      // 水面陰影
+      ctx.fillStyle = 'rgba(4, 24, 32, 0.38)';
+      ctx.beginPath();
+      ctx.ellipse(0, 7, rx * 1.02, ry * 1.02, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 荷葉主體（帶 V 型缺口）
+      const padGrad = ctx.createRadialGradient(-rx * 0.2, -ry * 0.2, rx * 0.1, 0, 0, rx);
+      padGrad.addColorStop(0, '#4ade80');
+      padGrad.addColorStop(0.65, '#16a34a');
+      padGrad.addColorStop(1, '#14532d');
+
+      ctx.fillStyle = padGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.ellipse(0, 0, rx, ry, 0, notchAngle + 0.18, notchAngle + Math.PI * 2 - 0.18);
+      ctx.closePath();
+      ctx.fill();
+
+      // 荷葉亮邊
+      ctx.strokeStyle = 'rgba(134, 239, 172, 0.45)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 放射狀葉脈
+      ctx.strokeStyle = 'rgba(20, 83, 45, 0.45)';
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < 7; i++) {
+        const a = notchAngle + 0.5 + i * 0.8;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * rx * 0.82, Math.sin(a) * ry * 0.82);
+        ctx.stroke();
+      }
+
+      // 裝飾小蓮花
+      if (hasFlower) {
+        const fx = -rx * 0.25;
+        const fy = -ry * 0.15;
+        for (let p = 0; p < 8; p++) {
+          const pa = (p * Math.PI * 2) / 8;
+          ctx.save();
+          ctx.translate(fx, fy);
+          ctx.rotate(pa);
+          ctx.fillStyle = p % 2 === 0 ? '#fbcfe8' : '#f472b6';
+          ctx.beginPath();
+          ctx.ellipse(8, 0, 8, 3.5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.fillStyle = '#fde047';
+        ctx.beginPath();
+        ctx.arc(fx, fy, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    // 繪製池塘背景、波光、裝飾荷葉、微光粒子與左右蘆葦剪影
+    function drawPondEnvironment(ctx, w, h, time, fireflies) {
+      // 1. 深邃池塘漸層水面
+      const waterGrad = ctx.createRadialGradient(w * 0.5, h * 0.35, 40, w * 0.5, h * 0.5, Math.max(w, h) * 0.85);
+      waterGrad.addColorStop(0, '#1d6373');
+      waterGrad.addColorStop(0.55, '#134654');
+      waterGrad.addColorStop(1, '#092631');
+      ctx.fillStyle = waterGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // 2. 動態水面波光線條
+      ctx.save();
+      ctx.strokeStyle = 'rgba(125, 211, 252, 0.08)';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 6; i++) {
+        const yBase = (h * 0.15) + i * (h * 0.13);
+        ctx.beginPath();
+        for (let x = 0; x <= w; x += 60) {
+          const waveY = yBase + Math.sin(x * 0.008 + time * 1.4 + i) * 10;
+          if (x === 0) ctx.moveTo(x, waveY);
+          else ctx.lineTo(x, waveY);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 3. 左右兩側裝飾浮水荷葉
+      const leftBob = Math.sin(time * 1.8) * 3;
+      const rightBob = Math.cos(time * 1.6) * 3;
+      drawLilyPad(ctx, w * 0.13, h - 55 + leftBob, Math.min(72, w * 0.12), 28, -0.4, true);
+      drawLilyPad(ctx, w * 0.87, h - 62 + rightBob, Math.min(78, w * 0.13), 30, 2.5, false);
+      if (w > 640) {
+        drawLilyPad(ctx, w * 0.26, h - 25 - leftBob, 46, 18, 1.1, false);
+        drawLilyPad(ctx, w * 0.74, h - 28 - rightBob, 50, 20, -1.2, true);
+      }
+
+      // 4. 漂浮微光螢火蟲粒子
+      fireflies.forEach((f) => {
+        const fx = (f.x * w + Math.sin(time * f.speed + f.phase) * 28 + w) % w;
+        const fy = (f.y * h + Math.cos(time * f.speed * 0.8 + f.phase) * 20 + h) % h;
+        const glow = 0.35 + 0.45 * Math.sin(time * 3 + f.phase);
+
+        ctx.save();
+        ctx.fillStyle = `rgba(254, 240, 138, ${glow.toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(fx, fy, f.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // 5. 畫面邊緣蘆葦草剪影（隨微風輕輕擺動）
+      drawReeds(ctx, 0, h, 1, time);
+      drawReeds(ctx, w, h, -1, time);
+    }
+
+    function drawReeds(ctx, edgeX, h, dir, time) {
+      ctx.save();
+      ctx.fillStyle = '#061d26';
+      ctx.strokeStyle = '#061d26';
+
+      const stalks = [
+        { offsetX: 14, height: 185, sway: 8, hasCattail: true },
+        { offsetX: 34, height: 145, sway: 6, hasCattail: false },
+        { offsetX: 52, height: 210, sway: 10, hasCattail: true },
+        { offsetX: 72, height: 120, sway: 5, hasCattail: false }
+      ];
+
+      stalks.forEach((s, idx) => {
+        const baseX = edgeX + dir * s.offsetX;
+        const tipX = baseX + Math.sin(time * 1.5 + idx) * s.sway;
+        const tipY = h - s.height;
+
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(baseX, h);
+        ctx.quadraticCurveTo(baseX, h - s.height * 0.5, tipX, tipY);
+        ctx.stroke();
+
+        // 香蒲（水蠟燭）穗頭
+        if (s.hasCattail) {
+          ctx.fillStyle = '#1e1b18';
+          ctx.beginPath();
+          ctx.ellipse(tipX, tipY + 18, 5, 16, 0.05 * dir, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#061d26';
+        }
+      });
+
+      ctx.restore();
+    }
+
+    // 繪製瞄準虛線與滑鼠準星
+    function drawAimingReticle(ctx, frog, pointer, time) {
+      if (gameState.status !== 'PLAYING') return;
+
+      const mouth = frog.getMouthPos();
+      const targetY = Math.min(pointer.y, mouth.y - 25);
+      const targetX = pointer.x;
+
+      ctx.save();
+
+      // 1. 從青蛙嘴巴連到準星的細微虛線
+      ctx.strokeStyle = frog.stunTimer > 0
+        ? 'rgba(248, 113, 113, 0.35)'
+        : 'rgba(167, 243, 208, 0.32)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 8]);
+      ctx.lineDashOffset = -time * 40;
+      ctx.beginPath();
+      ctx.moveTo(mouth.x, mouth.y);
+      ctx.lineTo(targetX, targetY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 2. 目標位置精緻準星
+      const pulse = 1 + Math.sin(time * 8) * 0.08;
+      ctx.translate(targetX, targetY);
+      ctx.scale(pulse, pulse);
+
+      const mainColor = frog.stunTimer > 0 ? '#f87171' : '#6ee7b7';
+      ctx.strokeStyle = mainColor;
+      ctx.lineWidth = 2.2;
+
+      // 外圈
+      ctx.beginPath();
+      ctx.arc(0, 0, 16, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 十字刻度
+      const tickInner = 7;
+      const tickOuter = 21;
+      ctx.beginPath();
+      ctx.moveTo(-tickOuter, 0); ctx.lineTo(-tickInner, 0);
+      ctx.moveTo(tickInner, 0); ctx.lineTo(tickOuter, 0);
+      ctx.moveTo(0, -tickOuter); ctx.lineTo(0, -tickInner);
+      ctx.moveTo(0, tickInner); ctx.lineTo(0, tickOuter);
+      ctx.stroke();
+
+      // 中心瞄準紅點
+      ctx.fillStyle = frog.stunTimer > 0 ? '#ef4444' : '#fb7185';
+      ctx.beginPath();
+      ctx.arc(0, 0, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // ----------------------------------------------------------------------------
+    // 7. 遊戲實體管理與核心邏輯
+    // ----------------------------------------------------------------------------
+    const frog = new Frog();
+    let bugs = [];
+    let ripples = [];
+    let particles = [];
+    let floatingTexts = [];
+
+    // 預先產生池塘微光螢火蟲粒子
+    const fireflies = Array.from({ length: 18 }, () => ({
+      x: Math.random(),
+      y: Math.random() * 0.85,
+      size: 1.5 + Math.random() * 2.2,
+      speed: 0.4 + Math.random() * 0.6,
+      phase: Math.random() * Math.PI * 2
+    }));
+
+    function spawnBurstParticles(x, y, color, count = 12) {
+      for (let i = 0; i < count; i++) {
+        particles.push(new Particle(x, y, color, 50, 190, 4.2, 0.55));
+      }
+    }
+
+    function spawnBug() {
+      // 計算目前場上虎頭蜂數量，避免同時過多影響遊戲體驗
+      const hornetCount = bugs.filter(b => b.type === 'hornet').length;
+      const goldenCount = bugs.filter(b => b.type === 'golden').length;
+
+      const roll = Math.random();
+      let type = 'fly';
+
+      if (roll < 0.08 && goldenCount === 0) {
+        type = 'golden';
+      } else if (roll < 0.27 && hornetCount < 3) {
+        type = 'hornet';
+      } else if (roll < 0.54) {
+        type = 'dragonfly';
+      } else {
+        type = 'fly';
+      }
+
+      bugs.push(new Bug(type, gameState.width, gameState.height));
+    }
+
+    // 結算舌頭縮回時的捕捉結果
+    function handleResolveCatch(caughtList) {
+      if (caughtList.length === 0) {
+        // 空發重置連擊
+        if (gameState.combo > 0) {
+          gameState.combo = 0;
+          updateHudUI();
+        }
+        return;
+      }
+
+      const mouth = frog.getMouthPos();
+      gameState.combo += 1;
+      gameState.maxCombo = Math.max(gameState.maxCombo, gameState.combo);
+      gameState.bugsCaught += caughtList.length;
+
+      // 連擊倍率：每連擊 +0.2 倍，最高 x3.0
+      const multiplier = 1 + Math.min(gameState.combo - 1, 10) * 0.2;
+
+      let baseSum = 0;
+      let bonusTimeSum = 0;
+      let hasGolden = false;
+
+      caughtList.forEach((bug) => {
+        baseSum += bug.points;
+        bonusTimeSum += bug.bonusTime;
+        if (bug.type === 'golden') hasGolden = true;
+      });
+
+      // 多重捕捉（一箭雙鵰 / 三連抓）額外加分
+      const multiBonus = caughtList.length > 1 ? (caughtList.length - 1) * 15 : 0;
+      const totalEarned = Math.round((baseSum + multiBonus) * multiplier);
+
+      gameState.score += totalEarned;
+      if (bonusTimeSum > 0) {
+        gameState.timeLeft = Math.min(99, gameState.timeLeft + bonusTimeSum);
+      }
+
+      // 播放對應音效
+      if (hasGolden) {
+        sound.playGolden();
+      } else if (caughtList.length >= 2) {
+        sound.playMultiCatch(caughtList.length);
+      } else {
+        sound.playCatch(gameState.combo);
+      }
+
+      // 產生慶祝粒子與水波紋
+      ripples.push(new WaterRipple(frog.x, frog.y + 34, 155, 75, 0.45));
+      spawnBurstParticles(mouth.x, mouth.y - 12, hasGolden ? '#fde047' : '#6ee7b7', 14);
+
+      // 飄浮得分文字
+      floatingTexts.push(new FloatingText(
+        mouth.x,
+        mouth.y - 38,
+        `+${totalEarned}`,
+        hasGolden ? '#fde047' : '#a7f3d0',
+        caughtList.length >= 2 ? 1.25 : 1.05
+      ));
+
+      if (bonusTimeSum > 0) {
+        floatingTexts.push(new FloatingText(
+          mouth.x + 48,
+          mouth.y - 64,
+          `+${bonusTimeSum}秒!`,
+          '#fef08a',
+          1.15
+        ));
+      }
+
+      // 多重捕捉特寫文字
+      if (caughtList.length >= 2) {
+        const labels = ['', '', '雙殺！', '三連抓！', '四連絕殺！'];
+        const label = labels[Math.min(caughtList.length, 4)] || `${caughtList.length}連抓！`;
+        floatingTexts.push(new FloatingText(
+          mouth.x,
+          mouth.y - 74,
+          label,
+          '#fb923c',
+          1.35
+        ));
+      }
+
+      // 從場上移除已吞下的昆蟲
+      bugs = bugs.filter(b => !b.caught);
+      updateHudUI();
+    }
+
+    // 處理誤抓虎頭蜂的螫傷事件
+    function handleHornetSting(hornet) {
+      sound.playSting();
+
+      // 扣 15 分（最低 0 分）並中斷連擊
+      gameState.score = Math.max(0, gameState.score - 15);
+      gameState.combo = 0;
+
+      // 畫面震動與電流粒子
+      gameState.shakeTime = 0.35;
+      gameState.shakeIntensity = 10;
+      spawnBurstParticles(hornet.x, hornet.y, '#ef4444', 18);
+      spawnBurstParticles(hornet.x, hornet.y, '#facc15', 12);
+
+      floatingTexts.push(new FloatingText(
+        hornet.x,
+        hornet.y - 15,
+        '-15 螫傷暈眩!',
+        '#f87171',
+        1.2
+      ));
+
+      // 移除該虎頭蜂
+      bugs = bugs.filter(b => b !== hornet);
+      updateHudUI();
+    }
+
+    // 更新頂部 HUD 介面顯示
+    function updateHudUI() {
+      scoreDisplay.textContent = gameState.score;
+
+      if (gameState.combo >= 2) {
+        const mult = (1 + Math.min(gameState.combo - 1, 10) * 0.2).toFixed(1);
+        comboDisplay.textContent = `${gameState.combo}連擊 (x${mult})`;
+        comboBadge.classList.remove('opacity-0', 'scale-90');
+        comboBadge.classList.add('opacity-100', 'scale-100');
+      } else {
+        comboBadge.classList.add('opacity-0', 'scale-90');
+        comboBadge.classList.remove('opacity-100', 'scale-100');
+      }
+
+      const ceilSec = Math.ceil(gameState.timeLeft);
+      timerDisplay.textContent = Math.max(0, ceilSec);
+
+      if (ceilSec <= 10 && ceilSec > 0) {
+        timerDisplay.classList.add('timer-urgent');
+      } else {
+        timerDisplay.classList.remove('timer-urgent');
+      }
+    }
+
+    // ----------------------------------------------------------------------------
+    // 8. 遊戲流程控制（開始、結束、重新遊玩）
+    // ----------------------------------------------------------------------------
+    function startGame() {
+      sound.init();
+      sound.playStart();
+
+      gameState.status = 'PLAYING';
+      gameState.score = 0;
+      gameState.combo = 0;
+      gameState.maxCombo = 0;
+      gameState.bugsCaught = 0;
+      gameState.timeLeft = INITIAL_TIME;
+      gameState.lastIntegerSecond = INITIAL_TIME;
+      gameState.shakeTime = 0;
+
+      bugs = [];
+      ripples = [];
+      particles = [];
+      floatingTexts = [];
+      frog.reset();
+
+      // 初始生成一批昆蟲
+      for (let i = 0; i < TARGET_BUG_COUNT; i++) {
+        spawnBug();
+      }
+
+      startOverlay.classList.add('hidden');
+      gameOverOverlay.classList.add('hidden');
+      hudBar.classList.remove('hidden');
+      canvas.classList.add('playing-cursor');
+
+      updateHudUI();
+    }
+
+    function endGame() {
+      gameState.status = 'GAMEOVER';
+      sound.playGameOver();
+
+      hudBar.classList.add('hidden');
+      canvas.classList.remove('playing-cursor');
+      timerDisplay.classList.remove('timer-urgent');
+
+      // 檢查並更新最高紀錄
+      let isNewRecord = false;
+      if (gameState.score > gameState.highScore) {
+        gameState.highScore = gameState.score;
+        localStorage.setItem(STORAGE_KEY, String(gameState.highScore));
+        isNewRecord = true;
+      }
+
+      finalScoreDisplay.textContent = gameState.score;
+      finalBugsDisplay.textContent = gameState.bugsCaught;
+      finalMaxComboDisplay.textContent = gameState.maxCombo;
+      finalHighScoreDisplay.textContent = gameState.highScore;
+      startHighScore.textContent = gameState.highScore;
+
+      if (isNewRecord && gameState.score > 0) {
+        newRecordBanner.classList.remove('hidden');
+      } else {
+        newRecordBanner.classList.add('hidden');
+      }
+
+      gameOverOverlay.classList.remove('hidden');
+    }
+
+    // ----------------------------------------------------------------------------
+    // 9. 響應式視窗縮放與輸入事件監聽（滑鼠 + 觸控）
+    // ----------------------------------------------------------------------------
+    function handleResize() {
+      gameState.width = window.innerWidth;
+      gameState.height = window.innerHeight;
+      gameState.dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = Math.floor(gameState.width * gameState.dpr);
+      canvas.height = Math.floor(gameState.height * gameState.dpr);
+      ctx.setTransform(gameState.dpr, 0, 0, gameState.dpr, 0, 0);
+
+      frog.resize(gameState.width, gameState.height);
+    }
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    // 滑鼠移動追蹤
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      gameState.pointer.x = e.clientX - rect.left;
+      gameState.pointer.y = e.clientY - rect.top;
+      gameState.pointer.active = true;
+    });
+
+    // 滑鼠左鍵點擊射出舌頭
+    canvas.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      gameState.pointer.x = x;
+      gameState.pointer.y = y;
+
+      if (gameState.status === 'PLAYING') {
+        ripples.push(new WaterRipple(x, y, 48, 85, 0.35));
+        frog.shoot(x, y);
+      }
+    });
+
+    // 觸控移動與點擊支援（手機 / 平板）
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (e.touches.length > 0) {
+        const rect = canvas.getBoundingClientRect();
+        gameState.pointer.x = e.touches[0].clientX - rect.left;
+        gameState.pointer.y = e.touches[0].clientY - rect.top;
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (e.touches.length > 0) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.touches[0].clientX - rect.left;
+        const y = e.touches[0].clientY - rect.top;
+        gameState.pointer.x = x;
+        gameState.pointer.y = y;
+
+        if (gameState.status === 'PLAYING') {
+          ripples.push(new WaterRipple(x, y, 48, 85, 0.35));
+          frog.shoot(x, y);
+        }
+      }
+    }, { passive: false });
+
+    // 按鈕事件綁定
+    startGameBtn.addEventListener('click', startGame);
+    restartGameBtn.addEventListener('click', startGame);
+
+    soundToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isMuted = sound.toggleMute();
+      if (isMuted) {
+        soundOnIcon.classList.add('hidden');
+        soundOffIcon.classList.remove('hidden');
+      } else {
+        soundOnIcon.classList.remove('hidden');
+        soundOffIcon.classList.add('hidden');
+        sound.playCatch(1);
+      }
+    });
+
+    // ----------------------------------------------------------------------------
+    // 10. 主動畫迴圈（60FPS deltaTime 時間步長）
+    // ----------------------------------------------------------------------------
+    let lastTimestamp = 0;
+    let ambientRippleTimer = 0;
+
+    function gameLoop(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      // 限制最大 deltaTime 為 0.05 秒，防止切換分頁回來時物件瞬移
+      const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+      lastTimestamp = timestamp;
+      gameState.globalTime += dt;
+
+      // 隨機產生池塘自然水波紋
+      ambientRippleTimer -= dt;
+      if (ambientRippleTimer <= 0) {
+        ambientRippleTimer = 0.9 + Math.random() * 1.4;
+        ripples.push(new WaterRipple(
+          60 + Math.random() * (gameState.width - 120),
+          100 + Math.random() * (gameState.height - 160),
+          65 + Math.random() * 45,
+          30,
+          0.25
+        ));
+      }
+
+      // 更新遊戲倒數計時與昆蟲生成
+      if (gameState.status === 'PLAYING') {
+        gameState.timeLeft -= dt;
+        const currentCeil = Math.ceil(gameState.timeLeft);
+
+        if (currentCeil !== gameState.lastIntegerSecond) {
+          gameState.lastIntegerSecond = currentCeil;
+          updateHudUI();
+
+          // 最後 5 秒倒數提示音
+          if (currentCeil <= 5 && currentCeil >= 1) {
+            sound.playTick(currentCeil === 1);
+          }
+        }
+
+        if (gameState.timeLeft <= 0) {
+          gameState.timeLeft = 0;
+          updateHudUI();
+          endGame();
+        }
+
+        // 補充場上昆蟲數量
+        gameState.spawnTimer -= dt;
+        if (bugs.length < TARGET_BUG_COUNT && gameState.spawnTimer <= 0) {
+          spawnBug();
+          gameState.spawnTimer = 0.25 + Math.random() * 0.45;
+        }
+      } else if (gameState.status === 'MENU') {
+        // 開始畫面背景也保持幾隻昆蟲悠閒飛舞，增添生機
+        if (bugs.length < 5) {
+          spawnBug();
+        }
+      }
+
+      // 更新螢幕震動衰減
+      if (gameState.shakeTime > 0) {
+        gameState.shakeTime = Math.max(0, gameState.shakeTime - dt);
+      }
+
+      // 更新所有動態實體
+      ripples = ripples.filter(r => r.update(dt));
+      bugs = bugs.filter(b => b.update(dt, gameState.width, gameState.height));
+      frog.update(dt, bugs, handleResolveCatch, handleHornetSting);
+      particles = particles.filter(p => p.update(dt));
+      floatingTexts = floatingTexts.filter(ft => ft.update(dt));
+
+      // ---------------- 畫面渲染管線 ----------------
+      ctx.save();
+
+      // 若處於被虎頭蜂螫到的震動狀態，套用畫面微震偏移
+      if (gameState.shakeTime > 0) {
+        const sx = (Math.random() - 0.5) * 2 * gameState.shakeIntensity;
+        const sy = (Math.random() - 0.5) * 2 * gameState.shakeIntensity;
+        ctx.translate(sx, sy);
+      }
+
+      // 1. 池塘背景與環境生態
+      drawPondEnvironment(ctx, gameState.width, gameState.height, gameState.globalTime, fireflies);
+
+      // 2. 水波紋
+      ripples.forEach(r => r.draw(ctx));
+
+      // 3. 瞄準線與準星
+      drawAimingReticle(ctx, frog, gameState.pointer, gameState.globalTime);
+
+      // 4. 飛行中的昆蟲（未被舌頭黏住的先畫）
+      bugs.forEach(b => {
+        if (!b.caught) b.draw(ctx);
+      });
+
+      // 5. 青蛙與伸出的舌頭
+      frog.draw(ctx, gameState.pointer);
+
+      // 6. 被舌頭黏住拉回中的昆蟲（畫在舌頭上方確保可見）
+      bugs.forEach(b => {
+        if (b.caught) b.draw(ctx);
+      });
+
+      // 7. 特效粒子與飄浮得分數字
+      particles.forEach(p => p.draw(ctx));
+      floatingTexts.forEach(ft => ft.draw(ctx));
+
+      ctx.restore();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 視窗載入完成後啟動主遊戲迴圈
+    window.onload = function () {
+      requestAnimationFrame(gameLoop);
+    };
+  </script>
+</body>
+</html>
